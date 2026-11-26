@@ -1,11 +1,12 @@
-// THE HUM · boot + main loop (milestone 1: one test room).
+// THE HUM · boot + main loop (milestone 2: test room populated from content JSON).
 import * as THREE from 'three';
 import content from 'virtual:content';
-import { PS1Renderer, shared, MAX_LIGHTS } from './render/ps1.js';
+import { PS1Renderer, shared } from './render/ps1.js';
 import { TextureBank } from './core/textures.js';
 import { Input } from './core/input.js';
 import { Diagnostics } from './core/diagnostics.js';
-import { buildRoom } from './world/roomBuilder.js';
+import { World } from './world/world.js';
+import { hash } from './core/rng.js';
 import { Player } from './player/player.js';
 import { Synth } from './audio/synth.js';
 
@@ -26,16 +27,21 @@ async function boot() {
   const textures = new TextureBank();
   await textures.preload();
 
-  const room = buildRoom(content.rooms.m1_test_hall, textures);
-  scene.add(room.group);
+  // Run seed: ?seed=<anything> in the URL, else random. (The VHS-label seed UI comes in M6.)
+  const seedParam = new URLSearchParams(location.search).get('seed');
+  const seed = seedParam ? hash(seedParam) : (Math.random() * 2 ** 32) >>> 0;
 
   const input = new Input(canvas, cfg.keys);
   const synth = new Synth();
+  const world = new World({ content, textures, scene, audio: synth, seed });
+  const placed = world.addRoom('m1_test_hall', { x: 0, z: 0 });
+  const room = placed.built;
   const player = new Player(cfg.player, camera);
   player.pos.copy(room.spawn);
   player.yaw = room.spawnYaw;
   player.onStep = (k) => synth.footstep(k);
   const diag = new Diagnostics();
+  if (__DEV__) window.__hum = { player, world, camera, synth, content }; // console poking in dev builds only
 
   // Placeholder title card (replaced by the CRT title in milestone 6).
   const title = document.createElement('div');
@@ -60,28 +66,6 @@ async function boot() {
     camera.updateProjectionMatrix();
   });
 
-  // Pick the nearest lights each frame and apply fluorescent flicker.
-  const tmp = [];
-  function updateLights(time) {
-    tmp.length = 0;
-    for (const L of room.lights) {
-      L.d = L.pos.distanceToSquared(camera.position);
-      tmp.push(L);
-    }
-    tmp.sort((a, b) => a.d - b.d);
-    const n = Math.min(MAX_LIGHTS, tmp.length);
-    for (let i = 0; i < n; i++) {
-      const L = tmp[i];
-      // mostly steady, with an occasional stutter seeded per fixture
-      const s = Math.sin(time * 7.3 + L.seed) * Math.sin(time * 1.7 + L.seed * 0.3);
-      const flick = s > 0.97 ? 0.25 : 1;
-      shared.uLightPos.value[i].copy(L.pos);
-      shared.uLightColor.value[i].setRGB(1.0 * flick, 0.92 * flick, 0.62 * flick);
-      shared.uLightRange.value[i] = 9;
-    }
-    shared.uLightCount.value = n;
-  }
-
   const clock = new THREE.Clock();
   const fwd = new THREE.Vector3();
   function frame() {
@@ -93,16 +77,21 @@ async function boot() {
         shared.uFlashOn.value = shared.uFlashOn.value ? 0 : 1;
         synth.click();
       }
-      player.update(dt, input, room);
+      player.update(dt, input, world);
     } else {
-      player.update(0, { held: () => false, lookDX: 0, lookDY: 0 }, room);
+      player.update(0, { held: () => false, lookDX: 0, lookDY: 0 }, world);
     }
     camera.getWorldDirection(fwd);
     shared.uFlashPos.value.copy(camera.position);
     shared.uFlashDir.value.copy(fwd);
-    updateLights(time);
+    world.update(dt, { camera, time });
     renderer.render(scene, camera, time);
-    diag.update(dt, { renderer, input, synth, player });
+    const look = world.objects.pick(camera, 3);
+    diag.update(dt, { renderer, input, synth, player, extra: [
+      `seed       ${seed}`,
+      `objects    ${world.objects.instances.length} (${world.colliders.length} solid, ${world.objects.lights.length} lit)`,
+      `looking at ${look ? look.inst.name + (look.inst.readable?.text ? ' — "' + look.inst.readable.text + '"' : '') : '-'}`,
+    ] });
     input.endFrame();
     requestAnimationFrame(frame);
   }

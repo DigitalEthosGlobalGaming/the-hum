@@ -22,7 +22,7 @@ export class Diagnostics {
 
   toggle() { this.visible = !this.visible; this.el.style.display = this.visible ? '' : 'none'; }
 
-  update(dt, { renderer, input, synth, player }) {
+  update(dt, { renderer, input, synth, player, extra = [] }) {
     this.frames++;
     this.acc += dt;
     if (this.acc < 0.5) return;
@@ -33,7 +33,7 @@ export class Diagnostics {
     const gl = renderer.renderer.getContext();
     const pl = input.pointerLock;
     this.el.textContent = [
-      'THE HUM · M1 smoke test (F3 hides)',
+      'THE HUM · dev diagnostics (F3 hides)',
       `fps        ${this.fps}`,
       `webgl      ${gl ? (gl instanceof WebGL2RenderingContext ? 'WebGL2' : 'WebGL1') : 'none'}`,
       `low-res    ${renderer.target.width}×${renderer.target.height}`,
@@ -43,6 +43,7 @@ export class Diagnostics {
       `audio      ${synth.state}`,
       `storage    ${this.storage}`,
       `pos        ${player.pos.x.toFixed(1)}, ${player.pos.z.toFixed(1)}`,
+      ...extra,
     ].join('\n');
   }
 }

@@ -1,6 +1,7 @@
 // Texture bank backed by the build-time base64 map. Nearest filtering, no mipmaps (PS1).
 import * as THREE from 'three';
 import sources from 'virtual:textures';
+import { makeProcTexture } from '../objects/procTextures.js';
 
 export class TextureBank {
   constructor() { this.cache = new Map(); }
@@ -32,6 +33,9 @@ export class TextureBank {
   }
 
   get(name) {
+    if (name.startsWith('proc:') && !this.cache.has(name)) {
+      this.cache.set(name, makeProcTexture(name.slice(5)));
+    }
     const t = this.cache.get(name);
     if (!t) throw new Error(`Texture "${name}" not loaded (is it in assets/textures?)`);
     return t;

@@ -79,6 +79,26 @@ export class Player {
           this.pos.z = pz + (ddz / d) * r;
         }
       }
+      // solid props (desks, chairs…): circle vs AABB push-out
+      for (const c of world.colliders ?? []) {
+        if (this.pos.x + r < c.minX || this.pos.x - r > c.maxX || this.pos.z + r < c.minZ || this.pos.z - r > c.maxZ) continue;
+        const px = Math.max(c.minX, Math.min(this.pos.x, c.maxX));
+        const pz = Math.max(c.minZ, Math.min(this.pos.z, c.maxZ));
+        const ddx = this.pos.x - px, ddz = this.pos.z - pz;
+        const d2 = ddx * ddx + ddz * ddz;
+        if (d2 >= r * r) continue;
+        if (d2 > 1e-8) {
+          const d = Math.sqrt(d2);
+          this.pos.x = px + (ddx / d) * r;
+          this.pos.z = pz + (ddz / d) * r;
+        } else {
+          // centre inside the box: push out along the shallowest axis
+          const outs = [[c.minX - r - this.pos.x, 0], [c.maxX + r - this.pos.x, 0], [0, c.minZ - r - this.pos.z], [0, c.maxZ + r - this.pos.z]];
+          outs.sort((a, b) => Math.abs(a[0] + a[1]) - Math.abs(b[0] + b[1]));
+          this.pos.x += outs[0][0];
+          this.pos.z += outs[0][1];
+        }
+      }
     }
   }
 }
