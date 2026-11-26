@@ -93,6 +93,8 @@ export function installDiegetic(game) {
   ev.on('ui:captionClear', (p) => dropCaption(p?.key));
   ev.on('game:resize', () => { vm.resize(); text.resize(); });
   // the hub: Esc pauses → the notebook opens at Settings; resuming closes it
+  // Esc with the case open just closes it (main asks via closeOverlay when the browser eats the key)
+  if (game.ui) game.ui.closeOverlay = () => { if (!S.pocketsWant) return false; S.pocketsWant = false; return true; };
   ev.on('game:pause', () => { S.inspect = false; S.pocketsWant = false; menu.show('settings'); });
   ev.on('game:resume', () => menu.close());
   ev.on('settings:change', ({ key, value } = {}) => {
@@ -111,7 +113,7 @@ export function installDiegetic(game) {
   // Registered before main.js's own keydown handler, so a consumed key (Enter, Esc) stops there.
   addEventListener('keydown', (e) => {
     // Esc shuts the pocket case (with pointer lock the browser also drops the lock → main pauses)
-    if (S.pocketsWant && game.cfg.keys?.pause?.includes(e.code)) { S.pocketsWant = false; e.preventDefault(); e.stopImmediatePropagation(); return; }
+    if (S.pocketsWant && game.cfg.keys?.pause?.includes(e.code)) { S.pocketsWant = false; if (game.ui) game.ui.escClosedAt = performance.now(); e.preventDefault(); e.stopImmediatePropagation(); return; }
     if (menu.onKeyDown(e)) { e.preventDefault(); e.stopImmediatePropagation(); }
   });
   addEventListener('mousedown', (e) => { if (menu.onMouse('down', e)) e.preventDefault(); });
