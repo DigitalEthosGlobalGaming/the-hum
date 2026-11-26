@@ -455,3 +455,29 @@ export function pushByPlayer(b, p, pv, pm) {
   }
   return { dx: c.nx * corr * (1 - share), dz: c.nz * corr * (1 - share), speed: Math.max(0, into), nx: -c.nx, nz: -c.nz, px: c.px, pz: c.pz };
 }
+
+// ------------------------------------------------------------------ contacts
+
+/**
+ * Debounce for body-to-body contact reports (`prop:collide`). A pair reports when it first hits
+ * with at least `minSpeed`, then stays quiet while it keeps touching / re-hitting within `gap`
+ * seconds (every contact refreshes the pair's clock, so a grinding push reports once).
+ */
+export class ContactDebounce {
+  constructor({ gap = 0.5, minSpeed = 0.3 } = {}) {
+    this.gap = gap;
+    this.minSpeed = minSpeed;
+    this.last = new Map(); // "ka|kb" → time of the last contact
+  }
+  /** Contact between keys ka, kb at time t with relative speed. True if it should be reported. */
+  hit(ka, kb, speed, t) {
+    const key = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
+    const prev = this.last.get(key);
+    const fresh = prev == null || t - prev >= this.gap || t < prev;
+    if (speed < this.minSpeed) { if (!fresh) this.last.set(key, t); return false; }
+    this.last.set(key, t);
+    if (this.last.size > 256) this.prune(t);
+    return fresh;
+  }
+  prune(t) { for (const [k, v] of this.last) if (t - v >= this.gap || t < v) this.last.delete(k); }
+}

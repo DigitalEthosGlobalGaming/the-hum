@@ -60,6 +60,40 @@ Chance of an entry = `w / sum(w of eligible entries)`. `null` def = nothing spaw
 ## notes/*.json
 `{ id, title, text, spine?: n }`. Notes with `spine` (1..12, no gaps) are the story, always read in order
 (`note_spine` shows the next unread one). The rest are random fragments (`note_random`). Keep them short: 1–4 sentences.
+A fragment can also be placed by id (`readable.textId: "<note id>"`), e.g. `note_chair_wheel` → `frag_spinning_man`, the note a secret gives.
 
 ## sounds/*.json
 Procedural Web Audio presets referenced by `sound.preset`. Format documented in `src/audio/presets.md`.
+
+## secrets/*.json
+Discoverable interactions, written as data (runtime: `src/secrets/`, API `game.secrets`; see CONTRACTS.md).
+```json
+{ "id": "spinning_man", "title": "The spinning man", "hint": "Some chairs don't like each other.",
+  "order": 1, "once": true,
+  "trigger": { "event": "prop:collide", "where": { "a.id": "office_chair", "b.id": "office_chair", "speed": { "min": 1.1 } } },
+  "script": "secret_spinning_man", "params": { "note": "frag_spinning_man" } }
+```
+| field | notes |
+|---|---|
+| title | shown once found (the notebook shows "? ? ?" until then) |
+| hint? | optional cryptic line shown while unfound |
+| order? | list order (then id) |
+| once | `true`: fires at most once per run (found secrets stay found across runs, but replay their reward in a new run) |
+| trigger.event | a game event: `prop:collide`, `prop:topple`, `prop:carry`, `prop:shatter`, `item:pickup`/`drop`/`use`/`throw`/`combine`, `readable:open`, `note:collected`, `power:switch`/`fuse`/`tube`, `light:candle`, `light:timed`, `aura:start`, `camera:flash`, `world:noise`, `flashlight:change`, `phone:answer`, or `tick` (the secrets runtime polls 4×/s; use with `$hold`) |
+| trigger.where | the matcher, below. Every entry must pass |
+| script | an item script (`src/scripts/items/`), run with `self` = the event's subject (`a` / `inst`) and `params` = these params + `{ event, secretId }`. The secret is marked found when it returns ok |
+| params? | free data for the script |
+
+**Matcher** (`src/secrets/matcher.js`). A plain key is a dotted path into the event payload (`"a.id"`, `"inst.id"`, `"speed"`, `"on"`); its test is a value (equal), an array (any of) or `{ min, max, in, not, has, exists }`. Special keys:
+| key | test |
+|---|---|
+| `$light` | `{ min?, max? }` world light 0..1 at the event's position (else the player's); the torch doesn't count |
+| `$torch` | `true` / `false`: torch on / off |
+| `$room` | `{ tags?: [...], key? }` the room at the event's position (tags: any of) |
+| `$stage` | `{ min?, max? }` story stage: spine notes collected (or `game.stage` if set) |
+| `$held` | item id, array of ids, or `null` (empty hand) |
+| `$recent` | `{ event, within: s, where?, sameRoom? }` that event happened in the last `within` seconds (matching `where`; `sameRoom`: in the room you're standing in now) |
+| `$count` | `{ n, within: s }` the rest must match `n` times inside the window |
+| `$hold` | seconds: (on `tick`) the rest must stay true this long without a break |
+
+`npm run validate` checks the script exists, the event is known, and the special keys are well formed.

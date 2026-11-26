@@ -1,0 +1,16 @@
+{
+  "id": "wheel_clatter",
+  "note": "A plastic caster wheel snapping off and clattering on the floor: a snap, then a few quick hard ticks.",
+  "bus": "sfx",
+  "volume": 0.8,
+  "spatial": true,
+  "refDistance": 1.2,
+  "maxDistance": 22,
+  "reverb": 0.3,
+  "vary": {"pitch": 2, "gain": 2},
+  "layers": [
+    {"note": "snap", "osc": "square", "freq": 620, "gain": 0.12, "pitchEnv": {"to": 0.6, "time": 0.05}, "env": {"a": 0.001, "d": 0.06}},
+    {"note": "clack", "noise": "white", "gain": 0.35, "filter": {"type": "bandpass", "freq": 2400, "q": 2}, "env": {"a": 0.001, "d": 0.04}, "repeat": {"count": 4, "interval": 0.1, "jitter": 0.04}, "vary": {"gain": 4}},
+    {"note": "body", "noise": "brown", "gain": 0.25, "filter": {"type": "lowpass", "freq": 700, "q": 1}, "env": {"a": 0.001, "d": 0.08}}
+  ]
+}

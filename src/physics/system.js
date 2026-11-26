@@ -3,7 +3,7 @@
 // Created lazily by src/physics/hooks.js (physicsOf) the first time gameplay asks for it; lives on
 // world.physics and is registered with world.addSystem (update + room streaming hooks).
 import * as THREE from 'three';
-import { step, pushByPlayer, settleBody, impulse, wake, speedOf, collide } from './sim.js';
+import { step, pushByPlayer, settleBody, impulse, wake, speedOf, collide, ContactDebounce } from './sim.js';
 import { syncCollider, fitBody, localBounds } from './component.js';
 import { stableKeyOf, savePose, loadPose, rekeyPose } from './persist.js';
 import { physicsConfig } from './schema.js';
@@ -31,7 +31,12 @@ export class PhysicsSystem {
       impactNoise: c.impactNoiseSpeed ?? 1.2,
       rollNoiseEvery: c.rollNoiseEvery ?? 0.7,
       maxRollLoops: c.maxRollLoops ?? 3,
+      collideSpeed: c.collideSpeed ?? 0.3,  // prop:collide: minimum relative speed (m/s)
+      collideGap: c.collideGap ?? 0.5,      // prop:collide: per-pair debounce (s)
     };
+    this.contacts = new ContactDebounce({ gap: this.tun.collideGap, minSpeed: this.tun.collideSpeed });
+    this.spins = [];           // forced spins (spin()): { inst, w0, t, T, wobble }
+    this.tosses = [];          // kinematic arcs of body-less insts (toss())
     this.list = [];
     this.events = [];
     this.statics = [];
@@ -73,11 +78,13 @@ export class PhysicsSystem {
     const ev = this.events;
     ev.length = 0;
     const n = dt > 1 / 50 ? 2 : 1;
+    this.updateSpins(dt);
     for (let i = 0; i < n; i++) step(bodies, dt / n, env, ev);
     for (const b of bodies) if (!b.sleeping || b._dirty) { this.syncVisual(b.data); b._dirty = false; }
     for (const e of ev) this.onEvent(e);
     this.updateCarry(dt);
     this.updateTopples(dt);
+    this.updateTosses(dt);
     this.updateRolls(dt, ctx);
     this.updateAim();
     this.debug?.update(dt, this);
@@ -105,12 +112,19 @@ export class PhysicsSystem {
       if (P.topple && e.speed >= P.topple) this.startTopple(inst, -e.nx, -e.nz);
       const o = e.other?.data;
       if (o?.physics?.topple && e.speed >= o.physics.topple) this.startTopple(o, -e.nx, -e.nz);
+      if (o && e.with === 'body') this.bodyContact(inst, o, e);
     } else if (e.type === 'land') {
       if (P.shatter && e.speed >= P.shatter.speed) return this.shatter(inst);
       this.impactFx(inst, e.speed, e, P.sound.land ?? P.sound.impact);
     } else if (e.type === 'sleep') {
       this.settled(inst);
     }
+  }
+
+  /** Two props hit each other: `prop:collide { a, b, speed, pos }`, once per pair (debounced). */
+  bodyContact(a, b, e) {
+    if (!this.contacts.hit(a.uid, b.uid, e.speed, this.game.time ?? 0)) return;
+    this.game.events?.emit?.('prop:collide', { a, b, speed: e.speed, pos: { x: e.x, y: 0.3, z: e.z } });
   }
 
   impactFx(inst, speed, at, preset = inst.physics.sound.impact) {
@@ -454,6 +468,8 @@ export class PhysicsSystem {
   onRoomPlaced(placed) {
     for (const inst of placed.objects ?? []) {
       if (!inst.body) continue;
+      const broken = this.run.objState?.get(stableKeyOf(inst))?.broken;
+      if (broken && !inst.broken) this.slump(inst, broken);
       const pose = loadPose(this.poses, stableKeyOf(inst));
       if (!pose) continue;
       const r = inst.root;
@@ -584,6 +600,106 @@ export class PhysicsSystem {
     this.gp.removeInst(inst);
     if (P.shatter.into) this.gp.spawn(P.shatter.into, { x: b.x, y: 0, z: b.z }, Math.random() * Math.PI * 2, { persist: true });
     this.game.events.emit('prop:shatter', { id: inst.id, x: b.x, z: b.z });
+  }
+
+  // ------------------------------------------------------------------ scripted motion (secrets)
+
+  /**
+   * Spin a body hard for a while: angular speed `w` (rad/s) decaying over `seconds`, with a
+   * wobble that nudges it around its spot. The sim takes over afterwards.
+   */
+  spin(inst, { w = 16, seconds = 2, wobble = 0.35 } = {}) {
+    const b = inst?.body;
+    if (!b || b.carried) return false;
+    this.spins = this.spins.filter((s) => s.inst !== inst);
+    this.spins.push({ inst, w0: w, t: 0, T: seconds, wobble, ph: Math.random() * 6 });
+    wake(b);
+    b.moved = true;
+    return true;
+  }
+
+  updateSpins(dt) {
+    if (!this.spins.length) return;
+    for (const s of this.spins) {
+      const b = s.inst.body;
+      s.t += dt;
+      if (!b || b.removed || b.carried) { s.done = true; continue; }
+      const k = Math.max(0, 1 - s.t / s.T);
+      b.w = s.w0 * k * (0.85 + 0.15 * Math.sin(s.t * 23 + s.ph));
+      // the wobble: the base skitters in a small circle as it spins
+      const wob = s.wobble * k;
+      b.vx += Math.cos(s.t * 9 + s.ph) * wob * dt * 9;
+      b.vz += Math.sin(s.t * 9 + s.ph) * wob * dt * 9;
+      wake(b);
+      if (s.t >= s.T) s.done = true;
+    }
+    this.spins = this.spins.filter((s) => !s.done);
+  }
+
+  /**
+   * Fling something: a body is launched (airborne, it lands and rolls like a throw); a body-less
+   * inst (a paper) follows a kinematic arc to the floor and its placed record is updated.
+   * v = { vx, vy, vz, w? }
+   */
+  toss(inst, v = {}) {
+    if (!inst?.root) return false;
+    const b = inst.body;
+    if (b) {
+      b.vx = v.vx ?? 0; b.vz = v.vz ?? 0; b.vy = v.vy ?? 0;
+      b.w = v.w ?? 0;
+      b.airborne = b.vy > 0 || b.y > 0;
+      b.sleeping = false; b.sleepT = 0;
+      b.moved = true;
+      return true;
+    }
+    this.tosses.push({ inst, vx: v.vx ?? 0, vy: v.vy ?? 0, vz: v.vz ?? 0, w: v.w ?? 0 });
+    return true;
+  }
+
+  updateTosses(dt) {
+    if (!this.tosses.length) return;
+    for (const t of this.tosses) {
+      const r = t.inst.root;
+      if (!r || r.parent === null) { t.done = true; continue; } // removed from the scene
+      t.vy -= 9.8 * dt;
+      const nx = r.position.x + t.vx * dt, nz = r.position.z + t.vz * dt;
+      if (this.world.isSolidAt(nx, nz)) { t.vx *= -0.3; t.vz *= -0.3; }
+      else { r.position.x = nx; r.position.z = nz; }
+      r.position.y = Math.max(0, r.position.y + t.vy * dt);
+      r.rotation.y += t.w * dt;
+      t.w *= Math.exp(-3 * dt);
+      if (r.position.y <= 0 && t.vy < 0) {
+        r.position.y = 0;
+        t.done = true;
+        const pe = t.inst.meta?.placedKey ? this.run.placed.get(t.inst.meta.placedKey) : null;
+        if (pe) { pe.pos = [r.position.x, 0, r.position.z]; pe.rotY = r.rotation.y; }
+        const room = this.world.roomAt(r.position.x, r.position.z);
+        if (pe && room && room.key !== pe.roomKey) pe.roomKey = room.key;
+      }
+      t.inst.center?.set?.(r.position.x, r.position.y + 0.05, r.position.z);
+      r.updateMatrixWorld?.(true);
+    }
+    this.tosses = this.tosses.filter((t) => !t.done);
+  }
+
+  /**
+   * Mark a prop broken (a wheel came off): it slumps `angle` rad toward side `dir` ('+x'|'-x'|'+z'|'-z').
+   * Kept in its per-run state (gameplay.stateOf → objState) and its saved pose.
+   */
+  breakProp(inst, { dir = '+x', angle = 0.16 } = {}) {
+    if (!inst?.root) return false;
+    const broken = { dir, angle };
+    const st = this.gp.stateOf(inst);
+    if (st) st.broken = broken;
+    this.slump(inst, broken);
+    if (inst.body) { inst.body.moved = true; this.persist(inst); }
+    return true;
+  }
+
+  slump(inst, { dir = '+x', angle = 0.16 } = {}) {
+    if (inst.toppled) return;
+    this.tilt(inst, dir, angle);
+    inst.broken = { dir, angle };
   }
 
   // ------------------------------------------------------------------ rolling loops

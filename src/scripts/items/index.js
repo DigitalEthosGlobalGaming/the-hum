@@ -17,6 +17,10 @@ import match_strike from './match_strike.js';
 import music_box_wind from './music_box_wind.js';
 import phone_answer from './phone_answer.js';
 import read_held_note from './read_held_note.js';
+import secret_dark_caller from './secret_dark_caller.js';
+import secret_lights_out from './secret_lights_out.js';
+import secret_spinning_man from './secret_spinning_man.js';
+import secret_strike from './secret_strike.js';
 import string_end_take from './string_end_take.js';
 import string_use from './string_use.js';
 import tape_load_blank from './tape_load_blank.js';
@@ -44,6 +48,10 @@ export default [
   music_box_wind,
   phone_answer,
   read_held_note,
+  secret_dark_caller,
+  secret_lights_out,
+  secret_spinning_man,
+  secret_strike,
   string_end_take,
   string_use,
   tape_load_blank,

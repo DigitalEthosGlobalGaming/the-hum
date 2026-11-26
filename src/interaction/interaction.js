@@ -143,8 +143,8 @@ export function dropHeld(gp) {
   if (!held) return false;
   const p = gp.dropPoint();
   inv.remove(inv.indexOf(held));
-  gp.spawn(held.id, p, gp.game.player.yaw, { persist: true, state: held.state });
-  gp.game.events.emit('item:drop', { id: held.id, stack: held });
+  const inst = gp.spawn(held.id, p, gp.game.player.yaw, { persist: true, state: held.state });
+  gp.game.events.emit('item:drop', { id: held.id, stack: held, inst }); // inst: the dropped world object
   return true;
 }
 

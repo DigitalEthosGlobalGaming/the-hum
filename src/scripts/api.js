@@ -7,6 +7,7 @@
 import { Rng, hash } from '../core/rng.js';
 import { getScript } from './registry.js';
 import { yawFacing } from '../gameplay/placement.js';
+import { physicsOf } from '../physics/hooks.js';
 
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
@@ -96,6 +97,24 @@ export function makeCtx(gp, { self = null, other = null, params = {}, scriptId =
       noise: (pos, loudness, source = ctx.scriptId) => game.world.noise?.(pos, loudness, source) ?? null,
       /** Layout depth (blocks from the origin) at a point, for depth-gated pools. */
       depthAt: (x, z) => game.world.roomAt?.(x, z)?.depth ?? 0,
+      /** How lit a point is by world lights, 0..1 (not the torch). 1 when there is no light model. */
+      lightAt: (pos) => game.world.lightAt?.(pos) ?? 1,
+    },
+
+    /** Scripted prop motion (src/physics/system.js); every call is a no-op without physics. */
+    physics: {
+      /** Spin a prop hard: { w rad/s, seconds, wobble }. */
+      spin: (inst, opts) => physicsOf(gp)?.spin?.(inst, opts) ?? false,
+      /** Fling a prop or a paper: { vx, vy, vz, w }. Bodies fly and roll; papers arc to the floor. */
+      toss: (inst, v) => physicsOf(gp)?.toss?.(inst, v) ?? false,
+      /** A prop lost a part: it slumps toward `dir` ('+x'|'-x'|'+z'|'-z') by `angle` rad, kept per run. */
+      breakProp: (inst, opts) => physicsOf(gp)?.breakProp?.(inst, opts) ?? false,
+    },
+
+    /** Secrets (src/secrets): found state is per run + remembered across runs. */
+    secrets: {
+      markFound: (id) => game.secrets?.markFound(id) ?? false,
+      isFound: (id) => !!game.secrets?.list().find((s) => s.id === id)?.found,
     },
 
     sound: {

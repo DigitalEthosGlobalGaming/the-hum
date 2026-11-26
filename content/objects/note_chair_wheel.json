@@ -1,0 +1,27 @@
+{
+  "id": "note_chair_wheel",
+  "name": "Folded note",
+  "mesh": {
+    "type": "plane",
+    "size": [
+      0.12,
+      0.09
+    ],
+    "texture": "proc:paper",
+    "flat": true
+  },
+  "components": {
+    "readable": {
+      "textId": "frag_spinning_man",
+      "display": "notebook"
+    },
+    "pickup": {},
+    "use": {
+      "script": "read_held_note",
+      "consume": false
+    }
+  },
+  "tags": [
+    "note"
+  ]
+}

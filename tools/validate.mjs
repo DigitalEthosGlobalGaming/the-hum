@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import { loadContent, listTextures, walk, SCRIPT_DIR } from './lib/loadContent.mjs';
 import { validatePhysics } from '../src/physics/schema.js';
+import { validateSecret } from '../src/secrets/schema.js';
 
 export const CELL = 2;        // metres per layout cell (src/world/roomBuilder.js)
 export const WALL_H = 3;
@@ -393,6 +394,19 @@ export function validateContent(content, { textures, scripts, sources = {} } = {
       if (typeof t !== 'string' || !t.trim()) err(w(`lines[${i}]`), 'must be a non-empty string');
       else if (t.length > 200) warn(w(`lines[${i}]`), `is ${t.length} chars; keep lines short`);
     });
+  }
+
+  // ---------- secrets ----------
+  // content/secrets/*.json: { id, title, hint?, order?, once, trigger: { event, where }, script, params? }
+  // (src/secrets; the matcher is documented in content/README.md). The script must be a registered
+  // item script and the trigger event a known one.
+  for (const [id, sdef] of Object.entries(content.secrets ?? {})) {
+    const w = (f) => where('secrets', id, f);
+    idMatchesFile('secrets', id, sdef);
+    for (const r of validateSecret(sdef, { notes: content.notes, objects })) {
+      (r.level === 'error' ? err : warn)(w(r.field || undefined), r.msg);
+    }
+    useScript(sdef?.script, w('script'));
   }
 
   // ---------- cross-cutting ----------
