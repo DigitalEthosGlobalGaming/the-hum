@@ -9,6 +9,7 @@ import { World } from './world/world.js';
 import { hash } from './core/rng.js';
 import { Player } from './player/player.js';
 import { Synth } from './audio/synth.js';
+import { mountSoundBoard } from './audio/soundBoard.js';
 
 const cfg = content.config;
 const canvas = document.getElementById('game');
@@ -33,6 +34,7 @@ async function boot() {
 
   const input = new Input(canvas, cfg.keys);
   const synth = new Synth();
+  synth.loadPresets(content.sounds);
   const world = new World({ content, textures, scene, audio: synth, seed });
   const placed = world.addRoom('m1_test_hall', { x: 0, z: 0 });
   const room = placed.built;
@@ -41,6 +43,7 @@ async function boot() {
   player.yaw = room.spawnYaw;
   player.onStep = (k) => synth.footstep(k);
   const diag = new Diagnostics();
+  if (__DEV__) mountSoundBoard(synth, content.sounds);
   if (__DEV__) window.__hum = { player, world, camera, synth, content }; // console poking in dev builds only
 
   // Placeholder title card (replaced by the CRT title in milestone 6).
@@ -84,6 +87,7 @@ async function boot() {
     camera.getWorldDirection(fwd);
     shared.uFlashPos.value.copy(camera.position);
     shared.uFlashDir.value.copy(fwd);
+    synth.setListener(camera.position, fwd, camera.up);
     world.update(dt, { camera, time });
     renderer.render(scene, camera, time);
     const look = world.objects.pick(camera, 3);
