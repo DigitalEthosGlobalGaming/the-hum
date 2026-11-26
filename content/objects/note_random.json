@@ -15,6 +15,13 @@
       "textId": "random",
       "display": "notebook"
     },
-    "pickup": {}
-  }
+    "pickup": {},
+    "use": {
+      "script": "read_held_note",
+      "consume": false
+    }
+  },
+  "tags": [
+    "note"
+  ]
 }

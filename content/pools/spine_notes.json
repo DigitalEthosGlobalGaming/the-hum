@@ -1,0 +1,27 @@
+{
+  "id": "spine_notes",
+  "note": "Story pages. note_spine always shows the NEXT unread spine note (1..12), so read order is fixed no matter which page you find first. None before depth 1; more likely deeper.",
+  "entries": [
+    {
+      "def": "note_spine",
+      "w": 2,
+      "minDepth": 1,
+      "maxDepth": 3
+    },
+    {
+      "def": "note_spine",
+      "w": 4,
+      "minDepth": 4,
+      "maxDepth": 9
+    },
+    {
+      "def": "note_spine",
+      "w": 6,
+      "minDepth": 10
+    },
+    {
+      "def": null,
+      "w": 4
+    }
+  ]
+}
