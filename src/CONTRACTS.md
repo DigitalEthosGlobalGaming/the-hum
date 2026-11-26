@@ -58,9 +58,41 @@ is open, mouse look reads 0 and `use`/`drop`/`left`/`right` drive the pocket cur
     - `scriptState: {}`: per-run scratch shared by scripts (`ctx.state.run`).
 
 ### World extension points (feature systems)
-- `world.addSystem({ update?(dt, ctx, world), onRoomPlaced?(placed, world), onRoomDropped?(placed, world) })` — per-frame hook + room streaming hooks. `placed = { key, entry, json, built, origin, depth, objects }`.
+- `world.addSystem({ update?(dt, ctx, world), onRoomPlaced?(placed, world), onRoomDropped?(placed, world) })` — per-frame hook + room streaming hooks. `world.roomAt` already finds the room inside `onRoomPlaced`. `placed = { key, entry, json, built, origin, depth, objects }`.
 - `world.noise(pos, loudness, source)` — a sound others can hear; `loudness` ≈ hearing radius in metres (footstep 3–8, clatter 10, bell 18, boombox 25). Emits `world:noise` `{x,y,z,loudness,source,t}`; recent ones in `world.noises`. Footsteps already report.
 - `registerPrefabs(map)` (`src/objects/prefabs.js`) and `registerPainters(map)` (`src/objects/procTextures.js`) — add prefabs / `proc:` textures from your own module, imported for side effects in `src/extensions.js`.
+
+### Power network & light (`src/power/`, `world.power`)
+Light is safety: the Tenant avoids lit space, sanity recovers under working lights.
+- `world.lightAt(pos, { occlude = true }?) → 0..1`: how lit a point is from world lights (fixtures,
+  object `light` components, candles, timed lights) with the shader's falloff; walls occlude. Not the
+  flashlight (check `shared.uFlash*` / `world.power.flashOn(p)` for that). ≈0.7 under a working
+  tube, ≈0.25 at 5 m, < 0.1 in a dead patch. Vitals uses it (`vitals.lightThreshold` 0.18).
+- `world.auras → [{ id, pos, radius, kind: 'calm', until, follow?, roomKey? }]` (until = power-clock s);
+  `world.auraAt(pos, kind?)`. A wound music box makes a 5 m calm aura for 30 s: no sanity drain;
+  the Tenant should stay out.
+- **Fixtures**: `placed.built.lights[i]` = `{ pos, idx, cell, fixture ('light'|'dead'|'flicker' as
+  designed), cond ('on'|'flicker'|'dead'), circuit, out 0..1, color, range }`. Legend kinds `light`
+  (rolled), `deadlight` (core char `x`), `flickerlight` (core char `f`): all walkable floor.
+  Rolls are seeded per fixture with value-noise dark patches (`config.power`); rooms within
+  `safeDepth` blocks of the origin roll nothing. A room JSON may set `power: { dead, flicker }`.
+  The ceiling texture follows `out` through a per-vertex `aLit` attribute (one shared material).
+- **Circuits**: one per 8×8 block of a room, `{ powered, on }`. A room with an unpowered `fuse_box`
+  starts unpowered. Fuse in → all its circuits powered, every dead tube in the room and its
+  neighbours stutters on (~1 s). A wall switch toggles the room's circuits.
+- **Actions** (`getPower()` from `src/power/network.js`, or `world.power`): `fuseInserted(pos)`,
+  `toggleSwitch(pos, circuit?)`, `switchOn(pos)`, `installTube(lightFixtureInst)`,
+  `strikeMatch(pos, {duration, radius})`, `lightCandle(inst)`, `windMusicBox(state, inst|null, pos)`,
+  `expiresIn(sec)` (for `state.expiresAt` on placed timed objects), `timed.addLight/addAura`.
+- **Timed effects** run on the power clock: it only advances between `game:start` and `game:pause`
+  (resumes on `game:resume`). Anything placed with `state.expiresAt` is removed for good when due.
+- **Persistence**: `world.run.power = { clock, rooms: { [roomKey]: { circuits, fixtures, revive? } },
+  lights, auras, seq }` (plain JSON), restored in `onRoomPlaced`.
+- Each room may also get seeded extras (spot keys `<roomKey>/power_loot|power_switch|power_writing`):
+  a `power_room_loot` roll, a wall `light_switch`, `dark_writing`/`dark_arrow`. Chances in
+  `config.power` (`lootChance`, `switchChance`, `writingChance`; 0 turns one off).
+- Dead fixtures get an invisible `light_fixture` interactable just under the ceiling (E with a
+  `spare_tube` = install; `use` on a held tube also finds the fixture you look up at).
 
 ## Object instance (`inst`)
 `{ uid, id, def, name, root (THREE.Group), meta {roomKey, spotKey?}, state {}, interactive, center, radius, readable? }`
@@ -106,6 +138,13 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 | `ui:watchBeep` | `{ text? }` | anyone (M5 watch) |
 | `world:noise` | `{ x, y, z, loudness, source, t }` | world.noise() |
 | `flashlight:change` | `{ on, battery }` | M5 (on toggle, recharge, and when an LED goes out at 66/33/5 %) |
+| `power:fuse` | `{ roomKey, rooms: [roomKey], revived }` | power (a fuse went in; `rooms` = the room + neighbours) |
+| `power:switch` | `{ roomKey, on }` | power (wall switch flipped) |
+| `power:tube` | `{ roomKey, idx }` | power (spare tube installed in fixture `idx`) |
+| `light:timed` | `{ kind: 'match', light }` | power |
+| `light:candle` | `{ inst }` | power (a candle was lit) |
+| `light:expired` | `{ id }` | power (a timed placed light, e.g. a glow marker, burned out) |
+| `aura:start` / `aura:end` | `{ aura }` | power (music box) |
 
 ## Item scripts (M4)
 `src/scripts/items/<id>.js` default-exports `{ id, run(ctx, params) }`, registered by listing it in

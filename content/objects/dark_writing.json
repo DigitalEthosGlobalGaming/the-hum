@@ -1,0 +1,17 @@
+{
+  "id": "dark_writing",
+  "name": "Writing",
+  "tags": [
+    "dark_writing",
+    "wall"
+  ],
+  "mesh": {
+    "type": "plane",
+    "size": [
+      1.4,
+      0.7
+    ],
+    "texture": "proc:glow_writing"
+  },
+  "components": {}
+}

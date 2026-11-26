@@ -1,0 +1,25 @@
+{
+  "id": "power_wall",
+  "entries": [
+    {
+      "def": "light_switch",
+      "w": 40
+    },
+    {
+      "def": "dark_writing",
+      "w": 20
+    },
+    {
+      "def": "dark_arrow",
+      "w": 15
+    },
+    {
+      "def": "fuse_box",
+      "w": 10
+    },
+    {
+      "def": null,
+      "w": 15
+    }
+  ]
+}

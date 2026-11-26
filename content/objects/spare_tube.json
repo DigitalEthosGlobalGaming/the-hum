@@ -1,0 +1,28 @@
+{
+  "id": "spare_tube",
+  "name": "Spare fluorescent tube",
+  "tags": [
+    "power",
+    "light"
+  ],
+  "mesh": {
+    "type": "box",
+    "size": [
+      0.06,
+      0.06,
+      0.62
+    ],
+    "texture": "proc:tube_box"
+  },
+  "components": {
+    "pickup": {
+      "size": 2
+    },
+    "use": {
+      "script": "tube_install",
+      "params": {
+        "reach": 2.6
+      }
+    }
+  }
+}

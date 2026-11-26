@@ -1,0 +1,19 @@
+{
+  "id": "light_switch",
+  "name": "Light switch",
+  "tags": [
+    "power",
+    "wall"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "light_switch"
+  },
+  "components": {
+    "interact": {
+      "verb": "flip",
+      "script": "light_switch",
+      "cooldown": 0.25
+    }
+  }
+}

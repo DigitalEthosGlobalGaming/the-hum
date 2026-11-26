@@ -8,10 +8,7 @@ import { buildRoom } from './roomBuilder.js';
 import { createWorldLayout, slotAtBlock, BLOCK_M } from './layout/index.js';
 import { ObjectSystem } from '../objects/objectSystem.js';
 import { populateRoom } from '../spawn/spawner.js';
-import { shared, MAX_LIGHTS } from '../render/ps1.js';
-import { hash } from '../core/rng.js';
-
-const CEILING_COLOR = new THREE.Color(1.0, 0.92, 0.62);
+import { PowerNetwork } from '../power/network.js';
 
 export class World {
   constructor({ content, textures, scene, audio, seed, events = null }) {
@@ -34,9 +31,10 @@ export class World {
     this.queued = new Set();
     this.objects = new ObjectSystem({ defs: content.objects ?? {}, textures, scene, audio });
     this.run = { spawnedUnique: new Set(), taken: new Set() };
-    this._lightTmp = [];
     this._lastBlock = null;
     this.stats = { built: 0, dropped: 0, buildMs: 0 };
+    // fixture states, circuits, timed lights and auras; owns the shader light list (src/power)
+    this.power = this.addSystem(new PowerNetwork(this));
   }
 
   static roomKeyOf(entry) { return entry.bigRoom?.key ?? entry.slotKey; }
@@ -48,7 +46,7 @@ export class World {
     this.stream(new THREE.Vector3(8, 0, 8), { sync: true });
     // start somewhere lit: the nearest single room with at least two working lights
     const lit = [...this.rooms.values()]
-      .filter((r) => !r.entry.bigRoom && r.built.lights.length >= 2)
+      .filter((r) => !r.entry.bigRoom && r.built.lights.filter((l) => (l.out ?? 1) > 0).length >= 2)
       .sort((a, b) => dist2(a.entry, 0, 0) - dist2(b.entry, 0, 0))[0];
     const e = lit?.entry;
     const pos = e ? this.findSpawn(e.bx + (e.orient === 'h' ? 0.5 : 0), e.bz + (e.orient === 'v' ? 0.5 : 0)) : this.findSpawn(0, 0);
@@ -115,9 +113,7 @@ export class World {
     const key = World.roomKeyOf(entry);
     const origin = { x: entry.origin[0] * BLOCK_M, z: entry.origin[1] * BLOCK_M };
     const built = buildRoom(entry.room, this.textures, origin);
-    this.scene.add(built.group);
-    const salt = hash(this.seed, 'lights', key) % 997;
-    for (const L of built.lights) { L.color = CEILING_COLOR; L.range = 11; L.flicker = 0.03; L.seed += salt; }
+    this.scene.add(built.group); // fixture colour/range/state: the power network sets them in onRoomPlaced
     const depth = Math.hypot(entry.bx, entry.bz);
     const placed = { key, entry, json: entry.room, built, origin, depth };
     placed.objects = populateRoom(entry.room, {
@@ -131,8 +127,8 @@ export class World {
       if (inst) { inst.state = e.state; placed.objects.push(inst); }
     }
     this.rooms.set(key, placed);
+    for (const sk of entry.bigRoom?.slots ?? [entry.slotKey]) this.bySlot.set(sk, placed); // before systems, so roomAt works there
     for (const sys of this.systems) sys.onRoomPlaced?.(placed, this);
-    for (const sk of entry.bigRoom?.slots ?? [entry.slotKey]) this.bySlot.set(sk, placed);
     this.stats.built++;
     this.stats.buildMs = performance.now() - t0;
     return placed;
@@ -194,6 +190,7 @@ export class World {
       `room       ${here ? (here.entry.roomId ?? 'filler') + ' · ' + here.entry.slotKey + (here.entry.bigRoom ? ' (big)' : '') : '-'}`,
       `depth      ${here ? here.depth.toFixed(1) : '-'} blocks`,
       `objects    ${this.objects.instances.length} (${this.colliders.length} solid, ${this.objects.lights.length} lit)`,
+      ...this.power.debugLines(playerPos),
     ];
   }
 
@@ -225,32 +222,18 @@ export class World {
     this.updateLights(ctx.camera, ctx.time);
   }
 
-  // Nearest lights to the camera go into the shared shader uniforms, with flicker.
-  updateLights(camera, time) {
-    const all = this._lightTmp;
-    all.length = 0;
-    const cx = camera.position.x, cz = camera.position.z;
-    for (const r of this.rooms.values()) {
-      for (const L of r.built.lights) {
-        const dx = L.pos.x - cx, dz = L.pos.z - cz;
-        L.d = dx * dx + dz * dz;
-        if (L.d < 900) all.push(L); // within 30 m
-      }
-    }
-    for (const L of this.objects.lights) { L.d = L.pos.distanceToSquared(camera.position); all.push(L); }
-    all.sort((a, b) => a.d - b.d);
-    const n = Math.min(MAX_LIGHTS, all.length);
-    for (let i = 0; i < n; i++) {
-      const L = all[i];
-      // fluorescent stutter: mostly steady, occasional drop seeded per fixture
-      const s = Math.sin(time * 7.3 + L.seed) * Math.sin(time * 1.7 + L.seed * 0.3);
-      const flick = s > 1 - L.flicker ? 0.25 : 1;
-      shared.uLightPos.value[i].copy(L.pos);
-      shared.uLightColor.value[i].copy(L.color).multiplyScalar(flick);
-      shared.uLightRange.value[i] = L.range;
-    }
-    shared.uLightCount.value = n;
-  }
+  // Nearest lights to the camera go into the shared shader uniforms (fixtures by power state,
+  // object lights, timed lights, candles). The power network owns the light list.
+  updateLights(camera, time) { this.power.updateLights(camera, time); }
+
+  /** How lit a point is, 0..1 (world lights, walls occlude; not the flashlight). See src/power. */
+  lightAt(pos, opts) { return this.power.lightAt(pos, opts); }
+
+  /** Active auras [{ pos, radius, kind: 'calm', until }] (until = power clock s). The Tenant avoids calm ones. */
+  get auras() { return this.power.auras; }
+
+  /** The aura of `kind` covering pos, or null. */
+  auraAt(pos, kind = null) { return this.power.auraAt(pos, kind); }
 }
 
 // squared block distance from (bx, bz) to an entry's slot (uses the slot's centre block)

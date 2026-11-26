@@ -1,0 +1,266 @@
+{
+  "id": "music_box_melody",
+  "note": "Tinny wind-up music box: eleven plucked comb tines (triangle), a lullaby turn in C, ticking cylinder. Loop it for the 30 s play.",
+  "bus": "sfx",
+  "volume": 0.7,
+  "spatial": true,
+  "refDistance": 1,
+  "maxDistance": 16,
+  "rolloff": 1.3,
+  "reverb": 0.25,
+  "layers": [
+    {
+      "note": "tine 1",
+      "osc": "triangle",
+      "freq": 1318.5,
+      "detune": -9,
+      "gain": 0.728,
+      "start": 0,
+      "filter": {
+        "type": "highpass",
+        "freq": 500,
+        "q": 0.7
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.8
+      },
+      "vary": {
+        "gain": 2,
+        "time": 0.015
+      }
+    },
+    {
+      "note": "tine 2",
+      "osc": "triangle",
+      "freq": 1568,
+      "detune": 0,
+      "gain": 0.728,
+      "start": 0.46,
+      "filter": {
+        "type": "highpass",
+        "freq": 500,
+        "q": 0.7
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.8
+      },
+      "vary": {
+        "gain": 2,
+        "time": 0.015
+      }
+    },
+    {
+      "note": "tine 3",
+      "osc": "triangle",
+      "freq": 2093,
+      "detune": 9,
+      "gain": 0.728,
+      "start": 0.92,
+      "filter": {
+        "type": "highpass",
+        "freq": 500,
+        "q": 0.7
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.8
+      },
+      "vary": {
+        "gain": 2,
+        "time": 0.015
+      }
+    },
+    {
+      "note": "tine 4",
+      "osc": "triangle",
+      "freq": 1975.5,
+      "detune": -9,
+      "gain": 0.728,
+      "start": 1.38,
+      "filter": {
+        "type": "highpass",
+        "freq": 500,
+        "q": 0.7
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.8
+      },
+      "vary": {
+        "gain": 2,
+        "time": 0.015
+      }
+    },
+    {
+      "note": "tine 5",
+      "osc": "triangle",
+      "freq": 1568,
+      "detune": 0,
+      "gain": 0.728,
+      "start": 1.84,
+      "filter": {
+        "type": "highpass",
+        "freq": 500,
+        "q": 0.7
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.8
+      },
+      "vary": {
+        "gain": 2,
+        "time": 0.015
+      }
+    },
+    {
+      "note": "tine 6",
+      "osc": "triangle",
+      "freq": 1318.5,
+      "detune": 9,
+      "gain": 0.728,
+      "start": 2.3,
+      "filter": {
+        "type": "highpass",
+        "freq": 500,
+        "q": 0.7
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.8
+      },
+      "vary": {
+        "gain": 2,
+        "time": 0.015
+      }
+    },
+    {
+      "note": "tine 7",
+      "osc": "triangle",
+      "freq": 1174.7,
+      "detune": -9,
+      "gain": 0.728,
+      "start": 2.76,
+      "filter": {
+        "type": "highpass",
+        "freq": 500,
+        "q": 0.7
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.8
+      },
+      "vary": {
+        "gain": 2,
+        "time": 0.015
+      }
+    },
+    {
+      "note": "tine 8",
+      "osc": "triangle",
+      "freq": 1318.5,
+      "detune": 0,
+      "gain": 0.728,
+      "start": 3.22,
+      "filter": {
+        "type": "highpass",
+        "freq": 500,
+        "q": 0.7
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.8
+      },
+      "vary": {
+        "gain": 2,
+        "time": 0.015
+      }
+    },
+    {
+      "note": "tine 9",
+      "osc": "triangle",
+      "freq": 1568,
+      "detune": 9,
+      "gain": 0.728,
+      "start": 3.68,
+      "filter": {
+        "type": "highpass",
+        "freq": 500,
+        "q": 0.7
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.8
+      },
+      "vary": {
+        "gain": 2,
+        "time": 0.015
+      }
+    },
+    {
+      "note": "tine 10",
+      "osc": "triangle",
+      "freq": 1760,
+      "detune": -9,
+      "gain": 0.728,
+      "start": 4.14,
+      "filter": {
+        "type": "highpass",
+        "freq": 500,
+        "q": 0.7
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.8
+      },
+      "vary": {
+        "gain": 2,
+        "time": 0.015
+      }
+    },
+    {
+      "note": "tine 11",
+      "osc": "triangle",
+      "freq": 1568,
+      "detune": 0,
+      "gain": 0.728,
+      "start": 4.8,
+      "filter": {
+        "type": "highpass",
+        "freq": 500,
+        "q": 0.7
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.8
+      },
+      "vary": {
+        "gain": 2,
+        "time": 0.015
+      }
+    },
+    {
+      "note": "cylinder tick",
+      "noise": "white",
+      "gain": 0.13,
+      "filter": {
+        "type": "bandpass",
+        "freq": 6000,
+        "q": 3
+      },
+      "env": {
+        "a": 0.0005,
+        "d": 0.006
+      },
+      "repeat": {
+        "count": 12,
+        "interval": 0.46
+      }
+    }
+  ],
+  "vary": {
+    "pitch": 0.25,
+    "gain": 1
+  }
+}

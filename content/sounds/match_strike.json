@@ -1,0 +1,66 @@
+{
+  "id": "match_strike",
+  "note": "Match struck on the box: scrape, phosphor flare, soft roar settling.",
+  "bus": "sfx",
+  "volume": 0.8,
+  "spatial": true,
+  "refDistance": 1,
+  "maxDistance": 10,
+  "reverb": 0.1,
+  "vary": {
+    "pitch": 0.6,
+    "gain": 1.5
+  },
+  "layers": [
+    {
+      "note": "scrape",
+      "noise": "white",
+      "gain": 1.12,
+      "filter": {
+        "type": "bandpass",
+        "freq": 3500,
+        "q": 1.5,
+        "env": {
+          "to": 2000,
+          "time": 0.12
+        }
+      },
+      "env": {
+        "a": 0.005,
+        "d": 0.12
+      }
+    },
+    {
+      "note": "flare",
+      "noise": "pink",
+      "gain": 1.28,
+      "start": 0.1,
+      "filter": {
+        "type": "lowpass",
+        "freq": 2500,
+        "env": {
+          "to": 700,
+          "time": 0.4
+        }
+      },
+      "env": {
+        "a": 0.01,
+        "d": 0.5
+      }
+    },
+    {
+      "note": "flame roar",
+      "noise": "brown",
+      "gain": 0.8,
+      "start": 0.15,
+      "filter": {
+        "type": "lowpass",
+        "freq": 500
+      },
+      "env": {
+        "a": 0.05,
+        "d": 0.6
+      }
+    }
+  ]
+}

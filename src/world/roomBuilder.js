@@ -13,25 +13,40 @@ const SUB_WALL_V = 6;
 // Materials are shared by every room (streaming builds and drops rooms constantly).
 const materialCache = new Map();
 
-// Built-in tile kinds a legend symbol can map to.
+// Built-in tile kinds a legend symbol can map to. Light kinds are ceiling fixtures; `fixture` is
+// the designed starting condition the power network (src/power) begins from.
 const KINDS = {
   wall:   { solid: true },
   pillar: { solid: true },
   floor:  { solid: false },
   door:   { solid: false },
-  light:  { solid: false, light: true },
+  light:  { solid: false, light: true, fixture: 'light' },             // rolled: mostly on, some dead/flickering
+  deadlight: { solid: false, light: true, fixture: 'dead' },           // always starts dead
+  flickerlight: { solid: false, light: true, fixture: 'flicker' },     // always starts flickering
   void:   { solid: true, invisible: true },
 };
+
+/** Texture for a dark fixture, derived from the lit one (ceiling_large_light_on → _off). */
+export function offTextureFor(onName) {
+  if (/_light_on$/.test(onName)) return onName.replace(/_light_on$/, '_light_off');
+  if (/_light$/.test(onName)) return onName + '_off';
+  return 'ceiling_large_light_off';
+}
 
 // Accumulates quads per material key, then emits one BufferGeometry per key.
 // Each quad is tessellated into su × sv sub-quads (bilinear over corners a b c d, uv 0..1).
 // Smaller triangles keep PS1 affine warping and per-vertex lighting from going extreme up close.
 class QuadBatch {
   constructor() { this.groups = new Map(); }
-  quad(key, a, b, c, d, n, su = 1, sv = 1) {
+  /** lit (optional): per-vertex aLit value for the quad; returns { start, count } of its vertices. */
+  quad(key, a, b, c, d, n, su = 1, sv = 1, lit = null) {
     let g = this.groups.get(key);
-    if (!g) this.groups.set(key, (g = { pos: [], nrm: [], uv: [], idx: [] }));
+    if (!g) this.groups.set(key, (g = { pos: [], nrm: [], uv: [], idx: [], lit: null }));
     const base = g.pos.length / 3;
+    if (lit != null) {
+      g.lit ??= [];
+      for (let i = 0; i < (su + 1) * (sv + 1); i++) g.lit.push(lit);
+    }
     for (let j = 0; j <= sv; j++) {
       const v = j / sv;
       for (let i = 0; i <= su; i++) {
@@ -53,6 +68,7 @@ class QuadBatch {
         g.idx.push(p, p + 1, p + row + 1, p, p + row + 1, p + row);
       }
     }
+    return { start: base, count: (su + 1) * (sv + 1) };
   }
   build() {
     const out = [];
@@ -61,12 +77,21 @@ class QuadBatch {
       geo.setAttribute('position', new THREE.Float32BufferAttribute(g.pos, 3));
       geo.setAttribute('normal', new THREE.Float32BufferAttribute(g.nrm, 3));
       geo.setAttribute('uv', new THREE.Float32BufferAttribute(g.uv, 2));
+      if (g.lit) {
+        const a = new THREE.Float32BufferAttribute(g.lit, 1);
+        a.setUsage(THREE.DynamicDrawUsage);
+        geo.setAttribute('aLit', a);
+      }
       geo.setIndex(g.idx);
       geo.computeBoundingSphere();
       out.push({ key, geo });
     }
     return out;
   }
+}
+
+function offTexture(textures, onName) {
+  try { return textures.get(offTextureFor(onName)); } catch { return textures.get('ceiling_large_light_off'); }
 }
 
 /**
@@ -105,10 +130,16 @@ export function buildRoom(room, textures, origin = { x: 0, z: 0 }) {
       const z0 = oz + cz * CELL, z1 = z0 + CELL;
       // floor (faces up) and ceiling (faces down)
       batch.quad('floor', [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [x0, 0, z0], [0, 1, 0], SUB_FLOOR, SUB_FLOOR);
-      const ceilKey = k.light ? 'ceilingLight' : 'ceiling';
-      batch.quad(ceilKey, [x0, WALL_H, z0], [x1, WALL_H, z0], [x1, WALL_H, z1], [x0, WALL_H, z1], [0, -1, 0], SUB_FLOOR, SUB_FLOOR);
       if (k.light) {
-        lights.push({ pos: new THREE.Vector3(x0 + CELL / 2, WALL_H - 0.3, z0 + CELL / 2), seed: cx * 31 + cz * 17 });
+        // every fixture of the room shares one geometry; aLit (0..1) is driven by src/power
+        const startLit = k.fixture === 'dead' ? 0 : 1;
+        const range = batch.quad('ceilingLight', [x0, WALL_H, z0], [x1, WALL_H, z0], [x1, WALL_H, z1], [x0, WALL_H, z1], [0, -1, 0], SUB_FLOOR, SUB_FLOOR, startLit);
+        lights.push({
+          pos: new THREE.Vector3(x0 + CELL / 2, WALL_H - 0.3, z0 + CELL / 2), seed: cx * 31 + cz * 17,
+          idx: lights.length, cell: [cx, cz], fixture: k.fixture, vStart: range.start, vCount: range.count,
+        });
+      } else {
+        batch.quad('ceiling', [x0, WALL_H, z0], [x1, WALL_H, z0], [x1, WALL_H, z1], [x0, WALL_H, z1], [0, -1, 0], SUB_FLOOR, SUB_FLOOR);
       }
 
       // walls on each side that borders a solid cell, facing into this cell
@@ -134,18 +165,35 @@ export function buildRoom(room, textures, origin = { x: 0, z: 0 }) {
 
   const group = new THREE.Group();
   group.name = `room:${room.id}`;
+  let fixtureGeo = null;
   for (const { key, geo } of batch.build()) {
     const texName = key === 'ceilingLight' ? (mats.ceilingLight ?? 'ceiling_large_light_on')
       : key === 'pillar' ? (mats.pillar ?? mats.wall) : mats[key];
-    const emissive = key === 'ceilingLight' ? 1 : 0;
-    const matKey = texName + '|' + emissive;
+    const fixture = key === 'ceilingLight';
+    const matKey = texName + '|' + (fixture ? 'fixture' : 0);
     let mat = materialCache.get(matKey);
-    if (!mat) materialCache.set(matKey, (mat = makePS1Material(textures.get(texName), { emissive })));
+    if (!mat) {
+      mat = fixture
+        ? makePS1Material(textures.get(texName), { emissive: 1, offMap: offTexture(textures, texName) })
+        : makePS1Material(textures.get(texName));
+      materialCache.set(matKey, mat);
+    }
+    if (fixture) fixtureGeo = geo;
     group.add(new THREE.Mesh(geo, mat));
   }
 
   return {
     group, lights,
+    fixtureGeo,  // BufferGeometry holding every fixture quad, with the aLit attribute (or null)
+    /** Set fixture i's output (0..1) on its ceiling quad. Cheap: marks the attribute for upload. */
+    setFixtureLit(i, v) {
+      const L = lights[i];
+      if (!L || !fixtureGeo || L.litNow === v) return;
+      L.litNow = v;
+      const a = fixtureGeo.attributes.aLit;
+      a.array.fill(v, L.vStart, L.vStart + L.vCount);
+      a.needsUpdate = true;
+    },
     grid: { w, h, solid, ox, oz },
     isSolidAt(x, z) {
       const cx = Math.floor((x - ox) / CELL), cz = Math.floor((z - oz) / CELL);

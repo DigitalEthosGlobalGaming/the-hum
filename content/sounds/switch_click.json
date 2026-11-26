@@ -1,0 +1,58 @@
+{
+  "id": "switch_click",
+  "note": "Rocker wall switch: plastic snap with a low body knock.",
+  "bus": "sfx",
+  "volume": 0.8,
+  "spatial": true,
+  "refDistance": 1,
+  "maxDistance": 12,
+  "reverb": 0.1,
+  "vary": {
+    "pitch": 0.8,
+    "gain": 1.5
+  },
+  "layers": [
+    {
+      "note": "snap",
+      "noise": "white",
+      "gain": 0.9,
+      "filter": {
+        "type": "bandpass",
+        "freq": 3200,
+        "q": 2
+      },
+      "env": {
+        "a": 0.0005,
+        "d": 0.012
+      }
+    },
+    {
+      "note": "body knock",
+      "osc": "sine",
+      "freq": 420,
+      "gain": 0.63,
+      "pitchEnv": {
+        "to": 0.6,
+        "time": 0.03
+      },
+      "env": {
+        "a": 0.001,
+        "d": 0.04
+      }
+    },
+    {
+      "note": "spring rebound",
+      "noise": "white",
+      "gain": 0.27,
+      "start": 0.018,
+      "filter": {
+        "type": "highpass",
+        "freq": 5000
+      },
+      "env": {
+        "a": 0.0005,
+        "d": 0.008
+      }
+    }
+  ]
+}

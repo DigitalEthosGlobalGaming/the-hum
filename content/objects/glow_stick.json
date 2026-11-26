@@ -1,0 +1,27 @@
+{
+  "id": "glow_stick",
+  "name": "Glow sticks",
+  "tags": [
+    "light"
+  ],
+  "mesh": {
+    "type": "box",
+    "size": [
+      0.1,
+      0.025,
+      0.05
+    ],
+    "texture": "proc:glow_pack"
+  },
+  "components": {
+    "pickup": {},
+    "use": {
+      "script": "glow_stick_crack",
+      "params": {
+        "uses": 3,
+        "seconds": 300,
+        "noise": 3
+      }
+    }
+  }
+}

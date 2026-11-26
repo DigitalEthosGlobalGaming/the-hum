@@ -9,7 +9,7 @@ import { loadContent, listTextures, walk, SCRIPT_DIR } from './lib/loadContent.m
 export const CELL = 2;        // metres per layout cell (src/world/roomBuilder.js)
 export const WALL_H = 3;
 export const BLOCK = 8;       // cells per slot block
-export const TILE_KINDS = { wall: true, pillar: true, floor: false, door: false, light: false, void: true }; // kind → solid
+export const TILE_KINDS = { wall: true, pillar: true, floor: false, door: false, light: false, deadlight: false, flickerlight: false, void: true }; // kind → solid (mirrors src/world/layout/grid.js)
 export const MESH_TYPES = ['box', 'plane', 'sprite', 'prefab'];
 export const COMPONENT_TYPES = ['collider', 'readable', 'sound', 'light', 'interact', 'pickup', 'use', 'combine', 'door', 'hide', 'anomaly'];
 const MATERIAL_KEYS = ['wall', 'pillar', 'floor', 'ceiling', 'ceilingLight'];

@@ -1,0 +1,13 @@
+{
+  "id": "power_room_loot",
+  "entries": [
+    {
+      "pool": "power_floor_loot",
+      "w": 70
+    },
+    {
+      "def": null,
+      "w": 30
+    }
+  ]
+}

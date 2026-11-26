@@ -35,6 +35,10 @@ uniform vec3 uLightColor[MAX_LIGHTS];
 uniform float uLightRange[MAX_LIGHTS];
 uniform int uLightCount;
 uniform float uEmissive;
+#ifdef USE_LIT
+attribute float aLit;   // per-vertex fixture output 0..1 (power network: on / flicker / dead)
+varying float vLit;
+#endif
 varying vec2 vUvA;      // uv * w, divided per-fragment → affine interpolation
 varying float vW;
 varying vec2 vUvP;      // perspective-correct uv
@@ -55,7 +59,12 @@ void main() {
     float ndl = max(dot(n, d / dist), 0.0) * 0.6 + 0.4;
     light += uLightColor[i] * att * ndl;
   }
+#ifdef USE_LIT
+  vLit = aLit;
+  vLight = mix(light, vec3(1.0), uEmissive * aLit);
+#else
   vLight = mix(light, vec3(1.0), uEmissive);
+#endif
   vec4 vp = viewMatrix * wp;
   vFogDepth = -vp.z;
   vec4 cp = projectionMatrix * vp;
@@ -73,6 +82,10 @@ void main() {
 
 const fragmentShader = /* glsl */`
 uniform sampler2D map;
+#ifdef USE_LIT
+uniform sampler2D mapOff;   // texture for a dark fixture
+varying float vLit;
+#endif
 uniform vec3 uTint;
 uniform float uEmissive;
 uniform vec3 uFogColor;
@@ -96,6 +109,11 @@ varying vec3 vNormal;
 void main() {
   vec2 uv = mix(vUvP, vUvA / vW, uAffine * smoothstep(uAffineNear, uAffineFar, vFogDepth));
   vec4 tex = texture2D(map, uv);
+  float emis = uEmissive;
+#ifdef USE_LIT
+  tex = mix(texture2D(mapOff, uv), tex, clamp(vLit * 4.0, 0.0, 1.0));
+  emis *= vLit;
+#endif
   if (tex.a < 0.5) discard;
   vec3 light = vLight;
   // Flashlight is per-fragment so the beam reads clearly on big low-poly faces.
@@ -105,20 +123,28 @@ void main() {
   float cone = smoothstep(uFlashCos, uFlashCos + 0.06, dot(dir, uFlashDir));
   float att = clamp(1.0 - dist / uFlashRange, 0.0, 1.0);
   float ndl = max(dot(normalize(vNormal), -dir), 0.0) * 0.6 + 0.4;
-  light += vec3(1.0, 0.93, 0.78) * cone * att * att * ndl * uFlashOn * 1.5 * (1.0 - uEmissive);
+  light += vec3(1.0, 0.93, 0.78) * cone * att * att * ndl * uFlashOn * 1.5 * (1.0 - emis);
   vec3 col = tex.rgb * uTint * light;
   float fog = smoothstep(uFogNear, uFogFar, vFogDepth);
   gl_FragColor = vec4(mix(col, uFogColor, fog), 1.0);
 }`;
 
-export function makePS1Material(texture, { tint = 0xffffff, emissive = 0 } = {}) {
+/**
+ * offMap: makes a light-fixture material. The geometry then needs a float `aLit` attribute
+ * (0 = dark, 1 = fully lit): the texture blends offMap → texture and emissive scales with it,
+ * so every fixture in a room shares one material and one draw call (src/power owns aLit).
+ */
+export function makePS1Material(texture, { tint = 0xffffff, emissive = 0, offMap = null } = {}) {
+  const uniforms = {
+    ...shared,
+    map: { value: texture },
+    uTint: { value: new THREE.Color(tint) },
+    uEmissive: { value: emissive },
+  };
+  if (offMap) uniforms.mapOff = { value: offMap };
   return new THREE.ShaderMaterial({
-    uniforms: {
-      ...shared,
-      map: { value: texture },
-      uTint: { value: new THREE.Color(tint) },
-      uEmissive: { value: emissive },
-    },
+    uniforms,
+    defines: offMap ? { USE_LIT: '' } : {},
     vertexShader,
     fragmentShader,
   });

@@ -1,0 +1,28 @@
+{
+  "id": "music_box",
+  "name": "Music box",
+  "tags": [
+    "calm"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "music_box"
+  },
+  "components": {
+    "interact": {
+      "verb": "wind",
+      "script": "music_box_wind",
+      "params": {
+        "seconds": 30,
+        "radius": 5
+      }
+    },
+    "use": {
+      "script": "music_box_wind",
+      "params": {
+        "seconds": 30,
+        "radius": 5
+      }
+    }
+  }
+}

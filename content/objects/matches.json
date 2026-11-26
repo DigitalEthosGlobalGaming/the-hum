@@ -1,0 +1,27 @@
+{
+  "id": "matches",
+  "name": "Box of matches",
+  "tags": [
+    "light"
+  ],
+  "mesh": {
+    "type": "box",
+    "size": [
+      0.06,
+      0.016,
+      0.04
+    ],
+    "texture": "proc:matchbox"
+  },
+  "components": {
+    "pickup": {},
+    "use": {
+      "script": "match_strike",
+      "params": {
+        "uses": 10,
+        "seconds": 10,
+        "radius": 1.8
+      }
+    }
+  }
+}
