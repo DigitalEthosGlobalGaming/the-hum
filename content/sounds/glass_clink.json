@@ -1,0 +1,16 @@
+{
+  "id": "glass_clink",
+  "note": "Glass bottle knocks the floor without breaking: a heavy glass tock.",
+  "bus": "sfx",
+  "volume": 1.2,
+  "spatial": true,
+  "refDistance": 1.5,
+  "maxDistance": 30,
+  "reverb": 0.4,
+  "vary": {"pitch": 2, "filter": 0.2, "gain": 2},
+  "layers": [
+    {"note": "tock", "noise": "pink", "gain": 0.3, "filter": {"type": "bandpass", "freq": 1600, "q": 2}, "env": {"a": 0.001, "d": 0.04}},
+    {"note": "glass body", "osc": "sine", "freq": 2050, "gain": 0.09, "env": {"a": 0.001, "d": 0.22}},
+    {"note": "glass overtone", "osc": "sine", "freq": 4430, "gain": 0.04, "env": {"a": 0.001, "d": 0.12}}
+  ]
+}

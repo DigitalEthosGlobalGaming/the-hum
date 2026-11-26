@@ -1,0 +1,17 @@
+{
+  "id": "glass_shatter",
+  "note": "Bottle shatters: sharp crack, a spray of high shards, then small pieces tinkling down.",
+  "bus": "sfx",
+  "volume": 0.9,
+  "spatial": true,
+  "refDistance": 2,
+  "maxDistance": 45,
+  "reverb": 0.55,
+  "vary": {"pitch": 1.5, "filter": 0.2, "gain": 1},
+  "layers": [
+    {"note": "crack", "noise": "white", "gain": 0.6, "filter": {"type": "highpass", "freq": 1800, "q": 0.7}, "env": {"a": 0.001, "d": 0.09}},
+    {"note": "body thump", "noise": "brown", "gain": 0.3, "filter": {"type": "lowpass", "freq": 400, "q": 0.8}, "env": {"a": 0.001, "d": 0.08}},
+    {"note": "shard spray", "noise": "white", "gain": 0.25, "start": 0.02, "filter": {"type": "bandpass", "freq": 5200, "q": 1.2}, "env": {"a": 0.002, "d": 0.35}, "lfo": {"target": "gain", "wave": "noise", "rate": 45, "depth": 0.85}},
+    {"note": "tinkles", "osc": "sine", "freq": 3600, "gain": 0.06, "start": 0.08, "env": {"a": 0.001, "d": 0.05}, "repeat": {"count": 9, "interval": 0.06, "jitter": 0.025}, "vary": {"pitch": 7, "gain": 6}}
+  ]
+}

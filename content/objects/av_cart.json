@@ -1,0 +1,27 @@
+{
+  "id": "av_cart",
+  "name": "AV cart",
+  "mesh": {
+    "type": "prefab",
+    "name": "av_cart"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    },
+    "physics": {
+      "mode": "push",
+      "mass": 30,
+      "friction": 1.0,
+      "stop": 0.4,
+      "restitution": 0.25,
+      "spin": 0.45,
+      "noise": 7,
+      "sound": {
+        "roll": "cart_roll",
+        "impact": "cart_bump"
+      }
+    }
+  }
+}

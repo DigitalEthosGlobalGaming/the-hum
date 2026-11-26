@@ -1,0 +1,16 @@
+{
+  "id": "can_clink",
+  "note": "Aluminium can hits the floor: thin tinny tick with a short hollow ring.",
+  "bus": "sfx",
+  "volume": 0.7,
+  "spatial": true,
+  "refDistance": 1.5,
+  "maxDistance": 30,
+  "reverb": 0.4,
+  "vary": {"pitch": 3, "filter": 0.3, "gain": 2},
+  "layers": [
+    {"note": "tick", "noise": "white", "gain": 0.3, "filter": {"type": "bandpass", "freq": 3400, "q": 1.4}, "env": {"a": 0.001, "d": 0.03}},
+    {"note": "ring 1", "osc": "sine", "freq": 1180, "gain": 0.1, "env": {"a": 0.001, "d": 0.18}, "vary": {"pitch": 1}},
+    {"note": "ring 2", "osc": "sine", "freq": 2870, "gain": 0.05, "env": {"a": 0.001, "d": 0.1}, "vary": {"pitch": 1}}
+  ]
+}

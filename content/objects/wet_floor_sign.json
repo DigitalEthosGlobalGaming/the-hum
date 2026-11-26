@@ -9,6 +9,20 @@
     "collider": {
       "shape": "box",
       "solid": true
+    },
+    "physics": {
+      "mode": "push",
+      "mass": 2,
+      "friction": 4,
+      "stop": 2,
+      "restitution": 0.2,
+      "spin": 0.3,
+      "topple": 1.0,
+      "noise": 10,
+      "sound": {
+        "impact": "prop_bump",
+        "topple": "sign_clatter"
+      }
     }
   }
 }

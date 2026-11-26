@@ -1,0 +1,18 @@
+{
+  "id": "cart_roll",
+  "note": "Heavy cart rolling (loop, volume follows speed): hard rubber wheels, a rattling frame and a sloshing bucket.",
+  "bus": "sfx",
+  "volume": 0.75,
+  "spatial": true,
+  "refDistance": 2,
+  "maxDistance": 30,
+  "rolloff": 1,
+  "reverb": 0.25,
+  "loop": true,
+  "vary": {"pitch": 1, "filter": 0.2},
+  "layers": [
+    {"note": "wheel rumble", "noise": "brown", "rate": 0.7, "gain": 0.6, "filter": {"type": "lowpass", "freq": 240, "q": 1}, "env": {"a": 0.1, "d": 0, "s": 1, "r": 0.3}, "lfo": {"target": "gain", "wave": "noise", "rate": 9, "depth": 0.4}},
+    {"note": "frame rattle", "noise": "white", "gain": 0.05, "filter": {"type": "bandpass", "freq": 2400, "q": 3}, "env": {"a": 0.1, "d": 0, "s": 1, "r": 0.2}, "lfo": {"target": "gain", "wave": "noise", "rate": 40, "depth": 0.9}},
+    {"note": "metal clank", "osc": "triangle", "freq": 620, "gain": 0.05, "env": {"a": 0.002, "d": 0.18}, "repeat": {"count": 64, "interval": 0.55, "jitter": 0.25}, "vary": {"pitch": 3, "gain": 6}}
+  ]
+}

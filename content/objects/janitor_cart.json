@@ -1,0 +1,28 @@
+{
+  "id": "janitor_cart",
+  "name": "Janitor's cart",
+  "mesh": {
+    "type": "prefab",
+    "name": "janitor_cart"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    },
+    "physics": {
+      "mode": "push",
+      "mass": 55,
+      "friction": 0.8,
+      "stop": 0.35,
+      "restitution": 0.2,
+      "spin": 0.1,
+      "straight": true,
+      "noise": 8,
+      "sound": {
+        "roll": "cart_roll",
+        "impact": "cart_bump"
+      }
+    }
+  }
+}

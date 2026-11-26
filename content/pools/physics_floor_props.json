@@ -1,0 +1,12 @@
+{
+  "id": "physics_floor_props",
+  "entries": [
+    { "def": "office_chair", "w": 30 },
+    { "def": "cardboard_box", "w": 22 },
+    { "def": "trash_bin", "w": 14 },
+    { "def": "wet_floor_sign", "w": 8 },
+    { "def": "av_cart", "w": 5 },
+    { "def": "janitor_cart", "w": 4 },
+    { "def": null, "w": 17 }
+  ]
+}

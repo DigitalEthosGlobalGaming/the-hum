@@ -1,0 +1,31 @@
+{
+  "id": "trash_bin",
+  "name": "Trash bin",
+  "mesh": {
+    "type": "prefab",
+    "name": "trash_bin"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    },
+    "physics": {
+      "mode": "push",
+      "shape": "circle",
+      "radius": 0.2,
+      "mass": 4,
+      "friction": 3.5,
+      "stop": 1.5,
+      "restitution": 0.3,
+      "spin": 0.4,
+      "topple": 2.6,
+      "spill": "physics_trash_spill",
+      "noise": 9,
+      "sound": {
+        "impact": "prop_bump",
+        "topple": "bin_clatter"
+      }
+    }
+  }
+}

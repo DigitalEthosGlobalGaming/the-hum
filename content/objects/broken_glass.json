@@ -1,0 +1,18 @@
+{
+  "id": "broken_glass",
+  "name": "Broken glass",
+  "tags": [
+    "decal",
+    "player_made"
+  ],
+  "mesh": {
+    "type": "plane",
+    "size": [
+      0.55,
+      0.55
+    ],
+    "texture": "proc:broken_glass",
+    "flat": true
+  },
+  "components": {}
+}

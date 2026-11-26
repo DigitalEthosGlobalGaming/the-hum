@@ -1,0 +1,8 @@
+{
+  "id": "physics_throwables",
+  "entries": [
+    { "def": "soda_can", "w": 40 },
+    { "def": "glass_bottle", "w": 22 },
+    { "def": null, "w": 38 }
+  ]
+}
