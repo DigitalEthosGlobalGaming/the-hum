@@ -57,6 +57,9 @@ async function boot() {
     time: 0,
     focus: null,                 // { inst, distance } the aimed-at interactable, or null
     stats: { sanity: 1, stamina: 1, steps: 0 },
+    // Esc-closable overlays (pocket case…): closeOverlay() → true if it closed one; an overlay that
+    // closes itself on its own Esc keydown sets escClosedAt = performance.now(). Main then doesn't pause.
+    ui: { escClosedAt: -Infinity, closeOverlay: null },
     // Minimal flashlight; M5 replaces this with the held torch + LEDs (same fields).
     flashlight: {
       on: true, battery: 1,
@@ -163,14 +166,22 @@ async function boot() {
     if (game.playing && !input.locked && !input.captureSuspended && wantFullscreen() && !fs.on) fs.enter();
   });
 
-  // Esc while the notebook is open unpaused (Tab / M, e.g. the map) only closes it. The browser
-  // drops pointer lock (and fullscreen) on that same Esc; that must not pause on top of it.
-  let bookEscAt = -Infinity;
+  // Esc while an overlay is up unpaused (the notebook via Tab / M, e.g. the map; the pocket case)
+  // only closes it. The browser drops pointer lock (and fullscreen) on that same Esc; that must not
+  // pause on top of it. Overlays plug in through game.ui (see CONTRACTS.md): `closeOverlay()` closes
+  // one if open (→ true), and an overlay whose own Esc keydown closed it sets `ui.escClosedAt`.
   function escClosedBook() {
     const menu = game.diegetic?.menu;
+    const ui = game.ui;
     if (typeof document.hasFocus === 'function' && !document.hasFocus()) return false; // alt-tab: pause
-    if (menu?.open && !game.paused) { menu.close(); bookEscAt = performance.now(); }
-    const t = Math.max(bookEscAt, menu?.escClosedAt ?? -Infinity); // the menu's own Esc keydown may come first
+    if (!game.paused) {
+      let closed = false;
+      if (menu?.open) { menu.close(); closed = true; }
+      try { if (ui.closeOverlay?.()) closed = true; } catch (e) { console.error(e); }
+      if (closed) ui.escClosedAt = performance.now();
+    }
+    // the overlay's own Esc keydown may have come first
+    const t = Math.max(ui.escClosedAt ?? -Infinity, menu?.escClosedAt ?? -Infinity);
     if (performance.now() - t < 600) { setTimeout(relockHint, 0); return true; }
     return false;
   }
@@ -197,7 +208,8 @@ async function boot() {
       const on = !fs.on;
       game.settings?.set('fullscreen', on);
       if (on) fs.enter(); else fs.exit();
-    } else if (cfg.keys.pause?.includes(e.code) && game.playing && !input.locked) {
+    } else if (cfg.keys.pause?.includes(e.code) && game.playing && !input.locked
+      && performance.now() - (game.ui.escClosedAt ?? -Infinity) > 100) { // (this Esc just closed an overlay)
       // No lock to lose (click-drag fallback, or playing on after a refused re-lock): Esc pauses
       // directly. (With the notebook open unpaused, its key handler takes Esc first and closes it.)
       pause();
