@@ -1,0 +1,49 @@
+{
+  "id": "music_box_wind",
+  "note": "Winding a music box key: ratchet clicks with a little spring tension.",
+  "bus": "sfx",
+  "volume": 0.75,
+  "spatial": true,
+  "refDistance": 1,
+  "maxDistance": 10,
+  "reverb": 0.1,
+  "vary": {
+    "pitch": 0.5
+  },
+  "layers": [
+    {
+      "note": "ratchet",
+      "noise": "white",
+      "gain": 0.91,
+      "filter": {
+        "type": "bandpass",
+        "freq": 4200,
+        "q": 3
+      },
+      "env": {
+        "a": 0.0005,
+        "d": 0.012
+      },
+      "repeat": {
+        "count": 8,
+        "interval": 0.07,
+        "jitter": 0.01
+      }
+    },
+    {
+      "note": "pawl knock",
+      "osc": "sine",
+      "freq": 900,
+      "gain": 0.312,
+      "env": {
+        "a": 0.001,
+        "d": 0.02
+      },
+      "repeat": {
+        "count": 8,
+        "interval": 0.07,
+        "jitter": 0.01
+      }
+    }
+  ]
+}

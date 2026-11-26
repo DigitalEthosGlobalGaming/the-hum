@@ -4,7 +4,7 @@
     "sprintSpeed": 4.3,
     "crouchSpeed": 1.1,
     "eyeHeight": 1.6,
-    "crouchHeight": 1.0,
+    "crouchHeight": 1,
     "radius": 0.3,
     "mouseSensitivity": 0.0022,
     "bobAmount": 0.045
@@ -15,8 +15,8 @@
     "fogNear": 4,
     "fogFar": 22,
     "affine": 0.7,
-    "affineNear": 1.0,
-    "affineFar": 4.0,
+    "affineNear": 1,
+    "affineFar": 4,
     "ambient": [
       0.13,
       0.115,
@@ -130,5 +130,37 @@
     "loadRadius": 3,
     "unloadRadius": 5,
     "buildsPerFrame": 2
+  },
+  "power": {
+    "patchScale": 40,
+    "patchThreshold": 0.62,
+    "patchDead": 0.75,
+    "patchFlicker": 0.15,
+    "baseDead": 0.05,
+    "baseFlicker": 0.07,
+    "safeDepth": 2.5,
+    "stutterSeconds": 1,
+    "fixtureRange": 11,
+    "fixtureColor": [
+      1,
+      0.92,
+      0.62
+    ],
+    "darkReveal": 0.12,
+    "lootChance": 0.3,
+    "switchChance": 0.3,
+    "writingChance": 0.15,
+    "messages": [
+      "STAY IN THE LIGHT",
+      "IT CAN'T SEE YOU HERE",
+      "FUSES BEHIND YOU",
+      "DON'T TURN AROUND",
+      "COUNT THE LIGHTS",
+      "IT HATES THE HUM",
+      "I WAS HERE 41 DAYS",
+      "NOT THIS WAY",
+      "LISTEN FOR IT",
+      "KEEP ONE TUBE SPARE"
+    ]
   }
 }

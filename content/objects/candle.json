@@ -1,0 +1,25 @@
+{
+  "id": "candle",
+  "name": "Candle stub",
+  "tags": [
+    "candle",
+    "light"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "candle"
+  },
+  "components": {
+    "pickup": {},
+    "combine": [
+      {
+        "with": "matches",
+        "script": "candle_light",
+        "consume": "none",
+        "params": {
+          "uses": 10
+        }
+      }
+    ]
+  }
+}

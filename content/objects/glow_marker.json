@@ -1,0 +1,19 @@
+{
+  "id": "glow_marker",
+  "name": "Glow stick",
+  "tags": [
+    "light",
+    "timed"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "glow_marker"
+  },
+  "components": {
+    "light": {
+      "color": "#5dff5a",
+      "intensity": 0.55,
+      "range": 4
+    }
+  }
+}

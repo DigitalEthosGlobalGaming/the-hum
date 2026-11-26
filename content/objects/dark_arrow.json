@@ -1,0 +1,17 @@
+{
+  "id": "dark_arrow",
+  "name": "Arrow",
+  "tags": [
+    "dark_writing",
+    "wall"
+  ],
+  "mesh": {
+    "type": "plane",
+    "size": [
+      1,
+      0.5
+    ],
+    "texture": "proc:glow_writing"
+  },
+  "components": {}
+}

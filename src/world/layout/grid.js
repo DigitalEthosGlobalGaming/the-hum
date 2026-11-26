@@ -6,10 +6,11 @@ export const CELL_M = 2;          // a cell is 2 m
 export const BLOCK_M = CELLS_PER_BLOCK * CELL_M; // 16 m
 
 // Mirrors the tile kinds in roomBuilder.js (solid = blocks movement).
-export const SOLID_KINDS = { wall: true, pillar: true, void: true, floor: false, door: false, light: false };
+export const SOLID_KINDS = { wall: true, pillar: true, void: true, floor: false, door: false, light: false, deadlight: false, flickerlight: false };
 
 // Characters the layout core writes itself (stamped borders, filler, void outside big-room footprints).
-export const CORE_LEGEND = { '#': 'wall', '.': 'floor', P: 'pillar', L: 'light', D: 'door', ' ': 'void' };
+// x = a dead ceiling fixture, f = a flickering one (walkable floor; src/power drives them).
+export const CORE_LEGEND = { '#': 'wall', '.': 'floor', P: 'pillar', L: 'light', D: 'door', x: 'deadlight', f: 'flickerlight', ' ': 'void' };
 
 /** true when the layout character is solid under `legend` (unknown chars count as solid). */
 export function isSolidChar(ch, legend) {

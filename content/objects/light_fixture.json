@@ -1,0 +1,30 @@
+{
+  "id": "light_fixture",
+  "name": "Dead ceiling fixture",
+  "tags": [
+    "power",
+    "fixture"
+  ],
+  "mesh": {
+    "type": "box",
+    "size": [
+      1.7,
+      0.02,
+      1.7
+    ],
+    "texture": "proc:clear"
+  },
+  "components": {
+    "interact": {
+      "verb": "look",
+      "script": "fixture_inspect"
+    },
+    "combine": [
+      {
+        "with": "spare_tube",
+        "script": "tube_install",
+        "consume": "other"
+      }
+    ]
+  }
+}

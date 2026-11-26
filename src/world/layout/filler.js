@@ -78,6 +78,15 @@ export function generateFillerRoom(edges, rng, opts = {}) {
     const c = rng.int(1, W - 2), r = rng.int(1, H - 2);
     if (g[r][c] === '.') { g[r][c] = 'L'; n++; }
   }
+  // 3b. dead fixtures ('x'): a few tubes already out, plus spare empty fittings. A child rng, so the
+  // spots rolled below don't shift. The power network (src/power) rolls more on top of this.
+  const fr = rng.child('fixtures');
+  for (let r = 1; r < H - 1; r++) for (let c = 1; c < W - 1; c++) if (g[r][c] === 'L' && fr.chance(0.15)) g[r][c] = 'x';
+  const deadExtra = fr.int(0, 2);
+  for (let a = 0, n = 0; a < 20 && n < deadExtra; a++) {
+    const c = fr.int(1, W - 2), r = fr.int(1, H - 2);
+    if (g[r][c] === '.') { g[r][c] = 'x'; n++; }
+  }
   // 4. spots on free floor
   const spots = [];
   const pools = opts.pools ?? [];

@@ -19,14 +19,25 @@ export class Vitals {
 
   get cfg() { return this.game.cfg.vitals ?? {}; }
 
-  /** light: luminance of world lights at the player; beam: flashlight output 0..1. */
+  /**
+   * light: fallback luminance at the player (used only when the world has no lightAt);
+   * beam: flashlight output 0..1. Light comes from world.lightAt (src/power: walls occlude,
+   * dead fixtures give nothing); a calm aura (wound music box) stops the dark drain.
+   */
   update(dt, { light = 0, beam = 0 } = {}) {
     const game = this.game, c = this.cfg, st = game.stats;
     const ui = game.cfg.ui ?? {};
+    const world = game.world;
+    if (world?.lightAt) {
+      const p = game.player?.pos;
+      light = world.lightAt(p ? { x: p.x, y: p.y + 1.5, z: p.z } : game.camera.position);
+    }
+    this.light = light;
+    this.calm = !!(game.player?.pos && world?.auraAt?.(game.player.pos, 'calm'));
     if (game.playing) {
       this.lit = light > (c.lightThreshold ?? 0.18);
       this.dark = !this.lit && beam <= 0.05;
-      if (this.dark) st.sanity -= (c.sanityDarkDrain ?? 0.004) * dt;
+      if (this.dark && !this.calm) st.sanity -= (c.sanityDarkDrain ?? 0.004) * dt;
       else if (this.lit) st.sanity += (c.sanityLightRegen ?? 0.002) * dt;
       st.sanity = clamp01(st.sanity);
 
