@@ -256,11 +256,22 @@ export default {
 ## 6. The Tenant *(skill: game-ai)*
 - **FSM:** `Dormant → Glimpse → Stalk → Hunt → Lose → Dormant`. It freezes while inside your view cone. It hunts with A* over cell grids stitched across rooms. You lose it by breaking line of sight or hiding (`hide` component).
 - Uses hysteresis thresholds, a minimum time in each state, and perception checked cheap → expensive.
-- **Director:** a tension meter, with intensity from the zone JSON plus depth.
 - No gore. Tall thin silhouette, never fully lit.
-- Being caught: you wake up elsewhere (see the decisions log).
 
----
+### 6.1 Escalation follows the story (decided)
+The Tenant starts **passive** and grows as the player engages with the story. **Threat** = spine notes collected (0–12), plus small bumps from story actions (badge, fuse, evac map, photo). As threat rises, the player also **unlocks ways to distract it**, taught by the notes.
+
+| Stage | Story | Tenant behaviour | Unlocks for the player |
+|---|---|---|---|
+| 0 · Rumour | 0–2 notes | Rare **far glimpses** only (25–40 m), every few minutes; vanishes when looked at directly or approached. Never approaches | (none) |
+| 1 · Noticed | 3–5 | Glimpses closer and more often. Sometimes **behind you** when you turn. Lights flicker near it. Still never chases | **Sound draws it:** throwables and blank tapes enter the pools, and the tape lure / thrown noise pull it away |
+| 2 · Followed | 6–8 | **Stalks**, frozen while seen. Short **hunts** on loud noise or prolonged staring | **Light repels it:** music box / glow stick / tube weights rise and calm auras block it. **Flash freezes it** |
+| 3 · Hunted | 9–12 | Tension director cycles calm → stalk → hunt. Longer hunts. Opens doors | Endgame items (badges, fuses). Hiding spots matter |
+
+- Each unlock writes a line in the notebook ("It follows sounds."), so rules are learned diegetically.
+- Pool entries can gate on story stage (`minStage`), like `minDepth`.
+- **Caught:** wake up elsewhere: sanity loss, one random pocket item dropped where you were caught, notebook map smudged. The run ends only if sanity is already near zero.
+- **Calm mode** (setting): the Tenant never goes past stage 1 behaviour.
 
 ## 7. Player
 Walk, sprint (stamina), crouch, interact, inventory, watch, notebook. **Sanity** goes down in the dark, near or seeing the Tenant, and from anomalies. It goes up under working lights, with almond water, and from some notes. **Flashlight battery** drains while on.
@@ -385,6 +396,7 @@ the-hum/
 | First playable | Yellow Lobby only, ~15 rooms + filler, ~10 objects, Tenant, inventory, diegetic kit. Play end to end before more zones |
 | Exit depth | All 12 notes **and** ≥ 20 blocks (~320 m) from start. Spine notes every ~1–2 blocks. Tunables in `content/config.json` |
 | Difficulty | No modes. A **Calm** toggle: the Tenant never hunts |
+| Tenant escalation | **Starts passive** (far, random glimpses). Grows with story progress (spine notes + story actions) through 4 stages; each stage also unlocks distractions (sound lures → light → flash) taught by the notes. See §6.1 |
 | Autosave | On entering a new room and on pick-up/drop, at most once per 10 s. Watch beeps |
 | SharePoint | User uploads the M1 smoke test and reports back on rendering, pointer lock and audio |
 | Version control | git, one commit per milestone |
