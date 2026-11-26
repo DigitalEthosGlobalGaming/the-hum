@@ -96,9 +96,10 @@ export function buildRoom(room, textures, origin = { x: 0, z: 0 }) {
         const nk = kindAt(cx + s.dx, cz + s.dz);
         if (!KINDS[nk].solid) continue;
         const key = nk === 'pillar' ? 'pillar' : 'wall';
+        // Counter-clockwise as seen from inside the cell (b → a), so the front face points at the player.
         batch.quad(key,
-          [s.a[0], 0, s.a[2]], [s.b[0], 0, s.b[2]],
-          [s.b[0], WALL_H, s.b[2]], [s.a[0], WALL_H, s.a[2]], s.n);
+          [s.b[0], 0, s.b[2]], [s.a[0], 0, s.a[2]],
+          [s.a[0], WALL_H, s.a[2]], [s.b[0], WALL_H, s.b[2]], s.n);
       }
     }
   }
