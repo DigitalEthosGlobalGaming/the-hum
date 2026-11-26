@@ -10,6 +10,9 @@ const SUB_FLOOR = 4;
 const SUB_WALL_U = 4;
 const SUB_WALL_V = 6;
 
+// Materials are shared by every room (streaming builds and drops rooms constantly).
+const materialCache = new Map();
+
 // Built-in tile kinds a legend symbol can map to.
 const KINDS = {
   wall:   { solid: true },
@@ -117,7 +120,9 @@ export function buildRoom(room, textures, origin = { x: 0, z: 0 }) {
       ];
       for (const s of sides) {
         const nk = kindAt(cx + s.dx, cz + s.dz);
-        if (!KINDS[nk].solid) continue;
+        // 'void' (outside the layout, or outside a multi-slot room's footprint) belongs to the
+        // neighbouring room: an opening on the border continues there, so don't seal it.
+        if (!KINDS[nk].solid || nk === 'void') continue;
         const key = nk === 'pillar' ? 'pillar' : 'wall';
         // Counter-clockwise as seen from inside the cell (b → a), so the front face points at the player.
         batch.quad(key,
@@ -132,7 +137,10 @@ export function buildRoom(room, textures, origin = { x: 0, z: 0 }) {
   for (const { key, geo } of batch.build()) {
     const texName = key === 'ceilingLight' ? (mats.ceilingLight ?? 'ceiling_large_light_on')
       : key === 'pillar' ? (mats.pillar ?? mats.wall) : mats[key];
-    const mat = makePS1Material(textures.get(texName), { emissive: key === 'ceilingLight' ? 1 : 0 });
+    const emissive = key === 'ceilingLight' ? 1 : 0;
+    const matKey = texName + '|' + emissive;
+    let mat = materialCache.get(matKey);
+    if (!mat) materialCache.set(matKey, (mat = makePS1Material(textures.get(texName), { emissive })));
     group.add(new THREE.Mesh(geo, mat));
   }
 

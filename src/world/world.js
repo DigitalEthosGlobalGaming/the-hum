@@ -1,10 +1,15 @@
-// The world: placed rooms + their objects, lights and colliders.
-// M2 places rooms explicitly; M3 adds herringbone/WFC streaming on top of addRoom().
+// The world: an endless herringbone/WFC layout streamed in around the player as rooms,
+// plus their objects, lights and colliders.
+//   layout (src/world/layout)  → which room sits in every slot (pure, deterministic)
+//   roomBuilder                → meshes + cell grid for one room
+//   spawner                    → fixed objects + rolled spots
 import * as THREE from 'three';
-import { buildRoom, CELL } from './roomBuilder.js';
+import { buildRoom } from './roomBuilder.js';
+import { createWorldLayout, slotAtBlock, BLOCK_M } from './layout/index.js';
 import { ObjectSystem } from '../objects/objectSystem.js';
 import { populateRoom } from '../spawn/spawner.js';
 import { shared, MAX_LIGHTS } from '../render/ps1.js';
+import { hash } from '../core/rng.js';
 
 const CEILING_COLOR = new THREE.Color(1.0, 0.92, 0.62);
 
@@ -14,49 +19,138 @@ export class World {
     this.textures = textures;
     this.scene = scene;
     this.seed = seed;
-    this.rooms = [];
+    const s = content.config?.world ?? {};
+    this.loadRadius = s.loadRadius ?? 3;       // blocks around the player to have built
+    this.unloadRadius = s.unloadRadius ?? 5;   // blocks beyond which rooms are dropped
+    this.buildsPerFrame = s.buildsPerFrame ?? 2;
+    this.layout = createWorldLayout({ worldSeed: seed, rooms: content.rooms ?? {}, zoneAt: () => 'lobby' });
+    if (this.layout.templates.errors.length) console.warn('[world] room template errors:\n' + this.layout.templates.errors.join('\n'));
+    this.rooms = new Map();        // roomKey → placed room
+    this.bySlot = new Map();       // slotKey → placed room (big rooms appear under every slot they claim)
+    this.queue = [];               // layout entries waiting to be built
+    this.queued = new Set();
     this.objects = new ObjectSystem({ defs: content.objects ?? {}, textures, scene, audio });
     this.run = { spawnedUnique: new Set(), taken: new Set() };
     this._lightTmp = [];
+    this._lastBlock = null;
+    this.stats = { built: 0, dropped: 0, buildMs: 0 };
   }
 
-  /** Place a room by id with its top-left corner at origin {x, z} (metres). */
-  addRoom(roomId, origin = { x: 0, z: 0 }, opts = {}) {
-    const json = this.content.rooms?.[roomId];
-    if (!json) throw new Error(`Unknown room "${roomId}"`);
-    const built = buildRoom(json, this.textures, origin);
+  static roomKeyOf(entry) { return entry.bigRoom?.key ?? entry.slotKey; }
+
+  // ---------------------------------------------------------------- streaming
+
+  /** Build the area around the origin synchronously and pick a spawn point. */
+  start() {
+    this.stream(new THREE.Vector3(8, 0, 8), { sync: true });
+    // start somewhere lit: the nearest single room with at least two working lights
+    const lit = [...this.rooms.values()]
+      .filter((r) => !r.entry.bigRoom && r.built.lights.length >= 2)
+      .sort((a, b) => dist2(a.entry, 0, 0) - dist2(b.entry, 0, 0))[0];
+    const e = lit?.entry;
+    const pos = e ? this.findSpawn(e.bx + (e.orient === 'h' ? 0.5 : 0), e.bz + (e.orient === 'v' ? 0.5 : 0)) : this.findSpawn(0, 0);
+    this.stream(pos, { sync: true });
+    // face the longest open line of sight (yaw 0 = -z, positive turns left)
+    let yaw = 0, best = -1;
+    for (let i = 0; i < 8; i++) {
+      const a = (i * Math.PI) / 4, dx = -Math.sin(a), dz = -Math.cos(a);
+      let d = 0;
+      while (d < 30 && !this.isSolidAt(pos.x + dx * d, pos.z + dz * d)) d += 0.5;
+      if (d > best) { best = d; yaw = a; }
+    }
+    return { pos, yaw };
+  }
+
+  /** Nearest walkable cell centre to the middle of block (bx, bz). */
+  findSpawn(bx, bz) {
+    const cx = bx * BLOCK_M + BLOCK_M / 2, cz = bz * BLOCK_M + BLOCK_M / 2;
+    for (let r = 0; r < 24; r++) {
+      for (let dz = -r; dz <= r; dz++) {
+        for (let dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dz)) !== r) continue;
+          const x = cx + dx * 2, z = cz + dz * 2;
+          if (!this.isSolidAt(x, z) && !this.isSolidAt(x + 0.7, z) && !this.isSolidAt(x - 0.7, z)
+            && !this.isSolidAt(x, z + 0.7) && !this.isSolidAt(x, z - 0.7)) return new THREE.Vector3(x, 0, z);
+        }
+      }
+    }
+    return new THREE.Vector3(cx, 0, cz);
+  }
+
+  /** Queue rooms near `pos`, drop far ones, build a few per frame. */
+  stream(pos, { sync = false } = {}) {
+    const bx = Math.floor(pos.x / BLOCK_M), bz = Math.floor(pos.z / BLOCK_M);
+    const key = bx + ',' + bz;
+    if (key !== this._lastBlock) {
+      this._lastBlock = key;
+      const R = this.loadRadius;
+      const entries = this.layout.layoutRegion(bx - R, bz - R, bx + R, bz + R);
+      // nearest first, so the room you're walking into is built before distant ones
+      entries.sort((a, b) => dist2(a, bx, bz) - dist2(b, bx, bz));
+      for (const e of entries) {
+        const k = World.roomKeyOf(e);
+        if (this.rooms.has(k) || this.queued.has(k)) continue;
+        this.queued.add(k);
+        this.queue.push(e);
+      }
+      this.queue.sort((a, b) => dist2(a, bx, bz) - dist2(b, bx, bz));
+      for (const [k, placed] of this.rooms) {
+        if (dist2(placed.entry, bx, bz) > this.unloadRadius * this.unloadRadius) this.dropRoom(k);
+      }
+    }
+    const n = sync ? Infinity : this.buildsPerFrame;
+    for (let i = 0; i < n && this.queue.length; i++) {
+      const e = this.queue.shift();
+      this.queued.delete(World.roomKeyOf(e));
+      if (dist2(e, bx, bz) > this.unloadRadius * this.unloadRadius) continue; // walked away before it built
+      this.placeEntry(e);
+    }
+  }
+
+  placeEntry(entry) {
+    const t0 = performance.now();
+    const key = World.roomKeyOf(entry);
+    const origin = { x: entry.origin[0] * BLOCK_M, z: entry.origin[1] * BLOCK_M };
+    const built = buildRoom(entry.room, this.textures, origin);
     this.scene.add(built.group);
-    const key = opts.key ?? `${roomId}@${origin.x},${origin.z}`;
-    const placed = { key, json, built, origin };
-    for (const L of built.lights) { L.color = CEILING_COLOR; L.range = 9; L.flicker = 0.03; }
-    placed.objects = populateRoom(json, {
-      key, origin, quarterTurns: 0, depth: opts.depth ?? 0, zone: opts.zone ?? 'lobby', worldSeed: this.seed,
+    const salt = hash(this.seed, 'lights', key) % 997;
+    for (const L of built.lights) { L.color = CEILING_COLOR; L.range = 11; L.flicker = 0.03; L.seed += salt; }
+    const depth = Math.hypot(entry.bx, entry.bz);
+    const placed = { key, entry, json: entry.room, built, origin, depth };
+    placed.objects = populateRoom(entry.room, {
+      key, origin, quarterTurns: 0, depth, zone: entry.zone, worldSeed: this.seed,
     }, this.objects, this.content.pools ?? {}, this.run);
-    this.rooms.push(placed);
+    this.rooms.set(key, placed);
+    for (const sk of entry.bigRoom?.slots ?? [entry.slotKey]) this.bySlot.set(sk, placed);
+    this.stats.built++;
+    this.stats.buildMs = performance.now() - t0;
     return placed;
   }
 
-  roomAt(x, z) {
-    for (const r of this.rooms) {
-      const g = r.built.grid;
-      if (x >= g.ox && z >= g.oz && x < g.ox + g.w * CELL && z < g.oz + g.h * CELL) return r;
+  dropRoom(key) {
+    const placed = this.rooms.get(key);
+    if (!placed) return;
+    this.scene.remove(placed.built.group);
+    placed.built.group.traverse((o) => o.geometry?.dispose());
+    for (const inst of placed.objects) if (this.objects.instances.includes(inst)) this.objects.remove(inst);
+    for (const sk of placed.entry.bigRoom?.slots ?? [placed.entry.slotKey]) {
+      if (this.bySlot.get(sk) === placed) this.bySlot.delete(sk);
     }
-    return null;
+    this.rooms.delete(key);
+    this.stats.dropped++;
   }
 
+  // ---------------------------------------------------------------- queries
+
+  roomAt(x, z) {
+    const slot = slotAtBlock(Math.floor(x / BLOCK_M), Math.floor(z / BLOCK_M));
+    return this.bySlot.get(slot.key) ?? null;
+  }
+
+  /** Cell walls only (props aren't included). Unbuilt space counts as solid. */
   isSolidAt(x, z) {
     const r = this.roomAt(x, z);
     return r ? r.built.isSolidAt(x, z) : true;
-  }
-
-  /** Build the starting area. Returns { pos: Vector3, yaw }. (M3 replaces this with WFC streaming.) */
-  start() {
-    const placed = this.addRoom('m1_test_hall', { x: 0, z: 0 });
-    return { pos: placed.built.spawn.clone(), yaw: placed.built.spawnYaw };
-  }
-
-  debugLines() {
-    return [`objects    ${this.objects.instances.length} (${this.colliders.length} solid, ${this.objects.lights.length} lit)`];
   }
 
   get colliders() { return this.objects.colliders; }
@@ -78,7 +172,20 @@ export class World {
     return hit;
   }
 
+  debugLines(playerPos) {
+    const here = playerPos ? this.roomAt(playerPos.x, playerPos.z) : null;
+    return [
+      `rooms      ${this.rooms.size} built, ${this.queue.length} queued (last ${this.stats.buildMs.toFixed(1)} ms)`,
+      `room       ${here ? (here.entry.roomId ?? 'filler') + ' · ' + here.entry.slotKey + (here.entry.bigRoom ? ' (big)' : '') : '-'}`,
+      `depth      ${here ? here.depth.toFixed(1) : '-'} blocks`,
+      `objects    ${this.objects.instances.length} (${this.colliders.length} solid, ${this.objects.lights.length} lit)`,
+    ];
+  }
+
+  // ---------------------------------------------------------------- per frame
+
   update(dt, ctx) {
+    if (ctx.player) this.stream(ctx.player.pos);
     this.objects.update(dt, ctx);
     this.updateLights(ctx.camera, ctx.time);
   }
@@ -87,9 +194,15 @@ export class World {
   updateLights(camera, time) {
     const all = this._lightTmp;
     all.length = 0;
-    for (const r of this.rooms) for (const L of r.built.lights) all.push(L);
-    for (const L of this.objects.lights) all.push(L);
-    for (const L of all) L.d = L.pos.distanceToSquared(camera.position);
+    const cx = camera.position.x, cz = camera.position.z;
+    for (const r of this.rooms.values()) {
+      for (const L of r.built.lights) {
+        const dx = L.pos.x - cx, dz = L.pos.z - cz;
+        L.d = dx * dx + dz * dz;
+        if (L.d < 900) all.push(L); // within 30 m
+      }
+    }
+    for (const L of this.objects.lights) { L.d = L.pos.distanceToSquared(camera.position); all.push(L); }
     all.sort((a, b) => a.d - b.d);
     const n = Math.min(MAX_LIGHTS, all.length);
     for (let i = 0; i < n; i++) {
@@ -103,4 +216,10 @@ export class World {
     }
     shared.uLightCount.value = n;
   }
+}
+
+// squared block distance from (bx, bz) to an entry's slot (uses the slot's centre block)
+function dist2(e, bx, bz) {
+  const ex = e.bx + (e.orient === 'h' ? 0.5 : 0), ez = e.bz + (e.orient === 'v' ? 0.5 : 0);
+  return (ex - bx) ** 2 + (ez - bz) ** 2;
 }
