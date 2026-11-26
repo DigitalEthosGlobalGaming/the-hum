@@ -8,7 +8,10 @@
     "dev": "node build.mjs --watch --serve",
     "validate": "node tools/validate.mjs",
     "pool-sim": "node tools/pool-sim.mjs",
-    "room-preview": "node tools/room-preview.mjs"
+    "room-preview": "node tools/room-preview.mjs",
+    "test": "node --test",
+    "sweep": "node tools/wfc-sweep.mjs --seeds 50",
+    "ci": "npm run validate && npm test && npm run sweep && npm run build"
   },
   "dependencies": {
     "three": "0.186.1"

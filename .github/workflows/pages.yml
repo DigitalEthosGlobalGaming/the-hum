@@ -1,0 +1,63 @@
+# Build THE HUM into a single HTML file and publish it to GitHub Pages.
+# One-time setup: repo Settings → Pages → Build and deployment → Source: "GitHub Actions".
+name: Build & deploy to Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:          # build + test only, no deploy
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # content validation, unit tests, WFC seed sweep, then the single-file build (fails if ≥ 10 MB)
+      - run: npm run ci
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site
+          cp dist/the-hum.html _site/index.html
+          cp dist/the-hum.html _site/the-hum.html
+          echo "Built $(du -h dist/the-hum.html | cut -f1) from ${GITHUB_SHA::7}" >> "$GITHUB_STEP_SUMMARY"
+
+      # downloadable copy of the HTML for uploading to SharePoint
+      - uses: actions/upload-artifact@v4
+        with:
+          name: the-hum-html
+          path: dist/the-hum.html
+
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: _site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
