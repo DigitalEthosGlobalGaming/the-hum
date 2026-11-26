@@ -121,8 +121,8 @@ async function boot() {
     events.emit('game:pause', {});
   }
   function resume() {
+    input.requestLock();            // capture first: requestFullscreen consumes the click
     if (wantFullscreen) fs.enter();
-    input.requestLock();
     pauseCard.style.display = 'none';
     game.paused = false;
     game.playing = true;
@@ -132,8 +132,8 @@ async function boot() {
 
   title.addEventListener('mousedown', () => {
     synth.start();
+    input.requestLock();            // capture first: requestFullscreen consumes the click
     if (wantFullscreen) fs.enter();
-    input.requestLock();
     title.remove();
     game.playing = true;
     events.emit('game:start', {});
@@ -145,6 +145,8 @@ async function boot() {
   });
   document.addEventListener('fullscreenchange', () => {
     if (!fs.on && !fsToggling && game.playing) pause();
+    // entering fullscreen can drop or block the lock: ask again (allowed while fullscreen)
+    if (fs.on && game.playing && !input.locked) input.requestLock();
   });
   addEventListener('keydown', (e) => {
     if (e.repeat) return;

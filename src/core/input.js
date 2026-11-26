@@ -39,13 +39,17 @@ export class Input {
     });
     canvas.addEventListener('mousedown', () => {
       this.dragging = true;
-      if (this.mode === 'lock' && !this.locked) this.requestLock();
+      // Always try to (re)capture on click, even in the drag fallback: a lock that failed once
+      // (e.g. during a fullscreen transition) often works on the next click.
+      if (!this.locked) this.requestLock();
     });
     addEventListener('mouseup', () => { this.dragging = false; });
 
     document.addEventListener('pointerlockchange', () => {
       this.pointerLock.state = this.locked ? 'locked' : 'unlocked';
+      if (this.locked) { this.mode = 'lock'; this.failures = 0; this.pointerLock.error = ''; }
     });
+    this.failures = 0;
     document.addEventListener('pointerlockerror', () => this.lockFailed('pointerlockerror event'));
   }
 
@@ -61,10 +65,13 @@ export class Input {
     }
   }
 
+  // Fall back to click-drag look only after repeated failures (an iframe sandbox without
+  // allow-pointer-lock fails every time; a one-off failure mid fullscreen-transition shouldn't count).
   lockFailed(reason) {
     this.pointerLock.state = 'failed';
     this.pointerLock.error = reason;
-    this.mode = 'drag';
+    this.failures = (this.failures ?? 0) + 1;
+    if (this.failures >= 2 || reason === 'not supported') this.mode = 'drag';
   }
 
   press(code) {
