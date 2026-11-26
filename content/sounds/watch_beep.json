@@ -1,0 +1,11 @@
+{
+  "id": "watch_beep",
+  "note": "Cheap digital wristwatch: two thin piezo beeps.",
+  "bus": "sfx",
+  "volume": 0.4,
+  "vary": {"gain": 0.5},
+  "layers": [
+    {"osc": "square", "freq": 3150, "gain": 0.15, "filter": {"type": "lowpass", "freq": 5500, "q": 0.7}, "env": {"a": 0.001, "d": 0.004, "s": 0.85, "sus": 0.065, "r": 0.008, "curve": "lin"}, "repeat": {"count": 2, "interval": 0.14}},
+    {"note": "case resonance", "osc": "sine", "freq": 6300, "gain": 0.03, "env": {"a": 0.001, "d": 0.004, "s": 0.8, "sus": 0.065, "r": 0.008, "curve": "lin"}, "repeat": {"count": 2, "interval": 0.14}}
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "bottle_drink",
+  "note": "Plastic bottle tilt, then three glugs (rising bubble chirps through a dark throat).",
+  "bus": "sfx",
+  "volume": 0.6,
+  "vary": {"pitch": 1, "gain": 1.5},
+  "layers": [
+    {"note": "bottle crinkle", "noise": "white", "gain": 0.15, "filter": {"type": "bandpass", "freq": 2600, "q": 1.5}, "env": {"a": 0.01, "d": 0.08}, "lfo": {"target": "gain", "wave": "noise", "rate": 30, "depth": 0.8}},
+    {"note": "glug bubble", "osc": "sine", "freq": 210, "gain": 0.4, "start": 0.2, "pitchEnv": {"to": 1.7, "time": 0.07}, "filter": {"type": "lowpass", "freq": 700, "q": 0.7}, "env": {"a": 0.008, "d": 0.12}, "repeat": {"count": 3, "interval": 0.38, "jitter": 0.06}, "vary": {"pitch": 2, "gain": 2}},
+    {"note": "swallow", "noise": "brown", "gain": 0.3, "start": 0.23, "filter": {"type": "lowpass", "freq": 500, "q": 1.2}, "env": {"a": 0.03, "d": 0.16}, "repeat": {"count": 3, "interval": 0.38, "jitter": 0.06}}
+  ]
+}

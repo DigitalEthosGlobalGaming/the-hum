@@ -1,0 +1,15 @@
+{
+  "id": "footstep_metal",
+  "note": "Grating or catwalk: dull impact plus the inharmonic ring of a metal plate.",
+  "bus": "sfx",
+  "volume": 0.55,
+  "reverb": 0.3,
+  "vary": {"pitch": 1, "filter": 0.2, "gain": 2},
+  "layers": [
+    {"note": "impact", "noise": "white", "gain": 0.25, "filter": {"type": "bandpass", "freq": 1900, "q": 1.5}, "env": {"a": 0.001, "d": 0.04}},
+    {"note": "thump", "noise": "brown", "gain": 0.4, "filter": {"type": "lowpass", "freq": 260, "q": 0.7}, "env": {"a": 0.003, "d": 0.1}},
+    {"note": "plate mode 1", "osc": "sine", "freq": 427, "gain": 0.12, "env": {"a": 0.002, "d": 0.38}, "vary": {"pitch": 0.5}},
+    {"note": "plate mode 2", "osc": "sine", "freq": 1131, "gain": 0.07, "env": {"a": 0.002, "d": 0.26}, "vary": {"pitch": 0.5}},
+    {"note": "plate mode 3", "osc": "sine", "freq": 2213, "gain": 0.04, "env": {"a": 0.001, "d": 0.16}, "vary": {"pitch": 0.5}}
+  ]
+}

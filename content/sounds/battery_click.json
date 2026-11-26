@@ -1,0 +1,14 @@
+{
+  "id": "battery_click",
+  "note": "Battery pushed into the torch: plastic slide, spring, snap, cap seats.",
+  "bus": "sfx",
+  "volume": 0.6,
+  "reverb": 0.05,
+  "vary": {"pitch": 0.8, "gain": 1.5},
+  "layers": [
+    {"note": "slide", "noise": "pink", "gain": 0.12, "filter": {"type": "bandpass", "freq": 2200, "q": 1.2}, "env": {"a": 0.03, "d": 0.08}},
+    {"note": "spring", "osc": "triangle", "freq": 1650, "gain": 0.06, "start": 0.09, "pitchEnv": {"to": 0.8, "time": 0.06}, "env": {"a": 0.001, "d": 0.09}},
+    {"note": "snap", "noise": "white", "gain": 0.45, "start": 0.1, "filter": {"type": "highpass", "freq": 2400, "q": 0.7}, "env": {"a": 0.0005, "d": 0.015}},
+    {"note": "cap seats", "noise": "white", "gain": 0.3, "start": 0.2, "filter": {"type": "bandpass", "freq": 1100, "q": 2}, "env": {"a": 0.0005, "d": 0.03}, "vary": {"time": 0.04}}
+  ]
+}

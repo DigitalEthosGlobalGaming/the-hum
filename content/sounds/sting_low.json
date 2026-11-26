@@ -1,0 +1,14 @@
+{
+  "id": "sting_low",
+  "note": "Caught: a low detuned swell opens up, then the whole thing sags like stretched tape.",
+  "bus": "sfx",
+  "volume": 0.6,
+  "reverb": 0.4,
+  "layers": [
+    {"note": "swell A", "osc": "saw", "freq": 55, "gain": 0.35, "pitchEnv": {"to": 0.35, "time": 1.3, "delay": 1.1}, "filter": {"type": "lowpass", "freq": 180, "q": 2, "env": {"to": 1400, "time": 1.1}}, "env": {"a": 1.1, "d": 0.1, "s": 0.9, "sus": 0.5, "r": 1.2, "curve": "lin"}, "lfo": {"target": "pitch", "wave": "sine", "rate": 5.5, "depth": 25}},
+    {"note": "swell B (beats against A)", "osc": "saw", "freq": 55.9, "gain": 0.3, "detune": -8, "pitchEnv": {"to": 0.33, "time": 1.3, "delay": 1.1}, "filter": {"type": "lowpass", "freq": 200, "q": 2, "env": {"to": 1200, "time": 1.1}}, "env": {"a": 1.1, "d": 0.1, "s": 0.9, "sus": 0.5, "r": 1.2, "curve": "lin"}, "lfo": {"target": "pitch", "wave": "noise", "rate": 4, "depth": 40}},
+    {"note": "sub", "osc": "sine", "freq": 36, "gain": 0.4, "pitchEnv": {"to": 0.5, "time": 1.3, "delay": 1.1}, "env": {"a": 0.9, "d": 0.2, "s": 0.9, "sus": 0.6, "r": 1, "curve": "lin"}},
+    {"note": "tape hiss rides up", "noise": "white", "gain": 0.06, "filter": {"type": "bandpass", "freq": 3200, "q": 0.8, "env": {"to": 900, "time": 1.3, "delay": 1.1}}, "env": {"a": 1, "d": 0.1, "s": 1, "sus": 0.6, "r": 1, "curve": "lin"}, "lfo": {"target": "gain", "wave": "noise", "rate": 15, "depth": 0.5}},
+    {"note": "tracking glitch", "osc": "square", "freq": 59.94, "gain": 0.05, "start": 1.1, "filter": {"type": "bandpass", "freq": 2000, "q": 3}, "env": {"a": 0.002, "d": 0.01, "s": 0.8, "sus": 0.05, "r": 0.02}, "repeat": {"count": 4, "interval": 0.17, "jitter": 0.06}}
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "footstep_water",
+  "note": "Shallow standing water: rising splash, slosh, a few droplet blips.",
+  "bus": "sfx",
+  "volume": 0.6,
+  "reverb": 0.2,
+  "vary": {"pitch": 1.5, "filter": 0.2, "gain": 2},
+  "layers": [
+    {"note": "splash", "noise": "white", "gain": 0.3, "filter": {"type": "bandpass", "freq": 800, "q": 1.4, "env": {"to": 2600, "time": 0.12}}, "env": {"a": 0.008, "d": 0.26}},
+    {"note": "slosh", "noise": "brown", "gain": 0.4, "filter": {"type": "lowpass", "freq": 380, "q": 1}, "env": {"a": 0.02, "d": 0.3}},
+    {"note": "droplets", "osc": "sine", "freq": 1300, "gain": 0.07, "start": 0.04, "pitchEnv": {"to": 1.9, "time": 0.03}, "env": {"a": 0.001, "d": 0.04}, "repeat": {"count": 3, "interval": 0.06, "jitter": 0.025}, "vary": {"pitch": 5, "gain": 4}}
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "vent_drone",
+  "note": "HVAC vent (loop): rumbling air, a tired fan motor and turbulence that never quite settles.",
+  "bus": "ambience",
+  "volume": 0.6,
+  "spatial": true,
+  "refDistance": 2,
+  "maxDistance": 25,
+  "rolloff": 1,
+  "reverb": 0.15,
+  "loop": true,
+  "vary": {"pitch": 1, "filter": 0.15},
+  "layers": [
+    {"note": "air rumble", "noise": "brown", "gain": 0.5, "filter": {"type": "lowpass", "freq": 260, "q": 0.8}, "env": {"a": 2, "d": 0, "s": 1, "r": 1.5}, "lfo": {"target": "filter", "wave": "noise", "rate": 0.25, "depth": 450}},
+    {"note": "turbulence", "noise": "pink", "gain": 0.12, "filter": {"type": "bandpass", "freq": 950, "q": 1.4}, "env": {"a": 2.5, "d": 0, "s": 1, "r": 1.5}, "lfo": [{"target": "gain", "wave": "noise", "rate": 0.6, "depth": 0.5}, {"target": "filter", "wave": "noise", "rate": 0.35, "depth": 300}]},
+    {"note": "fan motor", "osc": "saw", "freq": 47, "gain": 0.14, "filter": {"type": "lowpass", "freq": 150, "q": 1}, "env": {"a": 3, "d": 0, "s": 1, "r": 1.5}, "lfo": {"target": "pitch", "wave": "noise", "rate": 0.3, "depth": 30}},
+    {"note": "beating 2nd harmonic", "osc": "sine", "freq": 94.6, "gain": 0.05, "env": {"a": 3, "d": 0, "s": 1, "r": 1.5}, "lfo": {"target": "gain", "wave": "noise", "rate": 0.2, "depth": 0.6}}
+  ]
+}
