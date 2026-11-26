@@ -1,0 +1,33 @@
+{
+  "id": "tape_recorder",
+  "name": "Tape recorder",
+  "tags": [
+    "tool",
+    "audio"
+  ],
+  "mesh": {
+    "type": "box",
+    "size": [
+      0.15,
+      0.045,
+      0.1
+    ],
+    "texture": "proc:tape_recorder"
+  },
+  "components": {
+    "pickup": {},
+    "use": {
+      "script": "tape_recorder",
+      "params": {
+        "loop": true,
+        "logs": [
+          "Day three. Or the same day again. The lights here never go off, so I sleep under the ones that buzz the loudest.",
+          "If you find this: the dark rooms are not empty. They are just waiting for you to stop looking.",
+          "I counted the doors on the way in. I have been walking back for hours. There are more of them now.",
+          "It does not walk. I have watched. It is just somewhere else every time I blink.",
+          "Note to self. Keep the torch charged. Keep the torch charged. Keep the—"
+        ]
+      }
+    }
+  }
+}

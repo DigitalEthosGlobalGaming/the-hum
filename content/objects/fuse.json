@@ -1,0 +1,19 @@
+{
+  "id": "fuse",
+  "name": "Ceramic fuse",
+  "tags": [
+    "power"
+  ],
+  "mesh": {
+    "type": "box",
+    "size": [
+      0.03,
+      0.03,
+      0.08
+    ],
+    "texture": "proc:fuse"
+  },
+  "components": {
+    "pickup": {}
+  }
+}

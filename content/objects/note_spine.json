@@ -1,0 +1,28 @@
+{
+  "id": "note_spine",
+  "name": "Folded page",
+  "tags": [
+    "note",
+    "story"
+  ],
+  "mesh": {
+    "type": "plane",
+    "size": [
+      0.22,
+      0.28
+    ],
+    "texture": "proc:paper_spine",
+    "flat": true
+  },
+  "components": {
+    "readable": {
+      "textId": "spine",
+      "display": "notebook"
+    },
+    "pickup": {},
+    "use": {
+      "script": "read_held_note",
+      "consume": false
+    }
+  }
+}

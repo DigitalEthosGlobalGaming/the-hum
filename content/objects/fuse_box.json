@@ -1,0 +1,46 @@
+{
+  "id": "fuse_box",
+  "name": "Fuse cabinet",
+  "tags": [
+    "power",
+    "fixture"
+  ],
+  "mesh": {
+    "type": "box",
+    "size": [
+      0.55,
+      1.3,
+      0.25
+    ],
+    "texture": "proc:fuse_box",
+    "tint": "#c8c4b0"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    },
+    "sound": {
+      "preset": "fluoro_flicker_buzz",
+      "trigger": "proximity",
+      "radius": 3,
+      "volume": 0.25,
+      "once": true
+    },
+    "interact": {
+      "verb": "open",
+      "script": "fuse_box_inspect",
+      "params": {
+        "empty": "Rows of fuses. One slot is empty.",
+        "powered": "It hums now, warm to the touch."
+      }
+    },
+    "combine": [
+      {
+        "with": "fuse",
+        "script": "fuse_insert",
+        "consume": "other"
+      }
+    ]
+  }
+}

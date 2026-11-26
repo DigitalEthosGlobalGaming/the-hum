@@ -1,0 +1,18 @@
+{
+  "id": "chalk_mark",
+  "name": "Chalk mark",
+  "tags": [
+    "chalk",
+    "player_made"
+  ],
+  "mesh": {
+    "type": "plane",
+    "size": [
+      0.4,
+      0.3
+    ],
+    "texture": "proc:chalk_mark",
+    "doubleSided": true
+  },
+  "components": {}
+}

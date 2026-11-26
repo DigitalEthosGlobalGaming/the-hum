@@ -35,22 +35,31 @@ Full design rationale: [PLAN.md §4](../PLAN.md).
 Box/plane origin is at the **bottom centre** (so `pos.y` = what it stands on).
 `texture` may be a Kenney name or `proc:<name>` (procedural canvas texture, see `src/objects/procTextures.js`).
 
-**components** (M2 runtime support marked ✓):
+Optional `tags: string[]` on an object let scripts find it (`ctx.world.findByTag`).
+
+**components** (runtime support marked ✓):
 | type | fields |
 |---|---|
 | collider ✓ | `{ shape: "box", solid: true }` blocks movement (uses mesh bounds) |
-| readable ✓ | `{ text \| textId, display: "notebook"\|"inspect"\|"surface" }` |
+| readable ✓ | `{ text \| textId, display: "notebook"\|"inspect"\|"surface" }`. `textId`: a note id, `"spine"` (next unread spine note) or `"random"` (an unread fragment, seeded). Resolved on first read and remembered by that object. `notebook` also adds the page to the notebook once, and picks the object up if it has `pickup` |
 | sound ✓ | `{ preset, trigger: "ambient"\|"proximity"\|"interact"\|"script", loop?, radius?, volume?, once? }` |
 | light ✓ | `{ color, intensity, range, flicker? }` |
-| interact | `{ verb, script, params?, once?, cooldown? }` (M4) |
-| pickup | `{ size? }` (M4) |
-| use | `{ script, params?, consume?, requiresHeld? }` (M4) |
-| combine | `[{ with, script, consume, result? }]` (M4) |
+| interact ✓ | `{ verb, script, params?, once?, cooldown? (s) }`. E on the object runs the script. `verb` is the hand's label |
+| pickup ✓ | `{ size?: 1\|2 }`. E puts it in the pockets (the selected slot if empty). Picked-up spots never respawn |
+| use ✓ | `{ script, params?, consume?: bool, requiresHeld? }`. Left click / R while held. `requiresHeld` = another item that must be in the pockets (`"flashlight"` is always held). The script's `ok({consume})` overrides `consume` |
+| combine ✓ | `[{ with, script, params?, consume: "self"\|"other"\|"both"\|"none", result? }]`. Held item + E on an object, or item + item in the pockets view. Checked on both sides; `self` = the object that owns the rule. `result` goes into your hand |
+
+E priority on the aimed-at object: **combine** (held item) → **interact** → **readable** → **pickup**.
+Item scripts live in `src/scripts/items/` (list each in `index.js`); the `ctx` API is in `src/scripts/api.js`.
 | door, hide, anomaly | (later) |
 
 ## pools/*.json
 `{ id, rolls?: 1, entries: [ { def: id|null, w: >0, minDepth?, maxDepth?, zones?, unique? } | { pool: id, w } ] }`
 Chance of an entry = `w / sum(w of eligible entries)`. `null` def = nothing spawns. Check odds with `node tools/pool-sim.mjs <pool_id>`.
+
+## notes/*.json
+`{ id, title, text, spine?: n }`. Notes with `spine` (1..12, no gaps) are the story, always read in order
+(`note_spine` shows the next unread one). The rest are random fragments (`note_random`). Keep them short: 1–4 sentences.
 
 ## sounds/*.json
 Procedural Web Audio presets referenced by `sound.preset`. Format documented in `src/audio/presets.md`.

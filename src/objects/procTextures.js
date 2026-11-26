@@ -74,6 +74,78 @@ const painters = {
     }
     return [64, 32];
   },
+
+  // ---- M4 items ----
+  paper_spine(g, rng) {
+    // a folded page: warmer paper, denser handwriting, a page number in the corner
+    g.fillStyle = '#e2d6b4'; g.fillRect(0, 0, 32, 40);
+    speckle(g, 32, 40, rng, 0.07);
+    g.fillStyle = 'rgba(30,30,50,0.85)';
+    for (let y = 5; y < 34; y += 3) {
+      let x = 3;
+      while (x < 29) { const len = rng.int(1, 5); g.fillRect(x, y, Math.min(len, 29 - x), 1); x += len + 1; }
+    }
+    g.fillStyle = 'rgba(120,30,20,0.8)'; g.fillRect(25, 35, 4, 3);   // page number smudge
+    g.fillStyle = 'rgba(0,0,0,0.18)'; g.fillRect(15, 0, 1, 40);       // fold
+    return [32, 40];
+  },
+
+  chalk(g, rng) {
+    g.fillStyle = '#ecebe4'; g.fillRect(0, 0, 8, 16);
+    speckle(g, 8, 16, rng, 0.12);
+    g.fillStyle = '#c9c7bd'; g.fillRect(0, 0, 8, 2);
+    return [8, 16];
+  },
+
+  chalk_mark(g, rng) {
+    // a rough arrow + tally, drawn by a shaky hand; transparent background
+    g.clearRect(0, 0, 40, 30);
+    g.fillStyle = 'rgba(236,234,226,0.9)';
+    const jit = () => rng.int(-1, 1);
+    for (let x = 4; x < 30; x++) g.fillRect(x, 14 + (x % 7 === 0 ? jit() : 0), 1, 2); // shaft
+    for (let i = 0; i < 8; i++) { g.fillRect(30 - i + jit(), 14 - i, 2, 1); g.fillRect(30 - i + jit(), 15 + i, 2, 1); } // head
+    for (let t = 0; t < 3; t++) g.fillRect(6 + t * 4, 21 + jit(), 1, 6);                // tally
+    return [40, 30];
+  },
+
+  chalk_arrow(g, rng) {
+    // floor arrow pointing "up" the texture (= the way the player faced)
+    g.clearRect(0, 0, 32, 32);
+    g.fillStyle = 'rgba(236,234,226,0.85)';
+    for (let y = 8; y < 28; y++) g.fillRect(15 + (y % 6 === 0 ? rng.int(-1, 1) : 0), y, 2, 1);
+    for (let i = 0; i < 9; i++) { g.fillRect(15 - i, 4 + i, 2, 1); g.fillRect(15 + i, 4 + i, 2, 1); }
+    return [32, 32];
+  },
+
+  tape_recorder(g, rng) {
+    g.fillStyle = '#2c2a28'; g.fillRect(0, 0, 32, 24);
+    g.fillStyle = '#5b5750'; g.fillRect(2, 2, 28, 11);                 // cassette window
+    g.fillStyle = '#9a8f78'; g.fillRect(4, 4, 24, 7);
+    g.fillStyle = '#1a1a1a'; g.fillRect(8, 6, 4, 4); g.fillRect(20, 6, 4, 4); // reels
+    g.fillStyle = '#777'; for (let i = 0; i < 4; i++) g.fillRect(3 + i * 7, 16, 5, 4); // keys
+    g.fillStyle = '#b02020'; g.fillRect(3, 16, 5, 4);                   // record key
+    speckle(g, 32, 24, rng, 0.06);
+    return [32, 24];
+  },
+
+  fuse(g) {
+    g.fillStyle = '#e6e0d0'; g.fillRect(0, 0, 8, 16);
+    g.fillStyle = '#9a9a9a'; g.fillRect(0, 0, 8, 3); g.fillRect(0, 13, 8, 3); // metal caps
+    g.fillStyle = '#7a2a1a'; g.fillRect(2, 7, 4, 2);                          // rating band
+    return [8, 16];
+  },
+
+  fuse_box(g, rng) {
+    g.fillStyle = '#8e8a7c'; g.fillRect(0, 0, 32, 64);
+    speckle(g, 32, 64, rng, 0.08);
+    g.fillStyle = '#5e5b52'; g.fillRect(2, 2, 28, 60);                   // door seam
+    g.fillStyle = '#9c9888'; g.fillRect(3, 3, 26, 58);
+    g.fillStyle = '#d8c23a'; g.fillRect(9, 8, 14, 9);                    // warning label
+    g.fillStyle = '#1a1a1a'; g.fillRect(15, 9, 2, 5); g.fillRect(15, 15, 2, 1);
+    g.fillStyle = '#3a3a3a'; g.fillRect(25, 30, 2, 8);                   // handle
+    g.fillStyle = 'rgba(80,50,20,0.35)'; g.fillRect(rng.int(4, 20), rng.int(40, 56), 6, 4); // rust
+    return [32, 64];
+  },
 };
 
 export function makeProcTexture(name) {

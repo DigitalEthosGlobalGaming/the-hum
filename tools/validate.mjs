@@ -3,7 +3,8 @@
 // Library use: validateContent(content, { textures, scripts, sources }) → { errors, warnings }
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadContent, listTextures, listScripts } from './lib/loadContent.mjs';
+import fs from 'node:fs';
+import { loadContent, listTextures, walk, SCRIPT_DIR } from './lib/loadContent.mjs';
 
 export const CELL = 2;        // metres per layout cell (src/world/roomBuilder.js)
 export const WALL_H = 3;
@@ -16,6 +17,7 @@ const READABLE_DISPLAYS = ['notebook', 'inspect', 'surface'];
 const SOUND_TRIGGERS = ['ambient', 'proximity', 'interact', 'script'];
 const CONSUME = ['self', 'other', 'both', 'none', true, false];
 const BUILTIN_ITEMS = ['flashlight']; // engine-provided items that combine/use may refer to
+const SPECIAL_TEXT_IDS = ['spine', 'random']; // readable textIds resolved at read time (src/gameplay/notes.js)
 
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
 const isVec = (v, n) => Array.isArray(v) && v.length === n && v.every(isNum);
@@ -162,7 +164,13 @@ export function validateContent(content, { textures, scripts, sources = {} } = {
         case 'readable':
           if (!c?.text && !c?.textId) err(cw, 'needs "text" or "textId"');
           if (c?.display != null && !READABLE_DISPLAYS.includes(c.display)) warn(`${cw}.display`, `expected one of ${READABLE_DISPLAYS.join('/')}, got ${q(c.display)}`);
-          if (c?.textId && content.notes && !content.notes[c.textId]) err(`${cw}.textId`, `unknown note ${q(c.textId)}`);
+          if (c?.textId && !SPECIAL_TEXT_IDS.includes(c.textId)) {
+            if (!content.notes?.[c.textId]) err(`${cw}.textId`, `unknown note ${q(c.textId)} (use a note id, "spine" or "random")`);
+          } else if (c?.textId === 'spine' && !Object.values(content.notes ?? {}).some((n) => Number.isInteger(n?.spine))) {
+            err(`${cw}.textId`, '"spine" needs at least one note with a "spine" number in content/notes');
+          } else if (c?.textId === 'random' && !Object.values(content.notes ?? {}).some((n) => n && n.spine == null)) {
+            err(`${cw}.textId`, '"random" needs at least one fragment (a note without "spine") in content/notes');
+          }
           break;
         case 'sound':
           if (!c?.preset) err(cw, 'needs a "preset"');
@@ -324,12 +332,33 @@ export function validateContent(content, { textures, scripts, sources = {} } = {
     });
   }
 
+  // ---------- notes ----------
+  const spineNums = new Map();
+  for (const [id, n] of Object.entries(content.notes ?? {})) {
+    const w = (f) => where('notes', id, f);
+    idMatchesFile('notes', id, n);
+    if (!n || typeof n !== 'object') { err(w(), 'note must be a JSON object'); continue; }
+    if (SPECIAL_TEXT_IDS.includes(id)) err(w('id'), `${q(id)} is reserved for readable textIds`);
+    if (typeof n.title !== 'string' || !n.title) err(w('title'), 'needs a title');
+    if (typeof n.text !== 'string' || !n.text) err(w('text'), 'needs text');
+    else if (n.text.length > 400) warn(w('text'), `is ${n.text.length} chars; keep notes short (1–4 sentences)`);
+    if (n.spine != null) {
+      if (!(Number.isInteger(n.spine) && n.spine >= 1)) err(w('spine'), `must be an integer ≥ 1, got ${q(n.spine)}`);
+      else if (spineNums.has(n.spine)) err(w('spine'), `spine ${n.spine} is also used by ${spineNums.get(n.spine)}`);
+      else spineNums.set(n.spine, id);
+    }
+  }
+  if (spineNums.size) {
+    const max = Math.max(...spineNums.keys());
+    for (let i = 1; i <= max; i++) if (!spineNums.has(i)) warn('content/notes', `spine order has a gap: no note with spine ${i}`);
+  }
+
   // ---------- cross-cutting ----------
   for (const id of Object.keys(pools)) if (!poolRefs.has(id)) warn(where('pools', id), 'pool is not used by any room spot or other pool');
   for (const [sid, uses] of scriptRefs) {
     if (scriptSet?.has(sid)) continue;
-    const why = scriptSet ? 'not found in src/scripts/items' : 'src/scripts/items does not exist yet, M4';
-    warn(uses[0], `unknown script ${q(sid)} (${why})${uses.length > 1 ? `; also used by ${uses.length - 1} other(s)` : ''}`);
+    if (!scriptSet) { warn(uses[0], `can't check script ${q(sid)}: no script list given`); continue; }
+    err(uses[0], `unknown script ${q(sid)} (not listed in src/scripts/items/index.js)${uses.length > 1 ? `; also used by ${uses.length - 1} other(s)` : ''}`);
   }
 
   return { errors, warnings };
@@ -340,7 +369,38 @@ export function validateAll() {
   let loaded;
   try { loaded = loadContent(); }
   catch (e) { return { errors: [e.message], warnings: [] }; }
-  return validateContent(loaded.content, { textures: listTextures(), scripts: listScripts(), sources: loaded.sources });
+  const reg = scriptRegistry();
+  const res = validateContent(loaded.content, { textures: listTextures(), scripts: reg.ids, sources: loaded.sources });
+  res.errors.push(...reg.errors);
+  return res;
+}
+
+/**
+ * Script ids from the same list the game registers: src/scripts/items/index.js.
+ * Read from disk (not imported) so --watch sees new scripts. Also checks that every file in the
+ * folder is listed, every listed file exists, and ids are unique.
+ * @returns {{ ids: string[], errors: string[] }}
+ */
+export function scriptRegistry(dir = SCRIPT_DIR) {
+  const errors = [];
+  const indexFile = `${dir}/index.js`;
+  if (!fs.existsSync(indexFile)) return { ids: [], errors: [`src/scripts/items/index.js: missing (it lists every item script)`] };
+  const src = fs.readFileSync(indexFile, 'utf8');
+  const listed = [...src.matchAll(/^\s*import\s+\w+\s+from\s+['"]\.\/([\w-]+\.js)['"]/gm)].map((m) => m[1]);
+  const files = walk(dir, '.js').map((f) => path.relative(dir, f).split(path.sep).join('/')).filter((f) => f !== 'index.js');
+  for (const f of files) if (!listed.includes(f)) errors.push(`src/scripts/items/${f}: not listed in src/scripts/items/index.js, so the game never registers it`);
+  const ids = [];
+  const seen = new Map();
+  for (const f of listed) {
+    const file = `${dir}/${f}`;
+    if (!fs.existsSync(file)) { errors.push(`src/scripts/items/index.js: imports ./${f}, which doesn't exist`); continue; }
+    const m = fs.readFileSync(file, 'utf8').match(/\bid\s*:\s*['"]([\w-]+)['"]/);
+    if (!m) { errors.push(`src/scripts/items/${f}: no "id: '...'" found`); continue; }
+    if (seen.has(m[1])) errors.push(`src/scripts/items/${f}: duplicate script id ${q(m[1])} (also in ${seen.get(m[1])})`);
+    seen.set(m[1], f);
+    ids.push(m[1]);
+  }
+  return { ids, errors };
 }
 
 /** Print a result. Returns true when there are no errors. */

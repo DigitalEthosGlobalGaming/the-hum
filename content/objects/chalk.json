@@ -1,0 +1,26 @@
+{
+  "id": "chalk",
+  "name": "Stick of chalk",
+  "tags": [
+    "tool"
+  ],
+  "mesh": {
+    "type": "box",
+    "size": [
+      0.025,
+      0.025,
+      0.09
+    ],
+    "texture": "proc:chalk"
+  },
+  "components": {
+    "pickup": {},
+    "use": {
+      "script": "chalk_mark",
+      "params": {
+        "uses": 12,
+        "reach": 2.2
+      }
+    }
+  }
+}
