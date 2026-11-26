@@ -49,6 +49,16 @@ export class World {
     return r ? r.built.isSolidAt(x, z) : true;
   }
 
+  /** Build the starting area. Returns { pos: Vector3, yaw }. (M3 replaces this with WFC streaming.) */
+  start() {
+    const placed = this.addRoom('m1_test_hall', { x: 0, z: 0 });
+    return { pos: placed.built.spawn.clone(), yaw: placed.built.spawnYaw };
+  }
+
+  debugLines() {
+    return [`objects    ${this.objects.instances.length} (${this.colliders.length} solid, ${this.objects.lights.length} lit)`];
+  }
+
   get colliders() { return this.objects.colliders; }
 
   /** Does a wall cell sit between two points? (coarse 0.25 m march, ignores props) */

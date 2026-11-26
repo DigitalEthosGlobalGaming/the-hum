@@ -9,15 +9,95 @@
     "mouseSensitivity": 0.0022,
     "bobAmount": 0.045
   },
-  "render": { "height": 240, "fov": 70, "fogNear": 4, "fogFar": 22, "affine": 0.7, "affineNear": 1.0, "affineFar": 4.0 },
+  "render": {
+    "height": 240,
+    "fov": 70,
+    "fogNear": 4,
+    "fogFar": 22,
+    "affine": 0.7,
+    "affineNear": 1.0,
+    "affineFar": 4.0
+  },
   "keys": {
-    "forward": ["KeyW", "ArrowUp"],
-    "back": ["KeyS", "ArrowDown"],
-    "left": ["KeyA", "ArrowLeft"],
-    "right": ["KeyD", "ArrowRight"],
-    "sprint": ["ShiftLeft", "ShiftRight"],
-    "crouch": ["KeyC", "ControlLeft"],
-    "flashlight": ["KeyF"],
-    "debug": ["F3"]
+    "forward": [
+      "KeyW",
+      "ArrowUp"
+    ],
+    "back": [
+      "KeyS",
+      "ArrowDown"
+    ],
+    "left": [
+      "KeyA",
+      "ArrowLeft"
+    ],
+    "right": [
+      "KeyD",
+      "ArrowRight"
+    ],
+    "sprint": [
+      "ShiftLeft",
+      "ShiftRight"
+    ],
+    "crouch": [
+      "KeyC",
+      "ControlLeft"
+    ],
+    "flashlight": [
+      "KeyF"
+    ],
+    "debug": [
+      "F3"
+    ],
+    "interact": [
+      "KeyE"
+    ],
+    "use": [
+      "Mouse0",
+      "KeyR"
+    ],
+    "drop": [
+      "KeyG"
+    ],
+    "slot1": [
+      "Digit1"
+    ],
+    "slot2": [
+      "Digit2"
+    ],
+    "slot3": [
+      "Digit3"
+    ],
+    "slot4": [
+      "Digit4"
+    ],
+    "slotNext": [
+      "WheelDown"
+    ],
+    "slotPrev": [
+      "WheelUp"
+    ],
+    "watch": [
+      "KeyQ"
+    ],
+    "notebook": [
+      "Tab",
+      "KeyM"
+    ],
+    "pockets": [
+      "KeyI"
+    ],
+    "pause": [
+      "Escape"
+    ]
+  },
+  "vitals": {
+    "sanityDarkDrain": 0.004,
+    "sanityLightRegen": 0.002,
+    "staminaDrain": 0.18,
+    "staminaRegen": 0.12
+  },
+  "inventory": {
+    "slots": 4
   }
 }

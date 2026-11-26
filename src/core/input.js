@@ -15,14 +15,21 @@ export class Input {
 
     addEventListener('keydown', (e) => {
       if (e.repeat) return;
-      this.down.add(e.code);
-      for (const [action, codes] of Object.entries(this.keyMap)) {
-        if (codes.includes(e.code)) this.pressed.add(action);
-      }
+      this.press(e.code);
       if (this.isGameKey(e.code)) e.preventDefault();
     });
     addEventListener('keyup', (e) => this.down.delete(e.code));
     addEventListener('blur', () => this.down.clear());
+    // Mouse buttons are codes "Mouse0" (left), "Mouse2" (right); wheel is "WheelUp"/"WheelDown"
+    // (edge-only). In the click-drag look fallback the left button is look, so it never fires actions.
+    canvas.addEventListener('mousedown', (e) => { if (this.locked) this.press('Mouse' + e.button); });
+    addEventListener('mouseup', (e) => this.down.delete('Mouse' + e.button));
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    addEventListener('wheel', (e) => {
+      if (!this.locked && this.mode === 'lock') return;
+      this.press(e.deltaY > 0 ? 'WheelDown' : 'WheelUp');
+      this.down.delete(e.deltaY > 0 ? 'WheelDown' : 'WheelUp');
+    }, { passive: true });
 
     addEventListener('mousemove', (e) => {
       if (this.locked || (this.mode === 'drag' && this.dragging)) {
@@ -58,6 +65,13 @@ export class Input {
     this.pointerLock.state = 'failed';
     this.pointerLock.error = reason;
     this.mode = 'drag';
+  }
+
+  press(code) {
+    this.down.add(code);
+    for (const [action, codes] of Object.entries(this.keyMap)) {
+      if (codes.includes(code)) this.pressed.add(action);
+    }
   }
 
   isGameKey(code) {

@@ -1,15 +1,20 @@
-// THE HUM · boot + main loop (milestone 2: test room populated from content JSON).
+// THE HUM · boot + main loop.
+// Systems share one `game` object (see src/CONTRACTS.md). M4 gameplay and M5 diegetic UI plug in
+// through their install/update hooks so this file stays small.
 import * as THREE from 'three';
 import content from 'virtual:content';
 import { PS1Renderer, shared, highlightUniforms } from './render/ps1.js';
 import { TextureBank } from './core/textures.js';
 import { Input } from './core/input.js';
+import { Events } from './core/events.js';
 import { Diagnostics } from './core/diagnostics.js';
 import { World } from './world/world.js';
 import { hash } from './core/rng.js';
 import { Player } from './player/player.js';
 import { Synth } from './audio/synth.js';
 import { mountSoundBoard } from './audio/soundBoard.js';
+import { installGameplay, updateGameplay } from './gameplay/index.js';
+import { installDiegetic, updateDiegetic, renderDiegetic } from './ui/diegetic/index.js';
 
 const cfg = content.config;
 const canvas = document.getElementById('game');
@@ -32,19 +37,37 @@ async function boot() {
   const seedParam = new URLSearchParams(location.search).get('seed');
   const seed = seedParam ? hash(seedParam) : (Math.random() * 2 ** 32) >>> 0;
 
+  const events = new Events();
   const input = new Input(canvas, cfg.keys);
   const synth = new Synth();
   synth.loadPresets(content.sounds);
   const world = new World({ content, textures, scene, audio: synth, seed });
-  const placed = world.addRoom('m1_test_hall', { x: 0, z: 0 });
-  const room = placed.built;
+  const spawn = world.start();
   const player = new Player(cfg.player, camera);
-  player.pos.copy(room.spawn);
-  player.yaw = room.spawnYaw;
-  player.onStep = (k) => synth.footstep(k);
+  player.pos.copy(spawn.pos);
+  player.yaw = spawn.yaw;
+
+  const game = {
+    cfg, content, seed, canvas, renderer, scene, camera, textures, input, events, synth, world, player,
+    playing: false,
+    time: 0,
+    focus: null,                 // { inst, distance } the aimed-at interactable, or null
+    stats: { sanity: 1, stamina: 1, steps: 0 },
+    // Minimal flashlight; M5 replaces this with the held torch + LEDs (same fields).
+    flashlight: {
+      on: true, battery: 1,
+      toggle() { this.on = !this.on; synth.click(); },
+      recharge(amount = 1) { this.battery = Math.min(1, this.battery + amount); },
+    },
+  };
+  player.onStep = (k) => { game.stats.steps++; synth.footstep(k); events.emit('player:step', { intensity: k }); };
+
+  installGameplay(game);
+  installDiegetic(game);
+
   const diag = new Diagnostics();
   if (__DEV__) mountSoundBoard(synth, content.sounds);
-  if (__DEV__) window.__hum = { player, world, camera, synth, content }; // console poking in dev builds only
+  if (__DEV__) window.__hum = game; // console poking in dev builds only
 
   // Placeholder title card (replaced by the CRT title in milestone 6).
   const title = document.createElement('div');
@@ -55,46 +78,50 @@ async function boot() {
     justifyContent: 'center', color: '#d8cf8a', background: 'rgba(0,0,0,0.82)', cursor: 'pointer', zIndex: 5,
   });
   document.body.appendChild(title);
-  let playing = false;
   title.addEventListener('mousedown', () => {
     synth.start();
     input.requestLock();
     title.remove();
-    playing = true;
+    game.playing = true;
+    events.emit('game:start', {});
   });
 
   addEventListener('resize', () => {
     renderer.resize();
     camera.aspect = renderer.aspect;
     camera.updateProjectionMatrix();
+    events.emit('game:resize', {});
   });
 
+  const idleInput = { held: () => false, wasPressed: () => false, lookDX: 0, lookDY: 0 };
   const clock = new THREE.Clock();
   const fwd = new THREE.Vector3();
   function frame() {
     const dt = Math.min(clock.getDelta(), 0.05);
-    const time = clock.elapsedTime;
+    const time = (game.time = clock.elapsedTime);
     if (input.wasPressed('debug')) diag.toggle();
-    if (playing) {
-      if (input.wasPressed('flashlight')) {
-        shared.uFlashOn.value = shared.uFlashOn.value ? 0 : 1;
-        synth.click();
-      }
+    if (game.playing) {
+      if (input.wasPressed('flashlight')) game.flashlight.toggle();
       player.update(dt, input, world);
     } else {
-      player.update(0, { held: () => false, lookDX: 0, lookDY: 0 }, world);
+      player.update(0, idleInput, world);
     }
     camera.getWorldDirection(fwd);
     shared.uFlashPos.value.copy(camera.position);
     shared.uFlashDir.value.copy(fwd);
+    shared.uFlashOn.value = game.flashlight.on ? Math.min(1, 0.25 + game.flashlight.battery * 0.75) : 0;
     synth.setListener(camera.position, fwd, camera.up);
-    world.update(dt, { camera, time });
-    const look = playing ? world.updateFocus(camera) : null;
+    world.update(dt, { camera, time, player });
+    game.focus = game.playing ? world.updateFocus(camera) : null;
+    if (game.playing) updateGameplay(game, dt);
+    updateDiegetic(game, dt);
     highlightUniforms.uStrength.value = 0.32 + 0.12 * Math.sin(time * 4); // slow pulse
     renderer.render(scene, camera, time);
+    renderDiegetic(game);
+    const look = game.focus;
     diag.update(dt, { renderer, input, synth, player, extra: [
       `seed       ${seed}`,
-      `objects    ${world.objects.instances.length} (${world.colliders.length} solid, ${world.objects.lights.length} lit)`,
+      ...world.debugLines(),
       `looking at ${look ? look.inst.name + (look.inst.readable?.text ? ' — "' + look.inst.readable.text + '"' : '') : '-'}`,
     ] });
     input.endFrame();
