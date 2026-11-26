@@ -1,0 +1,16 @@
+{
+  "id": "door_creak",
+  "note": "Slow wooden door: stick-slip pulse train through resonant wood formants, rising then sagging.",
+  "bus": "sfx",
+  "volume": 1,
+  "spatial": true,
+  "refDistance": 1.5,
+  "maxDistance": 30,
+  "reverb": 0.35,
+  "vary": {"pitch": 2, "filter": 0.2, "time": 0.05},
+  "layers": [
+    {"note": "main creak", "osc": "saw", "freq": 38, "gain": 1.6, "pitchEnv": {"to": 1.7, "time": 1.1, "curve": "lin"}, "filter": {"type": "bandpass", "freq": 820, "q": 9, "env": {"to": 1250, "time": 1.2}}, "env": {"a": 0.15, "d": 0.25, "s": 0.7, "sus": 0.7, "r": 0.35}, "lfo": [{"target": "pitch", "wave": "noise", "rate": 7, "depth": 350}, {"target": "gain", "wave": "noise", "rate": 11, "depth": 0.6}]},
+    {"note": "upper groan", "osc": "saw", "freq": 61, "gain": 0.9, "start": 0.25, "pitchEnv": {"to": 0.75, "time": 0.9}, "filter": {"type": "bandpass", "freq": 1900, "q": 12}, "env": {"a": 0.2, "d": 0.2, "s": 0.6, "sus": 0.4, "r": 0.3}, "lfo": {"target": "pitch", "wave": "noise", "rate": 9, "depth": 500}},
+    {"note": "hinge grit", "noise": "white", "gain": 0.06, "filter": {"type": "bandpass", "freq": 3000, "q": 2}, "env": {"a": 0.2, "d": 0.2, "s": 0.8, "sus": 0.8, "r": 0.3}, "lfo": {"target": "gain", "wave": "noise", "rate": 30, "depth": 0.9}}
+  ]
+}

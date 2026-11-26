@@ -1,0 +1,12 @@
+{
+  "id": "footstep_carpet",
+  "note": "Damp carpet: soft low heel thump plus a short fibre scuff.",
+  "bus": "sfx",
+  "volume": 0.7,
+  "reverb": 0.05,
+  "vary": {"pitch": 1.5, "filter": 0.25, "gain": 2},
+  "layers": [
+    {"note": "heel", "noise": "brown", "rate": 0.8, "gain": 0.6, "filter": {"type": "lowpass", "freq": 420, "q": 0.7}, "env": {"a": 0.006, "d": 0.15}},
+    {"note": "scuff", "noise": "pink", "gain": 0.12, "start": 0.02, "filter": {"type": "bandpass", "freq": 1500, "q": 0.8}, "env": {"a": 0.012, "d": 0.09}, "vary": {"time": 0.02, "gain": 3}}
+  ]
+}

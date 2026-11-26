@@ -1,0 +1,12 @@
+{
+  "id": "paper_rustle",
+  "note": "Handling a sheet of paper: two crackly rustles.",
+  "bus": "sfx",
+  "volume": 0.9,
+  "reverb": 0.05,
+  "vary": {"filter": 0.25, "gain": 2},
+  "layers": [
+    {"note": "crinkle", "noise": "white", "gain": 0.3, "filter": {"type": "bandpass", "freq": 4200, "q": 0.9}, "env": {"a": 0.04, "d": 0.08, "s": 0.6, "sus": 0.12, "r": 0.12}, "lfo": {"target": "gain", "wave": "noise", "rate": 40, "depth": 0.95}, "repeat": {"count": 2, "interval": 0.42, "jitter": 0.1}, "vary": {"filter": 0.3}},
+    {"note": "sheet body", "noise": "pink", "gain": 0.14, "filter": {"type": "bandpass", "freq": 1300, "q": 0.8}, "env": {"a": 0.06, "d": 0.1, "s": 0.5, "sus": 0.1, "r": 0.15}, "lfo": {"target": "gain", "wave": "noise", "rate": 12, "depth": 0.7}, "repeat": {"count": 2, "interval": 0.42, "jitter": 0.1}}
+  ]
+}

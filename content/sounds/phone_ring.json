@@ -1,0 +1,19 @@
+{
+  "id": "phone_ring",
+  "note": "Old analogue desk phone: hammer chattering ~20 Hz between two slightly mistuned bells, double burst, four cycles.",
+  "bus": "sfx",
+  "volume": 0.9,
+  "spatial": true,
+  "refDistance": 1.2,
+  "maxDistance": 30,
+  "rolloff": 1,
+  "reverb": 0.3,
+  "repeat": {"count": 4, "interval": 3, "jitter": 0.04},
+  "vary": {"pitch": 0.15},
+  "layers": [
+    {"note": "bell A", "osc": "sine", "freq": 1174, "gain": 0.5, "env": {"a": 0.004, "d": 0.03, "s": 0.85, "sus": 0.36, "r": 0.12}, "lfo": {"target": "gain", "wave": "square", "rate": 19.5, "depth": 0.85}, "repeat": {"count": 2, "interval": 0.6}},
+    {"note": "bell B, detuned so the two beat", "osc": "sine", "freq": 1231, "gain": 0.38, "env": {"a": 0.004, "d": 0.03, "s": 0.85, "sus": 0.36, "r": 0.16}, "lfo": {"target": "gain", "wave": "square", "rate": 19.5, "depth": 0.85}, "repeat": {"count": 2, "interval": 0.6}},
+    {"note": "inharmonic bell partial", "osc": "triangle", "freq": 2797, "gain": 0.1, "filter": {"type": "lowpass", "freq": 3600, "q": 0.7}, "env": {"a": 0.002, "d": 0.05, "s": 0.6, "sus": 0.34, "r": 0.08}, "lfo": {"target": "gain", "wave": "square", "rate": 19.5, "depth": 0.9}, "repeat": {"count": 2, "interval": 0.6}},
+    {"note": "hammer rattle", "noise": "white", "gain": 0.12, "filter": {"type": "bandpass", "freq": 3200, "q": 3}, "env": {"a": 0.003, "d": 0.02, "s": 0.7, "sus": 0.36, "r": 0.04}, "lfo": {"target": "gain", "wave": "square", "rate": 19.5, "depth": 1}, "repeat": {"count": 2, "interval": 0.6}}
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "footstep_tile",
+  "note": "Hard shoe on tile: bright tick, short body knock, toe follows heel, room ring.",
+  "bus": "sfx",
+  "volume": 0.6,
+  "reverb": 0.25,
+  "vary": {"pitch": 1.2, "filter": 0.2, "gain": 2},
+  "layers": [
+    {"note": "tick", "noise": "white", "gain": 0.35, "filter": {"type": "bandpass", "freq": 3400, "q": 1.4}, "env": {"a": 0.001, "d": 0.035}},
+    {"note": "knock", "osc": "triangle", "freq": 420, "gain": 0.3, "pitchEnv": {"to": 0.6, "time": 0.04}, "filter": {"type": "lowpass", "freq": 1200, "q": 0.7}, "env": {"a": 0.001, "d": 0.06}, "vary": {"pitch": 2}},
+    {"note": "heel body", "noise": "brown", "gain": 0.35, "filter": {"type": "lowpass", "freq": 300, "q": 0.7}, "env": {"a": 0.003, "d": 0.08}},
+    {"note": "toe", "noise": "white", "gain": 0.12, "start": 0.045, "filter": {"type": "bandpass", "freq": 2600, "q": 1.2}, "env": {"a": 0.001, "d": 0.03}, "vary": {"time": 0.02, "gain": 4}}
+  ]
+}

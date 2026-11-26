@@ -1,0 +1,12 @@
+{
+  "id": "heartbeat",
+  "note": "One lub-dub, felt more than heard. Gameplay retriggers it at the sanity-driven BPM.",
+  "bus": "sfx",
+  "volume": 0.85,
+  "vary": {"pitch": 0.6, "gain": 1.5},
+  "layers": [
+    {"note": "lub", "osc": "sine", "freq": 62, "gain": 0.8, "pitchEnv": {"to": 0.7, "time": 0.09}, "filter": {"type": "lowpass", "freq": 160, "q": 0.7}, "env": {"a": 0.01, "d": 0.16}},
+    {"note": "lub body", "noise": "brown", "gain": 0.35, "filter": {"type": "lowpass", "freq": 110, "q": 1}, "env": {"a": 0.01, "d": 0.12}},
+    {"note": "dub", "osc": "sine", "freq": 54, "gain": 0.55, "start": 0.27, "pitchEnv": {"to": 0.72, "time": 0.08}, "filter": {"type": "lowpass", "freq": 140, "q": 0.7}, "env": {"a": 0.012, "d": 0.18}, "vary": {"time": 0.02}}
+  ]
+}

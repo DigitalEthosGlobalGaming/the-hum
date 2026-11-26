@@ -1,0 +1,19 @@
+{
+  "id": "whisper_far",
+  "note": "Something whispering a few rooms away: wandering formant-filtered breath, sibilant bursts, no words.",
+  "bus": "tenant",
+  "volume": 0.7,
+  "spatial": true,
+  "refDistance": 2,
+  "maxDistance": 25,
+  "rolloff": 1,
+  "reverb": 0.55,
+  "vary": {"filter": 0.25, "gain": 2},
+  "layers": [
+    {"note": "F1", "noise": "white", "gain": 1.6, "filter": {"type": "bandpass", "freq": 560, "q": 9}, "env": {"a": 0.4, "d": 0.2, "s": 0.8, "sus": 1.5, "r": 0.6}, "lfo": [{"target": "filter", "wave": "noise", "rate": 3.5, "depth": 500}, {"target": "gain", "wave": "noise", "rate": 5, "depth": 1}]},
+    {"note": "F2", "noise": "white", "gain": 1.3, "filter": {"type": "bandpass", "freq": 1500, "q": 10}, "env": {"a": 0.4, "d": 0.2, "s": 0.8, "sus": 1.5, "r": 0.6}, "lfo": [{"target": "filter", "wave": "noise", "rate": 4.2, "depth": 700}, {"target": "gain", "wave": "noise", "rate": 5, "depth": 1}]},
+    {"note": "F3", "noise": "white", "gain": 0.8, "filter": {"type": "bandpass", "freq": 2600, "q": 12}, "env": {"a": 0.45, "d": 0.2, "s": 0.8, "sus": 1.4, "r": 0.6}, "lfo": [{"target": "filter", "wave": "noise", "rate": 2.7, "depth": 400}, {"target": "gain", "wave": "noise", "rate": 6, "depth": 1}]},
+    {"note": "sibilance", "noise": "white", "gain": 0.035, "start": 0.3, "filter": {"type": "highpass", "freq": 4800, "q": 0.7}, "env": {"a": 0.05, "d": 0.05, "s": 0.6, "sus": 0.08, "r": 0.12}, "repeat": {"count": 3, "interval": 0.75, "jitter": 0.3}, "vary": {"gain": 4, "filter": 0.3}},
+    {"note": "breathy bed", "noise": "pink", "gain": 0.08, "filter": {"type": "bandpass", "freq": 1100, "q": 0.7}, "env": {"a": 0.6, "d": 0.2, "s": 0.8, "sus": 1.2, "r": 0.8}}
+  ]
+}

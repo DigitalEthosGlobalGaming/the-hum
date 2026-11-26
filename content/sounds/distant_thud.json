@@ -1,0 +1,17 @@
+{
+  "id": "distant_thud",
+  "note": "Something heavy falls far away: sub drop, dull body, mostly heard through the walls.",
+  "bus": "sfx",
+  "volume": 0.9,
+  "spatial": true,
+  "refDistance": 3,
+  "maxDistance": 60,
+  "rolloff": 0.7,
+  "reverb": 0.7,
+  "vary": {"pitch": 2, "filter": 0.3, "gain": 2},
+  "layers": [
+    {"note": "sub", "osc": "sine", "freq": 58, "gain": 0.6, "pitchEnv": {"to": 0.6, "time": 0.4}, "env": {"a": 0.004, "d": 0.9}},
+    {"note": "body", "noise": "brown", "gain": 0.55, "filter": {"type": "lowpass", "freq": 220, "q": 0.9, "env": {"to": 90, "time": 0.5}}, "env": {"a": 0.003, "d": 0.7}},
+    {"note": "rattle in the frame", "noise": "pink", "gain": 0.06, "start": 0.05, "filter": {"type": "bandpass", "freq": 700, "q": 2}, "env": {"a": 0.01, "d": 0.4}, "lfo": {"target": "gain", "wave": "noise", "rate": 25, "depth": 0.8}}
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "fluoro_flicker_buzz",
+  "note": "A tube stutters: ballast buzz in uneven bursts with starter ticks and a mains thump.",
+  "bus": "ambience",
+  "volume": 0.5,
+  "spatial": true,
+  "refDistance": 1,
+  "maxDistance": 18,
+  "rolloff": 1.2,
+  "reverb": 0.2,
+  "vary": {"pitch": 0.4, "gain": 2},
+  "layers": [
+    {"note": "ballast buzz (120 Hz)", "osc": "square", "freq": 120, "gain": 0.3, "filter": {"type": "lowpass", "freq": 2200, "q": 2}, "env": {"a": 0.003, "d": 0.02, "s": 0.8, "sus": 0.05, "r": 0.02}, "repeat": {"count": 5, "interval": 0.08, "jitter": 0.035}, "vary": {"gain": 5, "time": 0.02}},
+    {"note": "arc hiss", "noise": "white", "gain": 0.08, "filter": {"type": "bandpass", "freq": 4500, "q": 1.5}, "env": {"a": 0.002, "d": 0.02, "s": 0.7, "sus": 0.04, "r": 0.02}, "repeat": {"count": 5, "interval": 0.08, "jitter": 0.035}, "vary": {"gain": 5, "time": 0.02}},
+    {"note": "starter tick", "noise": "white", "gain": 0.2, "filter": {"type": "highpass", "freq": 3000, "q": 0.7}, "env": {"a": 0.0005, "d": 0.008}, "repeat": {"count": 3, "interval": 0.13, "jitter": 0.05}},
+    {"note": "mains thump", "osc": "sine", "freq": 60, "gain": 0.25, "env": {"a": 0.005, "d": 0.2}}
+  ]
+}

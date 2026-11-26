@@ -1,0 +1,12 @@
+{
+  "id": "flashlight_click",
+  "note": "Tactile torch switch: sharp click with a small plastic body and the latch settling.",
+  "bus": "sfx",
+  "volume": 0.55,
+  "vary": {"pitch": 1, "gain": 1.5},
+  "layers": [
+    {"note": "click", "noise": "white", "gain": 0.45, "filter": {"type": "bandpass", "freq": 4200, "q": 1.8}, "env": {"a": 0.0005, "d": 0.012}},
+    {"note": "body", "osc": "triangle", "freq": 900, "gain": 0.22, "pitchEnv": {"to": 0.55, "time": 0.025}, "env": {"a": 0.001, "d": 0.03}},
+    {"note": "latch settles", "noise": "white", "gain": 0.18, "start": 0.022, "filter": {"type": "bandpass", "freq": 2900, "q": 2}, "env": {"a": 0.0005, "d": 0.01}, "vary": {"time": 0.008}}
+  ]
+}
