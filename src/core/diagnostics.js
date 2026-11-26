@@ -9,7 +9,8 @@ export class Diagnostics {
       pointerEvents: 'none', zIndex: 10, whiteSpace: 'pre',
     });
     document.body.appendChild(this.el);
-    this.visible = true;
+    this.visible = false; // hidden until F3
+    this.el.style.display = 'none';
     this.frames = 0;
     this.acc = 0;
     this.fps = 0;
