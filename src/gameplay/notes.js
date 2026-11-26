@@ -25,7 +25,8 @@ export function nextSpine(notes, collected) {
  * fragment is read, any fragment.
  */
 export function randomFragment(notes, collected, seed) {
-  const { fragments } = splitNotes(notes);
+  // hidden notes (e.g. secret rewards) only come from their own trigger, never as random scraps
+  const fragments = splitNotes(notes).fragments.filter((n) => !n.hidden);
   if (!fragments.length) return null;
   const unread = fragments.filter((n) => !collected.has(n.id));
   const pool = unread.length ? unread : fragments;

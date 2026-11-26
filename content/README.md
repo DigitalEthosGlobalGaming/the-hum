@@ -105,3 +105,7 @@ Discoverable interactions, written as data (runtime: `src/secrets/`, API `game.s
 | `$hold` | seconds: (on `tick`) the rest must stay true this long without a break |
 
 `npm run validate` checks the script exists, the event is known, and the special keys are well formed.
+
+
+### Note flags
+`"hidden": true` on a note keeps it out of random `note_random` picks: it can only be obtained from its own source (e.g. a secret's reward).
