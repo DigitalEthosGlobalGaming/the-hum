@@ -1,0 +1,56 @@
+{
+  "id": "lobby_dead_end_alcove",
+  "zones": {
+    "lobby": 5
+  },
+  "tags": ["lobby", "corridor", "dead_end"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["wall", "!wall"],
+    "s": ["wall", "wall"],
+    "e": ["wall"],
+    "w": ["!wall"]
+  },
+  "rules": {
+    "notNextTo": ["dead_end"]
+  },
+  "layout": [
+    "################",
+    "#########....###",
+    "#########....###",
+    "#............###",
+    "#............###",
+    "###########..###",
+    "#######.L....###",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [
+    {
+      "def": "wall_scrawl",
+      "pos": [14.02, 1.5, 13],
+      "rot": 90
+    }
+  ],
+  "spots": [
+    {
+      "id": "dead_end",
+      "pos": [15, 0, 13],
+      "rot": 270,
+      "pool": "lobby_floor_loot"
+    }
+  ]
+}

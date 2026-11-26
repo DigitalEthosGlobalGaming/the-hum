@@ -1,0 +1,27 @@
+{
+  "note": "digests of the inner region per seed; regenerate with --update-golden",
+  "size": 12,
+  "margin": 4,
+  "digests": {
+    "1": "1fc9af57",
+    "2": "28a1d950",
+    "3": "6023ac45",
+    "4": "f04371b1",
+    "5": "d6e1ca1e",
+    "6": "471eee2c",
+    "7": "74b7bab2",
+    "8": "c29876bc",
+    "9": "85e00fd6",
+    "10": "02756e6f",
+    "11": "9017efb5",
+    "12": "a0b2eb7c",
+    "13": "a6b33fc8",
+    "14": "d475c4c1",
+    "15": "9eda83e8",
+    "16": "22b9fea1",
+    "17": "5600ba4a",
+    "18": "73a5fd57",
+    "19": "656c0e40",
+    "20": "deeebc6b"
+  }
+}

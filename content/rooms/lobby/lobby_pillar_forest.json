@@ -1,0 +1,53 @@
+{
+  "id": "lobby_pillar_forest",
+  "zones": {
+    "lobby": 10
+  },
+  "tags": ["lobby", "open", "pillars"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["*", "*"],
+    "s": ["*", "*"],
+    "e": ["*"],
+    "w": ["*"]
+  },
+  "layout": [
+    "################",
+    "#..............#",
+    "#.P.P.P.P.P.P..#",
+    "#..............#",
+    "#...P.P.L.P.P..#",
+    "#..............#",
+    "#.P.P.L.P.P.P..#",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [],
+  "spots": [
+    {
+      "id": "corner",
+      "pos": [3, 0, 13],
+      "rot": 45,
+      "pool": "lobby_floor_loot"
+    },
+    {
+      "id": "clutter",
+      "pos": [29, 0, 3],
+      "rot": 200,
+      "pool": "lobby_clutter"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "lobby_empty_lit",
+  "zones": {
+    "lobby": 4
+  },
+  "tags": ["lobby", "open", "empty", "lit_alone"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["*", "*"],
+    "s": ["*", "*"],
+    "e": ["*"],
+    "w": ["*"]
+  },
+  "rules": {
+    "notNextTo": ["lit_alone"]
+  },
+  "layout": [
+    "################",
+    "#..............#",
+    "#..............#",
+    "#.......L......#",
+    "#..............#",
+    "#..............#",
+    "#..............#",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [],
+  "spots": [
+    {
+      "id": "centre",
+      "pos": [17, 0, 11],
+      "rot": 0,
+      "pool": "lobby_floor_loot"
+    }
+  ]
+}

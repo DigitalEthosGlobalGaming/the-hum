@@ -1,0 +1,61 @@
+{
+  "id": "lobby_stair_hall",
+  "zones": {
+    "lobby": 5
+  },
+  "tags": ["lobby", "big", "diagonal"],
+  "slots": [3, 2],
+  "layout": [
+    "################        ",
+    "#..............#        ",
+    "#..L...........#        ",
+    "#.......P......#        ",
+    "#..............#        ",
+    "#.....P........#        ",
+    "#..............#        ",
+    "########.......#        ",
+    "        #.......########",
+    "        #..............#",
+    "        #.......P......#",
+    "        #..........L...#",
+    "        #..............#",
+    "        #...P..........#",
+    "        #..............#",
+    "        ################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [
+    {
+      "def": "wet_floor_sign",
+      "pos": [20, 0, 14],
+      "rot": 15
+    }
+  ],
+  "spots": [
+    {
+      "id": "low_end",
+      "pos": [45, 0, 29],
+      "rot": 0,
+      "pool": "lobby_floor_loot"
+    },
+    {
+      "id": "high_end",
+      "pos": [3, 0, 3],
+      "rot": 0,
+      "pool": "lobby_clutter"
+    }
+  ]
+}

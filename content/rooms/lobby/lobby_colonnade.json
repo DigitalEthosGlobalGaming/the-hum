@@ -1,0 +1,47 @@
+{
+  "id": "lobby_colonnade",
+  "zones": {
+    "lobby": 7
+  },
+  "tags": ["lobby", "pillars", "corridor"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["*", "*"],
+    "s": ["*", "*"],
+    "e": ["*"],
+    "w": ["*"]
+  },
+  "layout": [
+    "################",
+    "#..............#",
+    "#..P..P..P..P..#",
+    "#..............#",
+    "#..L........L..#",
+    "#..P..P..P..P..#",
+    "#..............#",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern",
+    "pillar": "wall_yellow_small",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [],
+  "spots": [
+    {
+      "id": "between",
+      "pos": [17, 0, 7],
+      "rot": 0,
+      "pool": "lobby_floor_loot"
+    }
+  ]
+}
