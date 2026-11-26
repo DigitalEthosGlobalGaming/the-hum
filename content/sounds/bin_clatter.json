@@ -1,0 +1,18 @@
+{
+  "id": "bin_clatter",
+  "note": "Metal trash bin tips over: tinny crash, rolling rattle of the rim, rubbish shifting.",
+  "bus": "sfx",
+  "volume": 0.9,
+  "spatial": true,
+  "refDistance": 2,
+  "maxDistance": 40,
+  "reverb": 0.55,
+  "vary": {"pitch": 1.5, "filter": 0.2, "gain": 1},
+  "layers": [
+    {"note": "crash", "noise": "white", "gain": 0.4, "filter": {"type": "bandpass", "freq": 2200, "q": 0.9}, "env": {"a": 0.001, "d": 0.18}},
+    {"note": "thud", "noise": "brown", "gain": 0.5, "filter": {"type": "lowpass", "freq": 300, "q": 0.9}, "env": {"a": 0.002, "d": 0.2}},
+    {"note": "can ring 1", "osc": "sine", "freq": 780, "gain": 0.09, "env": {"a": 0.002, "d": 0.6}, "lfo": {"target": "gain", "wave": "sine", "rate": 7, "depth": 0.5}},
+    {"note": "can ring 2", "osc": "sine", "freq": 1913, "gain": 0.05, "env": {"a": 0.001, "d": 0.4}},
+    {"note": "rim rattle", "noise": "pink", "gain": 0.12, "start": 0.15, "filter": {"type": "bandpass", "freq": 1400, "q": 2}, "env": {"a": 0.001, "d": 0.04}, "repeat": {"count": 6, "interval": 0.07, "jitter": 0.02}, "vary": {"gain": 5}}
+  ]
+}

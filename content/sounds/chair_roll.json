@@ -1,0 +1,18 @@
+{
+  "id": "chair_roll",
+  "note": "Office chair rolling (loop, volume follows speed): caster rumble over carpet, a loose wheel rattle and the odd dry squeak.",
+  "bus": "sfx",
+  "volume": 0.7,
+  "spatial": true,
+  "refDistance": 1.5,
+  "maxDistance": 25,
+  "rolloff": 1,
+  "reverb": 0.2,
+  "loop": true,
+  "vary": {"pitch": 1, "filter": 0.2},
+  "layers": [
+    {"note": "caster rumble", "noise": "brown", "gain": 0.55, "filter": {"type": "lowpass", "freq": 340, "q": 0.9}, "env": {"a": 0.08, "d": 0, "s": 1, "r": 0.25}, "lfo": {"target": "gain", "wave": "noise", "rate": 14, "depth": 0.45}},
+    {"note": "wheel rattle", "noise": "pink", "gain": 0.1, "filter": {"type": "bandpass", "freq": 1300, "q": 2.5}, "env": {"a": 0.08, "d": 0, "s": 1, "r": 0.2}, "lfo": {"target": "gain", "wave": "noise", "rate": 32, "depth": 0.85}},
+    {"note": "squeak", "osc": "saw", "freq": 940, "gain": 0.06, "filter": {"type": "bandpass", "freq": 2300, "q": 6}, "pitchEnv": {"to": 1.12, "time": 0.12, "curve": "lin"}, "env": {"a": 0.02, "d": 0.14}, "lfo": {"target": "pitch", "wave": "noise", "rate": 25, "depth": 120}, "repeat": {"count": 64, "interval": 0.9, "jitter": 0.4}, "vary": {"pitch": 2, "gain": 5}}
+  ]
+}

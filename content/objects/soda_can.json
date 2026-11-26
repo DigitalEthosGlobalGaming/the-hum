@@ -1,0 +1,34 @@
+{
+  "id": "soda_can",
+  "name": "Soda can",
+  "mesh": {
+    "type": "box",
+    "size": [
+      0.066,
+      0.122,
+      0.066
+    ],
+    "texture": "proc:soda_can"
+  },
+  "components": {
+    "pickup": {},
+    "physics": {
+      "mode": "throw",
+      "shape": "circle",
+      "mass": 0.3,
+      "friction": 1.2,
+      "stop": 0.5,
+      "restitution": 0.45,
+      "spin": 0.6,
+      "noise": 8,
+      "throwSpeed": 8,
+      "sound": {
+        "impact": "can_clink",
+        "land": "can_clink"
+      }
+    }
+  },
+  "tags": [
+    "throwable"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "id": "glass_bottle",
+  "name": "Glass bottle",
+  "mesh": {
+    "type": "prefab",
+    "name": "glass_bottle"
+  },
+  "components": {
+    "pickup": {},
+    "physics": {
+      "mode": "throw",
+      "shape": "circle",
+      "mass": 0.5,
+      "friction": 1.2,
+      "stop": 0.5,
+      "restitution": 0.3,
+      "spin": 0.5,
+      "noise": 7,
+      "throwSpeed": 8,
+      "shatter": {
+        "speed": 3.2,
+        "into": "broken_glass",
+        "noise": 16
+      },
+      "sound": {
+        "impact": "glass_clink",
+        "land": "glass_clink",
+        "break": "glass_shatter"
+      }
+    }
+  },
+  "tags": [
+    "throwable"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "prop_bump",
+  "note": "Soft bump of a light prop against a wall or another prop: hollow plastic thunk.",
+  "bus": "sfx",
+  "volume": 0.7,
+  "spatial": true,
+  "refDistance": 1.5,
+  "maxDistance": 25,
+  "reverb": 0.25,
+  "vary": {"pitch": 2, "filter": 0.3, "gain": 2},
+  "layers": [
+    {"note": "thunk", "noise": "brown", "gain": 0.6, "filter": {"type": "lowpass", "freq": 520, "q": 1.2}, "env": {"a": 0.002, "d": 0.12}},
+    {"note": "hollow body", "osc": "sine", "freq": 190, "gain": 0.25, "pitchEnv": {"to": 0.8, "time": 0.1}, "env": {"a": 0.002, "d": 0.14}},
+    {"note": "tick", "noise": "white", "gain": 0.08, "filter": {"type": "bandpass", "freq": 2600, "q": 1.5}, "env": {"a": 0.001, "d": 0.025}}
+  ]
+}

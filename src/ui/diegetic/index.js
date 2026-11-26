@@ -192,7 +192,8 @@ export function renderDiegetic(game) {
   const { text, w, notebook, pockets, vm, left } = S;
   const ui = game.cfg.ui ?? {};
   const prompts = ui.textPrompts !== false;
-  const tagShown = prompts && game.focus && !S.reading && !S.pocketsOpen && w.reach > 0.3;
+  const carried = game.world?.physics?.carried ?? null;   // a prop held in front (physics carry)
+  const tagShown = prompts && (game.focus || carried) && !S.reading && !S.pocketsOpen && (w.reach > 0.3 || carried);
   const anything = S.captions.length || S.surface || tagShown || w.note > 0.6 || w.inspect > 0.6 || w.pockets > 0.6;
   if (!anything && !text.dirty) return;
   text.begin();
@@ -215,12 +216,15 @@ export function renderDiegetic(game) {
 
   // verb tag, bottom centre
   if (tagShown) {
-    const inst = game.focus.inst;
+    const inst = carried ?? game.focus.inst;
     const key = keyLabel(game.cfg.keys?.interact?.[0] ?? 'KeyE');
-    const verb = game.gameplay?.verbFor ? game.gameplay.verbFor(inst)?.verb : verbFor(inst, game.inventory?.held);
-    if (verb) {
-      text.tag([inst.name ?? inst.id, `${key} · ${verb.toLowerCase()}`], W / 2, H - M, {
-        anchor: [0.5, 1], maxW: colW, opacity: Math.min(1, (w.reach - 0.3) * 2.5),
+    const v = game.gameplay?.verbFor ? game.gameplay.verbFor(game.focus?.inst ?? inst) : { verb: verbFor(inst, game.inventory?.held) };
+    if (v?.verb) {
+      // a verb may name its own key (e.g. "T · throw") and an alternative action
+      const lines = [inst.name ?? inst.id, `${v.key ?? key} · ${v.verb.toLowerCase()}`];
+      if (v.alt?.verb) lines.push(`${v.alt.key ?? '?'} · ${v.alt.verb.toLowerCase()}`);
+      text.tag(lines, W / 2, H - M, {
+        anchor: [0.5, 1], maxW: colW, opacity: carried ? 1 : Math.min(1, (w.reach - 0.3) * 2.5),
       });
     }
   }

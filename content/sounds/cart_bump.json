@@ -1,0 +1,17 @@
+{
+  "id": "cart_bump",
+  "note": "Heavy cart hits something: dull thud with a metal frame ring.",
+  "bus": "sfx",
+  "volume": 0.8,
+  "spatial": true,
+  "refDistance": 2,
+  "maxDistance": 35,
+  "reverb": 0.4,
+  "vary": {"pitch": 1.5, "filter": 0.2, "gain": 2},
+  "layers": [
+    {"note": "thud", "noise": "brown", "gain": 0.7, "filter": {"type": "lowpass", "freq": 300, "q": 1}, "env": {"a": 0.003, "d": 0.25}},
+    {"note": "frame ring 1", "osc": "sine", "freq": 512, "gain": 0.09, "env": {"a": 0.002, "d": 0.45}, "vary": {"pitch": 0.5}},
+    {"note": "frame ring 2", "osc": "sine", "freq": 1290, "gain": 0.05, "env": {"a": 0.001, "d": 0.3}, "vary": {"pitch": 0.5}},
+    {"note": "slosh", "noise": "pink", "gain": 0.06, "start": 0.04, "filter": {"type": "bandpass", "freq": 700, "q": 1.5}, "env": {"a": 0.05, "d": 0.35}, "lfo": {"target": "gain", "wave": "noise", "rate": 12, "depth": 0.6}}
+  ]
+}

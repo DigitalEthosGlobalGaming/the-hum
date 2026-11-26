@@ -1,0 +1,17 @@
+{
+  "id": "sign_clatter",
+  "note": "Plastic wet-floor sign falls flat: a slap, then two rattling bounces of hollow plastic.",
+  "bus": "sfx",
+  "volume": 0.9,
+  "spatial": true,
+  "refDistance": 2,
+  "maxDistance": 40,
+  "reverb": 0.5,
+  "vary": {"pitch": 1.5, "filter": 0.2, "gain": 1},
+  "layers": [
+    {"note": "slap", "noise": "pink", "gain": 0.7, "filter": {"type": "bandpass", "freq": 900, "q": 0.9}, "env": {"a": 0.001, "d": 0.12}},
+    {"note": "hollow body", "osc": "triangle", "freq": 240, "gain": 0.28, "pitchEnv": {"to": 0.85, "time": 0.15}, "env": {"a": 0.002, "d": 0.2}},
+    {"note": "bounces", "noise": "white", "gain": 0.22, "start": 0.13, "filter": {"type": "bandpass", "freq": 1700, "q": 1.4}, "env": {"a": 0.001, "d": 0.05}, "repeat": {"count": 3, "interval": 0.085, "jitter": 0.02}, "vary": {"gain": 4, "filter": 0.2}},
+    {"note": "plastic ring", "osc": "sine", "freq": 1450, "gain": 0.05, "env": {"a": 0.002, "d": 0.3}}
+  ]
+}

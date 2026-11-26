@@ -1,0 +1,7 @@
+{
+  "id": "physics_carts",
+  "entries": [
+    { "def": "janitor_cart", "w": 50 },
+    { "def": "av_cart", "w": 50 }
+  ]
+}

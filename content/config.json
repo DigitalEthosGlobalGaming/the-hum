@@ -97,6 +97,13 @@
     ],
     "fullscreen": [
       "Enter"
+    ],
+    "throw": [
+      "Mouse2",
+      "KeyT"
+    ],
+    "physicsDebug": [
+      "F6"
     ]
   },
   "vitals": {
@@ -162,5 +169,16 @@
       "LISTEN FOR IT",
       "KEEP ONE TUBE SPARE"
     ]
+  },
+  "physics": {
+    "playerMass": 45,
+    "pushReach": 0.3,
+    "shoveSpeed": 2.2,
+    "holdDistance": 0.45,
+    "throwUp": 1.6,
+    "impactSoundSpeed": 0.5,
+    "impactNoiseSpeed": 1.2,
+    "rollNoiseEvery": 0.7,
+    "maxRollLoops": 3
   }
 }

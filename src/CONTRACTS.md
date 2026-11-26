@@ -93,6 +93,19 @@ Light is safety: the Tenant avoids lit space, sanity recovers under working ligh
   `config.power` (`lootChance`, `switchChance`, `writingChance`; 0 turns one off).
 - Dead fixtures get an invisible `light_fixture` interactable just under the ceiling (E with a
   `spare_tube` = install; `use` on a held tube also finds the fixture you look up at).
+### Physics (src/physics/)
+- `world.physics` — the PhysicsSystem, created on first gameplay input by `physicsOf(gp)` (`src/physics/hooks.js`; null in Node tests). Registered with `world.addSystem`.
+  - `resolvePlayer(pos, r, vel, push)` — called by `Player.move`: pushes dynamic bodies, then steps the player out of them. Static colliders still block in `Player.move`.
+  - `carried` (inst held in front, or null), `verbFor(inst)`, `interact(inst)`, `handleInput(gp)` — hooks used by `src/interaction/interaction.js`.
+  - `startCarry(inst)`, `putDown()`, `throwCarried()`, `throwHeld()`, `shove(inst)`, `startTopple(inst, dirX, dirZ)`.
+- **`physics` component** (object JSON; schema + validation in `src/physics/schema.js`, checked by `npm run validate`):
+  `{ mode: "static"|"push"|"carry"|"throw", shape?: "box"|"circle", radius?, mass?, friction? (1/s), stop? (m/s² brake), restitution?, spin? (0..1), straight? (wheels), topple? (impact m/s), spill? (pool id, once on topple), shatter? { speed, into, noise? }, noise? (m), throwSpeed?, sound? { roll, impact, topple, land, break } }`.
+  Every non-static mode is a pushable floor body; `carry` adds E to hold it; `throw` (with `pickup`) lets the pocket item be thrown. List `collider` before `physics` in the JSON (physics makes its own collider if there is none).
+- `world.objects.bodies: Set<inst>` — instances with a dynamic body. `inst.body` = the 2D body (`src/physics/sim.js`: `x, z, a, vx, vz, w, y, vy, airborne, sleeping, moved, carried`), `inst.physics` = the filled-in component config. A dynamic body's `inst.collider` carries `body` and is kept in step every frame (so pick, highlight and player collision stay right); `inst.center` too.
+- `world.run.bodies: Map<stableKey, { x, z, a, toppled? }>` — root pose of props the player moved, saved when they settle or their room streams out, restored in `onRoomPlaced`. Same keys as `gameplay.stableKey`. A prop that comes to rest in another room, or is carried, leaves its spawn spot (marked `taken`) and becomes a `run.placed` entry of the room it ends up in.
+- Keys: `throw` (Mouse2 / T) throws the carried prop or a held `throw`-mode pocket item; `physicsDebug` (F6, dev builds) draws noise rings and body outlines. Tunables: `config.physics`.
+- `verbFor` kinds added: `push` (only while touching), `carry`, `putdown` (while carrying; has `alt: { verb: 'throw', key }`). The hand tag's key is still E, so carry also shows a keyed `ui:caption` (`physics:prompt`) with the throw key.
+- Noise sources: `impact:<id>`, `topple:<id>`, `roll:<id>` (soft, while rolling), `place:<id>`, `shatter:<id>`.
 
 ## Object instance (`inst`)
 `{ uid, id, def, name, root (THREE.Group), meta {roomKey, spotKey?}, state {}, interactive, center, radius, readable? }`
@@ -137,6 +150,10 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 | `ui:captionClear` | `{ key }` | anyone (removes a keyed caption) |
 | `ui:watchBeep` | `{ text? }` | anyone (M5 watch) |
 | `world:noise` | `{ x, y, z, loudness, source, t }` | world.noise() |
+| `item:throw` | `{ id, stack?, inst }` | physics (a pocket item or the carried prop was thrown) |
+| `prop:carry` | `{ inst }` | physics |
+| `prop:topple` | `{ inst, dir }` | physics |
+| `prop:shatter` | `{ id, x, z }` | physics (the inst is gone; its `shatter.into` decal is spawned) |
 | `flashlight:change` | `{ on, battery }` | M5 (on toggle, recharge, and when an LED goes out at 66/33/5 %) |
 | `power:fuse` | `{ roomKey, rooms: [roomKey], revived }` | power (a fuse went in; `rooms` = the room + neighbours) |
 | `power:switch` | `{ roomKey, on }` | power (wall switch flipped) |

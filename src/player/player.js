@@ -1,4 +1,6 @@
 // First-person controller: grid collision (circle vs solid cells), sprint, crouch, head bob.
+// Dynamic props (colliders with a physics body) are pushed instead of blocking: see
+// world.physics.resolvePlayer (src/physics/system.js). Static colliders still block.
 import * as THREE from 'three';
 import { CELL } from '../world/roomBuilder.js';
 
@@ -38,7 +40,7 @@ export class Player {
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
     const mx = (fx * cos + fz * sin) * this.speedNow * dt;
     const mz = (-fx * sin + fz * cos) * this.speedNow * dt;
-    this.move(mx, mz, world);
+    this.move(mx, mz, world, dt);
 
     // crouch height + head bob
     const eyeTarget = crouch ? c.crouchHeight : c.eyeHeight;
@@ -59,11 +61,18 @@ export class Player {
   }
 
   // Move then push out of any overlapping solid cell (slides along walls).
-  move(dx, dz, world) {
+  move(dx, dz, world, dt = 0) {
     const r = this.cfg.radius;
     this.pos.x += dx;
     this.pos.z += dz;
+    const physics = world.physics;
+    const vel = this._vel ??= { x: 0, z: 0 };
+    vel.x = dt > 0 ? dx / dt : 0;
+    vel.z = dt > 0 ? dz / dt : 0;
     for (let iter = 0; iter < 2; iter++) {
+      // dynamic props first (push them on the first pass, then just step out of them), so the
+      // wall and desk push-outs below always get the last word
+      physics?.resolvePlayer(this.pos, r, vel, iter === 0 && dt > 0);
       const minX = Math.floor((this.pos.x - r) / CELL) * CELL;
       const minZ = Math.floor((this.pos.z - r) / CELL) * CELL;
       for (let x = minX; x <= this.pos.x + r; x += CELL) {
@@ -81,6 +90,7 @@ export class Player {
       }
       // solid props (desks, chairs…): circle vs AABB push-out
       for (const c of world.colliders ?? []) {
+        if (c.body && physics) continue; // dynamic: handled above
         if (this.pos.x + r < c.minX || this.pos.x - r > c.maxX || this.pos.z + r < c.minZ || this.pos.z - r > c.maxZ) continue;
         const px = Math.max(c.minX, Math.min(this.pos.x, c.maxX));
         const pz = Math.max(c.minZ, Math.min(this.pos.z, c.maxZ));

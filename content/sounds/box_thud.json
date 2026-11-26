@@ -1,0 +1,15 @@
+{
+  "id": "box_thud",
+  "note": "Cardboard box knocked or set down: papery flat thump.",
+  "bus": "sfx",
+  "volume": 1.4,
+  "spatial": true,
+  "refDistance": 1.5,
+  "maxDistance": 22,
+  "reverb": 0.2,
+  "vary": {"pitch": 2, "filter": 0.3, "gain": 2},
+  "layers": [
+    {"note": "thump", "noise": "brown", "gain": 0.55, "filter": {"type": "lowpass", "freq": 380, "q": 0.8}, "env": {"a": 0.003, "d": 0.11}},
+    {"note": "cardboard flap", "noise": "pink", "gain": 0.12, "start": 0.01, "filter": {"type": "bandpass", "freq": 1100, "q": 1.2}, "env": {"a": 0.004, "d": 0.08}}
+  ]
+}

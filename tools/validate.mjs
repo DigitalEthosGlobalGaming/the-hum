@@ -5,13 +5,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import { loadContent, listTextures, walk, SCRIPT_DIR } from './lib/loadContent.mjs';
+import { validatePhysics } from '../src/physics/schema.js';
 
 export const CELL = 2;        // metres per layout cell (src/world/roomBuilder.js)
 export const WALL_H = 3;
 export const BLOCK = 8;       // cells per slot block
 export const TILE_KINDS = { wall: true, pillar: true, floor: false, door: false, light: false, deadlight: false, flickerlight: false, void: true }; // kind → solid (mirrors src/world/layout/grid.js)
 export const MESH_TYPES = ['box', 'plane', 'sprite', 'prefab'];
-export const COMPONENT_TYPES = ['collider', 'readable', 'sound', 'light', 'interact', 'pickup', 'use', 'combine', 'door', 'hide', 'anomaly'];
+export const COMPONENT_TYPES = ['collider', 'readable', 'sound', 'light', 'interact', 'pickup', 'use', 'combine', 'door', 'hide', 'anomaly', 'physics'];
 const MATERIAL_KEYS = ['wall', 'pillar', 'floor', 'ceiling', 'ceilingLight'];
 const READABLE_DISPLAYS = ['notebook', 'inspect', 'surface'];
 const SOUND_TRIGGERS = ['ambient', 'proximity', 'interact', 'script'];
@@ -199,6 +200,12 @@ export function validateContent(content, { textures, scripts, sources = {} } = {
             if (!r?.script) warn(rw, 'no "script"; it will do nothing');
             useScript(r?.script, rw);
           });
+          break;
+        case 'physics':
+          for (const r of validatePhysics(c, { objects, sounds: content.sounds, pools, def: o })) {
+            (r.level === 'error' ? err : warn)(r.field ? `${cw}.${r.field}` : cw, r.msg);
+          }
+          if (typeof c?.spill === 'string') poolRefs.add(c.spill);
           break;
         case 'door':
           if (c?.keyItem && !objects[c.keyItem]) err(`${cw}.keyItem`, `unknown object ${q(c.keyItem)}`);

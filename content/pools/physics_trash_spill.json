@@ -1,0 +1,12 @@
+{
+  "id": "physics_trash_spill",
+  "entries": [
+    { "def": "soda_can", "w": 30 },
+    { "def": "glass_bottle", "w": 14 },
+    { "def": "almond_water", "w": 8 },
+    { "def": "battery", "w": 6 },
+    { "def": "note_random", "w": 6 },
+    { "def": "chalk", "w": 3 },
+    { "def": null, "w": 18 }
+  ]
+}

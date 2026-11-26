@@ -2,10 +2,14 @@
 // Each: { attach(inst, cfg, sys), update?(inst, cfg, sys, dt, ctx), detach?(inst, cfg, sys) }.
 // Types with no entry here (interact, pickup, use, combine…) are kept as data until their milestone.
 import * as THREE from 'three';
+import { physicsComponent } from '../../physics/component.js';
 
 const box = new THREE.Box3();
 
 export const components = {
+  // Static / push / carry / throw props (src/physics/): a 2D body that moves the mesh + collider.
+  physics: physicsComponent,
+
   // Solid AABB from the mesh's world bounds (rotated meshes → enclosing box; fine at PS1 fidelity).
   collider: {
     attach(inst, cfg, sys) {

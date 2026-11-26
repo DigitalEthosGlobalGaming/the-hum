@@ -6,17 +6,20 @@
 //   c) readable                                              d) pickup
 import { findCombine, consumeSides } from './combine.js';
 import { runScript } from '../scripts/api.js';
+import { physicsOf } from '../physics/hooks.js';
 
 const BUILTIN = { flashlight: { id: 'flashlight', name: 'flashlight' } }; // engine items with no pocket
 
 /** Per-frame input → verbs. Call only while playing. */
 export function handleInput(gp) {
   const { input } = gp.game;
+  const physics = physicsOf(gp); // (creates the physics system on first use)
   if (gp.inputBlocked || gp.game.paused) return;
   const inv = gp.inventory;
   for (let k = 1; k <= inv.size; k++) if (input.wasPressed(`slot${k}`)) inv.select(k - 1);
   if (input.wasPressed('slotNext')) inv.step(1);
   if (input.wasPressed('slotPrev')) inv.step(-1);
+  if (physics?.handleInput(gp)) return; // a held-in-front prop owns E / G / use; throw key throws
   if (input.wasPressed('interact')) interact(gp, gp.game.focus?.inst ?? null);
   if (input.wasPressed('use')) useHeld(gp);
   if (input.wasPressed('drop')) dropHeld(gp);
@@ -24,6 +27,8 @@ export function handleInput(gp) {
 
 /** What pressing E on `inst` would do: { verb, kind } | null. For M5's verb tag on the hand. */
 export function verbFor(gp, inst) {
+  const physics = physicsOf(gp);
+  if (physics?.carried) return physics.verbFor(inst); // E · put down while your hands are full
   if (!inst) return null;
   const held = gp.inventory.held;
   const comps = inst.def.components ?? {};
@@ -31,11 +36,13 @@ export function verbFor(gp, inst) {
   if (comps.interact) return { verb: comps.interact.verb ?? 'use', kind: 'interact' };
   if (inst.readable) return { verb: 'read', kind: 'readable' };
   if (comps.pickup) return { verb: 'take', kind: 'pickup' };
-  return null;
+  return physics?.verbFor(inst) ?? null; // E · carry / E · push (physics props)
 }
 
 /** E on a world instance. Returns true if something happened. */
 export function interact(gp, inst) {
+  const physics = physicsOf(gp);
+  if (physics?.carried) return physics.interact(inst);
   if (!inst) return false;
   const inv = gp.inventory;
   const held = inv.held;
@@ -47,7 +54,7 @@ export function interact(gp, inst) {
   if (comps.interact) return doInteract(gp, inst, comps.interact);
   if (inst.readable) return doRead(gp, inst);
   if (comps.pickup) return pickup(gp, inst);
-  return false;
+  return physics?.interact(inst) ?? false; // carry / push (physics props)
 }
 
 function doInteract(gp, inst, c) {
