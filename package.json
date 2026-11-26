@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "dev": "node build.mjs --watch --serve"
+    "dev": "node build.mjs --watch --serve",
+    "validate": "node tools/validate.mjs",
+    "pool-sim": "node tools/pool-sim.mjs",
+    "room-preview": "node tools/room-preview.mjs"
   },
   "dependencies": {
     "three": "0.186.1"

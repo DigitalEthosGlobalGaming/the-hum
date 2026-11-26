@@ -1,62 +1,53 @@
 // Build THE HUM into one self-contained HTML file.
-//   node build.mjs            → dist/the-hum.html
+//   node build.mjs            → validate content, then dist/the-hum.html
 //   node build.mjs --watch    → rebuild on change
 //   node build.mjs --serve    → also serve dist/ on http://localhost:8080
 import * as esbuild from 'esbuild';
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
+import { loadContent, textureFiles, CONTENT_DIR, TEXTURE_DIR } from './tools/lib/loadContent.mjs';
+import { validateAll, printResult } from './tools/validate.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname);
 const OUT_DIR = path.join(ROOT, 'dist');
 const OUT_FILE = path.join(OUT_DIR, 'the-hum.html');
 const MAX_BYTES = 10 * 1024 * 1024;
 const args = new Set(process.argv.slice(2));
-
-// Recursively list files under dir matching ext.
-function walk(dir, ext) {
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
-    const p = path.join(dir, e.name);
-    if (e.isDirectory()) return walk(p, ext);
-    return p.endsWith(ext) ? [p] : [];
-  }).sort(); // sorted → deterministic bundle order
-}
+const WATCH = args.has('--watch');
 
 // virtual:textures → { name: dataURI } for every PNG in assets/textures
 // virtual:content  → { rooms: {id: json}, objects: {...}, ... } for every JSON under content/
+// Both come from tools/lib/loadContent.mjs, the same loader the content tools use.
 const virtualPlugin = {
   name: 'virtual',
   setup(build) {
     build.onResolve({ filter: /^virtual:/ }, (a) => ({ path: a.path, namespace: 'virtual' }));
     build.onLoad({ filter: /.*/, namespace: 'virtual' }, (a) => {
       if (a.path === 'virtual:textures') {
-        const dir = path.join(ROOT, 'assets/textures');
-        const files = walk(dir, '.png');
+        const files = textureFiles();
         const map = Object.fromEntries(files.map((f) => [
           path.basename(f, '.png'),
           'data:image/png;base64,' + fs.readFileSync(f).toString('base64'),
         ]));
-        return { contents: 'export default ' + JSON.stringify(map), loader: 'js', watchFiles: files, watchDirs: [dir] };
+        return { contents: 'export default ' + JSON.stringify(map), loader: 'js', watchFiles: files, watchDirs: [TEXTURE_DIR] };
       }
       if (a.path === 'virtual:content') {
-        const dir = path.join(ROOT, 'content');
-        const files = walk(dir, '.json');
-        const out = {};
-        for (const f of files) {
-          const rel = path.relative(dir, f).split(path.sep);
-          const kind = rel[0].replace(/\.json$/, '');
-          let data;
-          try { data = JSON.parse(fs.readFileSync(f, 'utf8')); }
-          catch (e) { throw new Error(`Bad JSON in ${path.relative(ROOT, f)}: ${e.message}`); }
-          if (rel.length === 1) { out[kind] = data; continue; } // e.g. content/config.json
-          out[kind] ??= {};
-          const id = data.id ?? path.basename(f, '.json');
-          if (out[kind][id]) throw new Error(`Duplicate ${kind} id "${id}" in ${path.relative(ROOT, f)}`);
-          out[kind][id] = data;
-        }
-        return { contents: 'export default ' + JSON.stringify(out), loader: 'js', watchFiles: files, watchDirs: [dir, ...new Set(files.map((f) => path.dirname(f)))] };
+        const { content, files } = loadContent();
+        return { contents: 'export default ' + JSON.stringify(content), loader: 'js', watchFiles: files, watchDirs: [CONTENT_DIR, ...new Set(files.map((f) => path.dirname(f)))] };
       }
+    });
+  },
+};
+
+// Validate content before each (re)build. Errors fail a normal build; in --watch they are
+// printed and the bundle is still produced so the dev loop keeps running.
+const validatePlugin = {
+  name: 'validate',
+  setup(build) {
+    build.onStart(() => {
+      const ok = printResult(validateAll());
+      if (!ok && !WATCH) return { errors: [{ text: 'content validation failed (see above; run npm run validate)' }] };
     });
   },
 };
@@ -111,7 +102,7 @@ const ctx = await esbuild.context({
   legalComments: 'none',
   logLevel: 'warning',
   define: { __DEV__: String(args.has('--watch')) },
-  plugins: [virtualPlugin, htmlPlugin],
+  plugins: [validatePlugin, virtualPlugin, htmlPlugin],
 });
 
 if (args.has('--watch')) {
@@ -124,6 +115,7 @@ if (args.has('--watch')) {
     }).listen(8080, () => console.log('serving http://localhost:8080'));
   }
 } else {
-  await ctx.rebuild();
+  try { await ctx.rebuild(); }
+  catch { process.exitCode = 1; } // esbuild has already printed the errors
   await ctx.dispose();
 }
