@@ -1,5 +1,6 @@
 {
   "id": "lobby_partial_walls",
+  "note": "Partitions with one desk left in the nook under the north partition, chair swung out. Notice-board spot on the low wall, a standing spot by the first partition.",
   "zones": {
     "lobby": 8
   },
@@ -35,19 +36,20 @@
     "ceiling": "ceiling_large",
     "ceilingLight": "ceiling_large_light_on"
   },
-  "objects": [],
+  "objects": [
+    { "def": "office_desk", "pos": [21, 0, 6.38], "rot": 180 },
+    { "def": "office_chair", "pos": [21, 0, 7.45], "rot": 330 }
+  ],
   "spots": [
-    {
-      "id": "behind_wall",
-      "pos": [17, 0, 7],
-      "rot": 0,
-      "pool": "lobby_floor_loot"
-    },
-    {
-      "id": "clutter",
-      "pos": [5, 0, 13],
-      "rot": 300,
-      "pool": "lobby_clutter"
-    }
+    { "id": "nook_desk_fixture", "pos": [21.45, 0.76, 6.23], "rot": 180, "pool": "room_desk_fixture" },
+    { "id": "nook_desk_top", "pos": [20.88, 0.76, 6.46], "pool": "room_desk_top" },
+    { "id": "nook_desk_beside_chair", "pos": [20.38, 0, 7.35], "pool": "room_beside_chair" },
+    { "id": "partition_wall_hang", "pos": [9, 0, 9.87], "rot": 0, "pool": "room_wall_hang" },
+    { "id": "partition_wall_base", "pos": [14.33, 0, 3], "rot": 270, "pool": "room_wall_base" },
+    { "id": "pocket_corner", "pos": [3, 0, 3], "pool": "room_corner_loot" },
+    { "id": "pocket_camp", "pos": [7.2, 0, 4.2], "rot": 90, "pool": "room_camp_site" },
+    { "id": "pocket_camp_item", "pos": [9.4, 0, 4.9], "pool": "room_camp" },
+    { "id": "partial_floor", "pos": [17, 0, 12], "pool": "room_floor_litter" },
+    { "id": "partial_ceiling", "pos": [18, 0, 9], "pool": "room_ceiling" }
   ]
 }

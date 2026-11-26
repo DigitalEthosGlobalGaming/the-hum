@@ -1,0 +1,12 @@
+{
+  "id": "decor_ceiling_stain",
+  "name": "Ceiling stain",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_ceiling_stain"
+  },
+  "components": {}
+}

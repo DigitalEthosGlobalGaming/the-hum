@@ -1,0 +1,67 @@
+{
+  "id": "lobby_meeting_room",
+  "note": "An abandoned meeting room between two side halls: table, chairs pushed back mid-meeting, one chair turned to the corner, whiteboard, a clock that does not move, papers left on the table. Light-switch spot by the entrance.",
+  "zones": {
+    "lobby": 10
+  },
+  "tags": ["lobby", "office", "room", "meeting"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["wall|door", "wall|door"],
+    "s": ["wall|door", "wall|door"],
+    "e": ["*"],
+    "w": ["*"]
+  },
+  "rules": {
+    "notNextTo": ["meeting"]
+  },
+  "layout": [
+    "################",
+    "#....#....#....#",
+    "#....#....#....#",
+    "#.......L......#",
+    "#..............#",
+    "#....#....#....#",
+    "#.L..#....#..L.#",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern_panel",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [
+    { "def": "decor_conference_table", "pos": [16, 0, 8], "rot": 90 },
+    { "def": "office_chair", "pos": [14.85, 0, 7.2], "rot": 270 },
+    { "def": "office_chair", "pos": [14.9, 0, 8.85], "rot": 255 },
+    { "def": "office_chair", "pos": [17.15, 0, 7.2], "rot": 90 },
+    { "def": "office_chair", "pos": [17.8, 0, 9.3], "rot": 60 },
+    { "def": "office_chair", "pos": [16, 0, 6.15], "rot": 180 },
+    { "def": "office_chair", "pos": [13, 0, 12.9], "rot": 180 },
+    { "def": "decor_whiteboard", "pos": [16, 0, 2.13], "rot": 180 },
+    { "def": "decor_wall_clock", "pos": [16, 0, 13.87], "rot": 0 },
+    { "def": "decor_coat_rack", "pos": [12.6, 0, 2.6], "rot": 200 },
+    { "def": "decor_dead_plant", "pos": [19.4, 0, 13.4], "rot": 0 }
+  ],
+  "spots": [
+    { "id": "table_a", "pos": [16, 0.76, 7.3], "pool": "room_meeting_table" },
+    { "id": "table_b", "pos": [15.8, 0.76, 8.3], "pool": "room_meeting_table" },
+    { "id": "table_c", "pos": [16.2, 0.76, 8.9], "pool": "room_meeting_table" },
+    { "id": "pushed_chair_beside", "pos": [18.4, 0, 8.6], "pool": "room_beside_chair" },
+    { "id": "entrance_wall_panel", "pos": [12.13, 0, 5.2], "rot": 270, "pool": "room_wall_panel" },
+    { "id": "side_wall_hang", "pos": [9.87, 0, 4], "rot": 90, "pool": "room_wall_hang" },
+    { "id": "west_hall_floor", "pos": [5, 0, 8], "pool": "room_floor_litter" },
+    { "id": "east_hall_floor", "pos": [27, 0, 8], "pool": "room_floor_litter" },
+    { "id": "meeting_ceiling", "pos": [16, 0, 11], "pool": "room_ceiling" },
+    { "id": "meeting_corner", "pos": [19.4, 0, 2.6], "rot": 340, "pool": "room_floor_corner" }
+  ]
+}

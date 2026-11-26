@@ -1,5 +1,6 @@
 {
   "id": "lobby_stair_hall",
+  "note": "A big stepped hall, kept empty: a leak with a sign put out next to it where the halves meet, a fallen ceiling tile, little else.",
   "zones": {
     "lobby": 5
   },
@@ -38,24 +39,15 @@
     "ceilingLight": "ceiling_large_light_on"
   },
   "objects": [
-    {
-      "def": "wet_floor_sign",
-      "pos": [20, 0, 14],
-      "rot": 15
-    }
+    { "def": "decor_leak", "pos": [18.8, 0, 15.4], "rot": 0 },
+    { "def": "wet_floor_sign", "pos": [20.4, 0, 14.4], "rot": 15 },
+    { "def": "decor_ceiling_tile_fallen", "pos": [26, 0, 6], "rot": 40 }
   ],
   "spots": [
-    {
-      "id": "low_end",
-      "pos": [45, 0, 29],
-      "rot": 0,
-      "pool": "lobby_floor_loot"
-    },
-    {
-      "id": "high_end",
-      "pos": [3, 0, 3],
-      "rot": 0,
-      "pool": "lobby_clutter"
-    }
+    { "id": "low_end", "pos": [45, 0, 29], "pool": "room_corner_loot" },
+    { "id": "high_end", "pos": [3, 0, 3], "pool": "room_corner_loot" },
+    { "id": "low_floor", "pos": [40, 0, 22], "pool": "room_floor_litter" },
+    { "id": "low_leak", "pos": [36, 0, 26], "pool": "room_leak" },
+    { "id": "stair_ceiling", "pos": [10, 0, 7], "pool": "room_ceiling" }
   ]
 }

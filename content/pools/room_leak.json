@@ -1,0 +1,18 @@
+{
+  "id": "room_leak",
+  "note": "A leak: ceiling stain plus the damp patch below it (decor_leak), or just the patch.",
+  "entries": [
+    {
+      "def": "decor_leak",
+      "w": 24
+    },
+    {
+      "def": "decor_water_stain",
+      "w": 10
+    },
+    {
+      "def": null,
+      "w": 66
+    }
+  ]
+}

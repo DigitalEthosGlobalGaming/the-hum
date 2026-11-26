@@ -1,0 +1,12 @@
+{
+  "id": "decor_sleeping_bag",
+  "name": "Sleeping bag",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_sleeping_bag"
+  },
+  "components": {}
+}

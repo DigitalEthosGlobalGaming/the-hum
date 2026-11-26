@@ -1,0 +1,30 @@
+{
+  "id": "room_corner_loot",
+  "note": "A small pickup left in a corner. Usually nothing.",
+  "entries": [
+    {
+      "def": "almond_water",
+      "w": 10
+    },
+    {
+      "def": "battery",
+      "w": 7
+    },
+    {
+      "def": "chalk",
+      "w": 3
+    },
+    {
+      "def": "fuse",
+      "w": 4
+    },
+    {
+      "def": "note_random",
+      "w": 3
+    },
+    {
+      "def": null,
+      "w": 73
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "id": "room_desk_top",
+  "note": "Loose things on a desk where someone was working: papers, a note, a tape. Mostly empty.",
+  "entries": [
+    {
+      "def": "decor_paper_scatter",
+      "w": 16
+    },
+    {
+      "def": "note_random",
+      "w": 9
+    },
+    {
+      "pool": "spine_notes",
+      "w": 7
+    },
+    {
+      "def": "tape_recorder",
+      "w": 4
+    },
+    {
+      "def": "battery",
+      "w": 3
+    },
+    {
+      "def": "almond_water",
+      "w": 3
+    },
+    {
+      "def": null,
+      "w": 58
+    }
+  ]
+}

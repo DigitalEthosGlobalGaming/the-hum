@@ -1,0 +1,17 @@
+{
+  "id": "decor_chair_row_gap",
+  "name": "Row of chairs",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_chair_row_gap"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    }
+  }
+}

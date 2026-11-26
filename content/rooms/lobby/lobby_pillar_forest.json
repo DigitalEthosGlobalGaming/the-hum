@@ -1,5 +1,6 @@
 {
   "id": "lobby_pillar_forest",
+  "note": "The commonest room, kept bare: maybe a leak with a sign by it, maybe a chair turned to face a pillar, small things at pillar bases.",
   "zones": {
     "lobby": 10
   },
@@ -37,17 +38,12 @@
   },
   "objects": [],
   "spots": [
-    {
-      "id": "corner",
-      "pos": [3, 0, 13],
-      "rot": 45,
-      "pool": "lobby_floor_loot"
-    },
-    {
-      "id": "clutter",
-      "pos": [29, 0, 3],
-      "rot": 200,
-      "pool": "lobby_clutter"
-    }
+    { "id": "leak", "pos": [14, 0, 7], "pool": "room_leak" },
+    { "id": "beside_leak", "pos": [15.8, 0, 6.5], "rot": 20, "pool": "room_beside_stain" },
+    { "id": "chair_at_pillar", "pos": [14.45, 0, 9], "rot": 90, "pool": "room_chair_facing_wall" },
+    { "id": "pillar_base_a", "pos": [3.6, 0, 4.6], "pool": "room_corner_loot" },
+    { "id": "pillar_base_b", "pos": [27, 0, 12.6], "pool": "room_corner_loot" },
+    { "id": "forest_floor", "pos": [9, 0, 11], "pool": "room_floor_litter" },
+    { "id": "forest_ceiling", "pos": [22, 0, 7], "pool": "room_ceiling" }
   ]
 }

@@ -1,0 +1,14 @@
+{
+  "id": "room_beside_stain",
+  "note": "Next to a fixed stain or leak: someone put a sign out (wet_floor_sign is solid; keep the spot clear of openings).",
+  "entries": [
+    {
+      "def": "wet_floor_sign",
+      "w": 40
+    },
+    {
+      "def": null,
+      "w": 60
+    }
+  ]
+}

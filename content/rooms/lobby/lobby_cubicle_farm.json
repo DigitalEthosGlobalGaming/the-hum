@@ -1,0 +1,81 @@
+{
+  "id": "lobby_cubicle_farm",
+  "note": "Six cubicles off a central aisle. Most were left mid-task; one chair rolled out into the aisle, one cubicle stripped to a single chair facing the wall, a blanket under one desk where someone slept.",
+  "zones": {
+    "lobby": 12
+  },
+  "tags": ["lobby", "office", "cubicles"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["wall|door", "wall|door"],
+    "s": ["wall|door", "wall|door"],
+    "e": ["*"],
+    "w": ["*"]
+  },
+  "rules": {
+    "notNextTo": ["cubicles"]
+  },
+  "layout": [
+    "################",
+    "#..............#",
+    "#..............#",
+    "#....L.....L...#",
+    "#..............#",
+    "#..............#",
+    "#..............#",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [
+    { "def": "decor_cubicle_panel", "pos": [10.1, 0, 2.83], "rot": 90 },
+    { "def": "decor_cubicle_panel", "pos": [14, 0, 2.83], "rot": 90 },
+    { "def": "decor_cubicle_panel", "pos": [18, 0, 2.83], "rot": 90 },
+    { "def": "decor_cubicle_panel", "pos": [21.9, 0, 2.83], "rot": 90 },
+    { "def": "decor_cubicle_panel", "pos": [10.1, 0, 13.17], "rot": 90 },
+    { "def": "decor_cubicle_panel", "pos": [14, 0, 13.17], "rot": 90 },
+    { "def": "decor_cubicle_panel", "pos": [18, 0, 13.17], "rot": 90 },
+    { "def": "decor_cubicle_panel", "pos": [21.9, 0, 13.17], "rot": 90 },
+    { "def": "office_desk", "pos": [12, 0, 2.38], "rot": 180 },
+    { "def": "office_chair", "pos": [12, 0, 3.3], "rot": 10 },
+    { "def": "office_desk", "pos": [16, 0, 2.38], "rot": 180 },
+    { "def": "office_chair", "pos": [16.7, 0, 5.4], "rot": 200 },
+    { "def": "office_chair", "pos": [20, 0, 2.45], "rot": 0 },
+    { "def": "office_desk", "pos": [12, 0, 13.62], "rot": 0 },
+    { "def": "office_chair", "pos": [12, 0, 12.8], "rot": 172 },
+    { "def": "office_desk", "pos": [16, 0, 13.62], "rot": 0 },
+    { "def": "office_desk", "pos": [20, 0, 13.62], "rot": 0 },
+    { "def": "office_chair", "pos": [20, 0, 12.45], "rot": 210 },
+    { "def": "decor_blanket_heap", "pos": [20.2, 0, 13.1], "rot": 15 }
+  ],
+  "spots": [
+    { "id": "cube_n1_fixture", "pos": [12.45, 0.76, 2.23], "rot": 180, "pool": "room_desk_fixture" },
+    { "id": "cube_n1_top", "pos": [11.88, 0.76, 2.46], "pool": "room_desk_top" },
+    { "id": "cube_n1_beside_chair", "pos": [11.38, 0, 3.2], "pool": "room_beside_chair" },
+    { "id": "cube_n2_fixture", "pos": [16.45, 0.76, 2.23], "rot": 180, "pool": "room_desk_fixture" },
+    { "id": "cube_n2_top", "pos": [15.88, 0.76, 2.46], "pool": "room_desk_top" },
+    { "id": "cube_s1_fixture", "pos": [11.55, 0.76, 13.77], "rot": 0, "pool": "room_desk_fixture" },
+    { "id": "cube_s1_top", "pos": [12.12, 0.76, 13.54], "pool": "room_desk_top" },
+    { "id": "cube_s2_fixture", "pos": [15.55, 0.76, 13.77], "rot": 0, "pool": "room_desk_fixture" },
+    { "id": "cube_s2_top", "pos": [16.12, 0.76, 13.54], "pool": "room_desk_top" },
+    { "id": "cube_s3_fixture", "pos": [19.55, 0.76, 13.77], "rot": 0, "pool": "room_desk_fixture" },
+    { "id": "cube_s3_top", "pos": [20.12, 0.76, 13.54], "pool": "room_desk_top" },
+    { "id": "cube_s3_beside_chair", "pos": [19.38, 0, 12.55], "pool": "room_beside_chair" },
+    { "id": "aisle_floor", "pos": [15.2, 0, 8.2], "pool": "room_floor_litter" },
+    { "id": "west_floor", "pos": [4, 0, 8], "pool": "room_floor_litter" },
+    { "id": "east_floor", "pos": [28, 0, 8], "pool": "room_corner_loot" },
+    { "id": "cubicle_ceiling", "pos": [17, 0, 9], "pool": "room_ceiling" }
+  ]
+}

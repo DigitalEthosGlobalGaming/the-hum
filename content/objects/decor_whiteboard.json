@@ -1,0 +1,17 @@
+{
+  "id": "decor_whiteboard",
+  "name": "Whiteboard",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_whiteboard"
+  },
+  "components": {
+    "readable": {
+      "text": "Three boxes with arrows between them. Every arrow points back to the first box. Next to it, four tally marks, struck through.",
+      "display": "inspect"
+    }
+  }
+}

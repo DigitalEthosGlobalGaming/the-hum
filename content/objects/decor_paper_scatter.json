@@ -1,0 +1,12 @@
+{
+  "id": "decor_paper_scatter",
+  "name": "Loose papers",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_paper_scatter"
+  },
+  "components": {}
+}

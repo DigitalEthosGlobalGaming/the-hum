@@ -1,0 +1,26 @@
+{
+  "id": "room_center_wrong",
+  "note": "A single uncanny centrepiece in an empty room. Rare.",
+  "entries": [
+    {
+      "def": "decor_stacking_chair",
+      "w": 5
+    },
+    {
+      "def": "office_chair",
+      "w": 3
+    },
+    {
+      "def": "decor_stacked_chairs_ceiling",
+      "w": 1
+    },
+    {
+      "def": "decor_dead_plant",
+      "w": 1
+    },
+    {
+      "def": null,
+      "w": 90
+    }
+  ]
+}

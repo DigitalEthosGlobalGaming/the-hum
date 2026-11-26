@@ -1,0 +1,21 @@
+{
+  "id": "decor_coat_rack",
+  "name": "Coat rack",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_coat_rack"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    },
+    "readable": {
+      "text": "One coat. The pockets are empty except for a ticket stub with no date.",
+      "display": "inspect"
+    }
+  }
+}

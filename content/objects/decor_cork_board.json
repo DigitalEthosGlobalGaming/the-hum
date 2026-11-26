@@ -1,0 +1,17 @@
+{
+  "id": "decor_cork_board",
+  "name": "Notice board",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_cork_board"
+  },
+  "components": {
+    "readable": {
+      "text": "Memos about a fire drill, a birthday, a parking change. All of them are dated the same day.",
+      "display": "inspect"
+    }
+  }
+}

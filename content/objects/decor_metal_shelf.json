@@ -1,0 +1,17 @@
+{
+  "id": "decor_metal_shelf",
+  "name": "Storage shelving",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_metal_shelf"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    }
+  }
+}

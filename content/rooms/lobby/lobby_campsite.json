@@ -1,0 +1,61 @@
+{
+  "id": "lobby_campsite",
+  "note": "Someone lived in this corner: a camp on flattened cardboard, a low wall of boxes, a lamp on the floor plugged into a cord that goes nowhere, a blanket, writing above the bed. The rest of the room is empty.",
+  "zones": {
+    "lobby": 4
+  },
+  "tags": ["lobby", "room", "camp"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["wall", "*"],
+    "s": ["*", "*"],
+    "e": ["*"],
+    "w": ["wall"]
+  },
+  "rules": {
+    "notNextTo": ["camp"]
+  },
+  "layout": [
+    "################",
+    "#.......#......#",
+    "#.......#......#",
+    "#..............#",
+    "#...........L..#",
+    "#..............#",
+    "#..L...........#",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [
+    { "def": "decor_camp", "pos": [5, 0, 3.4], "rot": 90 },
+    { "def": "desk_lamp", "pos": [2.6, 0, 2.5], "rot": 225 },
+    { "def": "decor_box_stack", "pos": [7.25, 0, 2.6], "rot": 90 },
+    { "def": "cardboard_box", "pos": [7.35, 0, 3.6], "rot": 85 },
+    { "def": "decor_box_stack", "pos": [7.2, 0, 4.6], "rot": 95 },
+    { "def": "decor_blanket_heap", "pos": [3, 0, 6.6], "rot": 40 },
+    { "def": "decor_extension_cord", "pos": [4.2, 0, 5.3], "rot": 0 },
+    { "def": "wall_scrawl", "pos": [5, 1.5, 2.02], "rot": 180 }
+  ],
+  "spots": [
+    { "id": "camp_a", "pos": [3.1, 0, 4.7], "pool": "room_camp" },
+    { "id": "camp_b", "pos": [6.3, 0, 4.6], "pool": "room_camp" },
+    { "id": "camp_c", "pos": [5.9, 0.03, 3.95], "pool": "room_camp" },
+    { "id": "camp_d", "pos": [2.5, 0, 3.4], "pool": "room_camp" },
+    { "id": "divider_wall_hang", "pos": [18.13, 0, 4], "rot": 270, "pool": "room_wall_hang" },
+    { "id": "room_floor", "pos": [22, 0, 8], "pool": "room_floor_litter" },
+    { "id": "camp_ceiling", "pos": [20, 0, 4], "pool": "room_ceiling" }
+  ]
+}

@@ -1,5 +1,6 @@
 {
   "id": "lobby_split_hall",
+  "note": "Waiting area against the west partition: three chairs facing nothing, a clock, a bin, a dead plant. Something may be left on a seat. A leak by the gap in the partition.",
   "zones": {
     "lobby": 6
   },
@@ -35,19 +36,20 @@
     "ceiling": "ceiling_large",
     "ceilingLight": "ceiling_large_light_on"
   },
-  "objects": [],
+  "objects": [
+    { "def": "decor_stacking_chair", "pos": [7.2, 0, 7.72], "rot": 0 },
+    { "def": "decor_stacking_chair", "pos": [8, 0, 7.72], "rot": 6 },
+    { "def": "decor_stacking_chair", "pos": [8.8, 0, 7.72], "rot": 0 },
+    { "def": "decor_dead_plant", "pos": [6.45, 0, 7.75], "rot": 0 },
+    { "def": "decor_trash_bin", "pos": [9.7, 0, 7.78], "rot": 10 },
+    { "def": "decor_wall_clock", "pos": [8, 0, 7.87], "rot": 0 }
+  ],
   "spots": [
-    {
-      "id": "north",
-      "pos": [25, 0, 5],
-      "rot": 90,
-      "pool": "lobby_clutter"
-    },
-    {
-      "id": "south",
-      "pos": [7, 0, 11],
-      "rot": 0,
-      "pool": "lobby_floor_loot"
-    }
+    { "id": "waiting_seat", "pos": [8.8, 0.47, 7.72], "pool": "room_beside_chair" },
+    { "id": "partition_wall_panel", "pos": [22, 0, 7.87], "rot": 0, "pool": "room_wall_panel" },
+    { "id": "gap_leak", "pos": [16, 0, 12], "pool": "room_leak" },
+    { "id": "beside_gap_leak", "pos": [17.4, 0, 11.3], "rot": 25, "pool": "room_beside_stain" },
+    { "id": "south_floor", "pos": [24, 0, 11.4], "pool": "room_floor_litter" },
+    { "id": "split_ceiling", "pos": [6, 0, 12], "pool": "room_ceiling" }
   ]
 }

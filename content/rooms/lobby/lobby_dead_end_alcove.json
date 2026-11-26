@@ -1,5 +1,6 @@
 {
   "id": "lobby_dead_end_alcove",
+  "note": "Someone camped at the very end of the dead end, head to the wall, under the writing. A desk lamp on the floor still burns. Camp spots around the bed.",
   "zones": {
     "lobby": 5
   },
@@ -39,18 +40,16 @@
     "ceilingLight": "ceiling_large_light_on"
   },
   "objects": [
-    {
-      "def": "wall_scrawl",
-      "pos": [14.02, 1.5, 13],
-      "rot": 90
-    }
+    { "def": "wall_scrawl", "pos": [14.02, 1.5, 13], "rot": 270 },
+    { "def": "decor_camp", "pos": [16.4, 0, 13], "rot": 90 },
+    { "def": "desk_lamp", "pos": [14.45, 0, 12.4], "rot": 270 }
   ],
   "spots": [
-    {
-      "id": "dead_end",
-      "pos": [15, 0, 13],
-      "rot": 270,
-      "pool": "lobby_floor_loot"
-    }
+    { "id": "camp_a", "pos": [18.3, 0, 13.45], "pool": "room_camp" },
+    { "id": "camp_b", "pos": [14.6, 0, 13.55], "pool": "room_camp" },
+    { "id": "camp_c", "pos": [17.6, 0, 12.3], "pool": "room_camp" },
+    { "id": "corridor_wall_hang", "pos": [10, 0, 6.13], "rot": 180, "pool": "room_wall_hang" },
+    { "id": "alcove_floor", "pos": [6, 0, 8], "pool": "room_floor_litter" },
+    { "id": "alcove_ceiling", "pos": [22, 0, 13], "pool": "room_ceiling" }
   ]
 }

@@ -1,0 +1,17 @@
+{
+  "id": "decor_trash_bin",
+  "name": "Waste bin",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_trash_bin"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    }
+  }
+}

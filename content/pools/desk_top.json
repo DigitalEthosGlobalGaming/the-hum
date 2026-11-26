@@ -1,33 +1,14 @@
 {
   "id": "desk_top",
+  "note": "Legacy one-spot desk roll (m1_test_hall). Authored desks get two spots: room_desk_fixture + room_desk_top.",
   "entries": [
     {
-      "def": "old_phone",
-      "w": 20
+      "pool": "room_desk_fixture",
+      "w": 50
     },
     {
-      "def": "desk_lamp",
-      "w": 25
-    },
-    {
-      "def": "note_random",
-      "w": 10
-    },
-    {
-      "def": "tape_recorder",
-      "w": 5
-    },
-    {
-      "pool": "spine_notes",
-      "w": 6
-    },
-    {
-      "pool": "lobby_floor_loot",
-      "w": 15
-    },
-    {
-      "def": null,
-      "w": 30
+      "pool": "room_desk_top",
+      "w": 50
     }
   ]
 }

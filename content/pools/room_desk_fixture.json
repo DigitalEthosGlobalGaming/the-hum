@@ -1,0 +1,18 @@
+{
+  "id": "room_desk_fixture",
+  "note": "What sits on a desk for good: a lamp or a phone (later: typewriter, monitor). Usually bare.",
+  "entries": [
+    {
+      "def": "desk_lamp",
+      "w": 26
+    },
+    {
+      "def": "old_phone",
+      "w": 16
+    },
+    {
+      "def": null,
+      "w": 58
+    }
+  ]
+}

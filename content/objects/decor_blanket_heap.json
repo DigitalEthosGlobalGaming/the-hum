@@ -1,0 +1,12 @@
+{
+  "id": "decor_blanket_heap",
+  "name": "Blanket",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_blanket_heap"
+  },
+  "components": {}
+}

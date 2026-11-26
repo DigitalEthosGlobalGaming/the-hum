@@ -1,0 +1,17 @@
+{
+  "id": "decor_bookcase",
+  "name": "Bookcase",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_bookcase"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    }
+  }
+}
