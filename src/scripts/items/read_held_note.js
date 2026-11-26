@@ -1,11 +1,10 @@
-// Re-read a note you are carrying: the page it resolved to when you first read it.
+// A note that somehow ended up in a pocket (older runs, debug stubs): using it reads it into the
+// notebook and files it there, so the pocket is free again. Notes picked up in the world never
+// reach the pockets (see Gameplay.fileNote); this is the fallback for a stack.
 export default {
   id: 'read_held_note',
   run(ctx) {
-    const note = ctx.notes.of(ctx.self);
-    if (!note) return ctx.fail('The writing has smeared away.');
-    ctx.sound.play('paper_rustle', { volume: 0.5 });
-    ctx.ui.read(note.title, note.text, 'inspect', note.id);
-    return ctx.ok({ consume: false });
+    if (!ctx.notes.file(ctx.self)) return ctx.fail('The writing has smeared away.');
+    return ctx.ok({ consume: false }); // fileNote already took it out of the pocket
   },
 };

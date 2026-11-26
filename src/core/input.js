@@ -51,31 +51,46 @@ export class Input {
     });
     addEventListener('mouseup', () => { this.dragging = false; });
 
+    this.unlockedAt = -Infinity;    // performance.now() when the lock was last lost
     document.addEventListener('pointerlockchange', () => {
       this.pointerLock.state = this.locked ? 'locked' : 'unlocked';
       if (this.locked) { this.mode = 'lock'; this.failures = 0; this.pointerLock.error = ''; }
+      else this.unlockedAt = performance.now();
     });
     this.failures = 0;
+    this._req = null;
     document.addEventListener('pointerlockerror', () => this.lockFailed('pointerlockerror event'));
   }
 
   get locked() { return document.pointerLockElement === this.canvas; }
 
+  /**
+   * Ask for pointer lock. Browsers refuse a request without a user gesture (an Esc keydown is not
+   * one) and, for about a second after the player left the lock with Esc, any request at all. Those
+   * refusals are expected: they are "forgiven" (not counted toward the click-drag fallback) and the
+   * next canvas click asks again.
+   */
   requestLock() {
-    if (!this.pointerLock.supported) return this.lockFailed('not supported');
+    if (!this.pointerLock.supported) return this.lockFailed('not supported', null);
+    const activation = typeof navigator !== 'undefined' && navigator.userActivation ? navigator.userActivation.isActive : true;
+    const req = this._req = { forgiven: !activation || performance.now() - this.unlockedAt < 1500, failed: false };
     try {
       const p = this.canvas.requestPointerLock();
-      if (p && p.catch) p.catch((err) => this.lockFailed(err?.name || String(err)));
+      if (p && p.catch) p.catch((err) => this.lockFailed(err?.name || String(err), req));
     } catch (err) {
-      this.lockFailed(err?.name || String(err));
+      this.lockFailed(err?.name || String(err), req);
     }
   }
 
   // Fall back to click-drag look only after repeated failures (an iframe sandbox without
   // allow-pointer-lock fails every time; a one-off failure mid fullscreen-transition shouldn't count).
-  lockFailed(reason) {
+  // One request can report twice (rejected promise + pointerlockerror): it counts once.
+  lockFailed(reason, req = this._req) {
+    if (req?.failed) return;
+    if (req) req.failed = true;
     this.pointerLock.state = 'failed';
     this.pointerLock.error = reason;
+    if (req?.forgiven && reason !== 'not supported') return;
     this.failures = (this.failures ?? 0) + 1;
     if (this.failures >= 2 || reason === 'not supported') this.mode = 'drag';
   }

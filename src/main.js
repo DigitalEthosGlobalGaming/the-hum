@@ -116,13 +116,21 @@ async function boot() {
   game.fullscreen = fs;
 
   let resumedAt = -1;
+  game.pausedAt = -Infinity;
   function pause() {
     if (!game.playing) return;
     game.playing = false;
     game.paused = true;
+    game.pausedAt = performance.now();
+    events.emit('ui:captionClear', { key: 'relock' });
     events.emit('game:pause', {});  // → the notebook opens at Settings, cursor free
   }
-  /** Call only from inside a real input event (click / keydown): it re-captures the pointer. */
+  /**
+   * Call only from inside a real input event (click / keydown): it re-captures the pointer.
+   * From an Esc keydown the browser usually refuses (Esc is not a user gesture, and there is a ~1 s
+   * cooldown after the player left the lock with Esc): the game still resumes, a caption asks for a
+   * click, and that click captures the mouse (and goes back to fullscreen if the setting is on).
+   */
   function resume() {
     if (!game.paused) return;
     input.requestLock();            // capture first: requestFullscreen consumes the click
@@ -144,19 +152,41 @@ async function boot() {
     events.emit('game:start', {});
   });
 
-  // Losing pointer lock while playing = the player pressed Esc (or alt-tabbed): pause.
-  // (Esc with the notebook open unpaused: the notebook closes, but the browser drops the lock too,
-  // so we land here and pause with the notebook at Settings, the only state with a usable cursor.)
-  document.addEventListener('pointerlockchange', () => {
-    if (!input.locked && input.mode === 'lock' && game.playing && !fsToggling) pause();
+  // Playing with a loose cursor (a re-lock the browser refused, or Esc closed the open notebook):
+  // say so; a click on the canvas captures again (src/core/input.js) and restores fullscreen.
+  const relockHint = () => {
+    if (game.playing && !input.locked && input.mode === 'lock') {
+      events.emit('ui:caption', { text: '(click to take hold of the mouse again)', seconds: 6, key: 'relock' });
+    }
+  };
+  canvas.addEventListener('mousedown', () => {
+    if (game.playing && !input.locked && !input.captureSuspended && wantFullscreen() && !fs.on) fs.enter();
   });
-  // The browser refuses to re-lock for ~1 s after the player left it with Esc. If "back to it"
-  // hit that window, go back to the paused notebook instead of running with a loose cursor.
+
+  // Esc while the notebook is open unpaused (Tab / M, e.g. the map) only closes it. The browser
+  // drops pointer lock (and fullscreen) on that same Esc; that must not pause on top of it.
+  let bookEscAt = -Infinity;
+  function escClosedBook() {
+    const menu = game.diegetic?.menu;
+    if (typeof document.hasFocus === 'function' && !document.hasFocus()) return false; // alt-tab: pause
+    if (menu?.open && !game.paused) { menu.close(); bookEscAt = performance.now(); }
+    const t = Math.max(bookEscAt, menu?.escClosedAt ?? -Infinity); // the menu's own Esc keydown may come first
+    if (performance.now() - t < 600) { setTimeout(relockHint, 0); return true; }
+    return false;
+  }
+
+  // Losing pointer lock while playing = the player pressed Esc (or alt-tabbed): pause.
+  document.addEventListener('pointerlockchange', () => {
+    if (input.locked) { events.emit('ui:captionClear', { key: 'relock' }); return; }
+    if (input.mode === 'lock' && game.playing && !fsToggling && !escClosedBook()) pause();
+  });
+  // A refused re-lock (see resume()): keep playing and ask for a click instead of bouncing back
+  // into the pause menu, so Esc · Esc gets out of the menu.
   document.addEventListener('pointerlockerror', () => {
-    if (game.playing && input.mode === 'lock' && performance.now() - resumedAt < 1500) pause();
+    if (game.playing && input.mode === 'lock' && performance.now() - resumedAt < 1500) relockHint();
   });
   document.addEventListener('fullscreenchange', () => {
-    if (!fs.on && !fsToggling && game.playing) pause();
+    if (!fs.on && !fsToggling && game.playing && !escClosedBook()) pause();
     // entering fullscreen can drop or block the lock: ask again (allowed while fullscreen)
     if (fs.on && game.playing && !input.locked) input.requestLock();
   });
@@ -167,9 +197,10 @@ async function boot() {
       const on = !fs.on;
       game.settings?.set('fullscreen', on);
       if (on) fs.enter(); else fs.exit();
-    } else if (cfg.keys.pause?.includes(e.code) && game.playing && input.mode !== 'lock') {
-      pause(); // click-drag fallback has no pointer lock to lose, so Esc pauses directly
-      // (with the notebook open unpaused, the notebook's key handler takes Esc first and closes it)
+    } else if (cfg.keys.pause?.includes(e.code) && game.playing && !input.locked) {
+      // No lock to lose (click-drag fallback, or playing on after a refused re-lock): Esc pauses
+      // directly. (With the notebook open unpaused, its key handler takes Esc first and closes it.)
+      pause();
     }
   });
 

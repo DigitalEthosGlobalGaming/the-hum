@@ -286,7 +286,7 @@ test('verbs: phone answer stops the ring, then the whisper comes on a timer', ()
   assert.ok(events.of('ui:caption').length === 1);
 });
 
-test('verbs: notebook notes resolve, collect once, and go in the pocket', () => {
+test('verbs: notebook notes resolve, collect once, and are filed (not pocketed)', () => {
   const { gp, events, world } = fakeGame();
   const n1 = world.objects.spawn('note_spine', { x: 0, y: 0, z: -1 }, 0, { roomKey: 'roomA', spotKey: 'roomA/n1' });
   assert.ok(interact(gp, n1));
@@ -294,11 +294,12 @@ test('verbs: notebook notes resolve, collect once, and go in the pocket', () => 
   assert.equal(open.display, 'notebook');
   assert.equal(open.noteId, 'spine_01');
   assert.deepEqual(events.of('note:collected')[0], { noteId: 'spine_01', title: open.title, text: open.text });
-  assert.equal(gp.inventory.held.id, 'note_spine');
-  assert.equal(gp.inventory.held.state.noteId, 'spine_01', 'the carried page remembers its text');
-  assert.ok(useHeld(gp), 're-read from the pocket');
-  assert.equal(events.of('readable:open').at(-1).noteId, 'spine_01');
-  assert.equal(events.of('note:collected').length, 1, 'no second collect');
+  assert.equal(gp.inventory.held, null, 'filed into the notebook, not the pocket');
+  assert.ok(gp.inventory.slots.every((s) => !s), 'no note in any pocket');
+  assert.ok(!world.objects.instances.includes(n1), 'the paper is gone from the world');
+  assert.ok(world.run.taken.has('roomA/n1'), 'and never respawns');
+  assert.deepEqual(events.of('note:filed')[0], { noteId: 'spine_01', id: 'note_spine' });
+  assert.ok(gp.notesCollected.has('spine_01'), 'still counts for the story');
   const n2 = world.objects.spawn('note_spine', { x: 0, y: 0, z: -1 }, 0, { roomKey: 'roomB', spotKey: 'roomB/n1' });
   interact(gp, n2);
   assert.equal(events.of('note:collected')[1].noteId, 'spine_02');
@@ -306,6 +307,42 @@ test('verbs: notebook notes resolve, collect once, and go in the pocket', () => 
   interact(gp, scrawl);
   assert.equal(events.of('readable:open').at(-1).display, 'surface');
   assert.ok(world.objects.instances.includes(scrawl));
+});
+
+test('notes: a note stack in a pocket is filed (read into the notebook, slot freed) when used', () => {
+  const { gp, events } = fakeGame();
+  gp.inventory.add('battery', {}, { index: 0 });
+  gp.inventory.add('note_random', { seed: 7 }, { index: 1, select: true });
+  assert.ok(useHeld(gp));
+  const open = events.of('readable:open').at(-1);
+  assert.equal(open.display, 'notebook');
+  assert.ok(open.noteId && gp.notesCollected.has(open.noteId), 'an unread pocket note resolves and counts');
+  assert.equal(events.of('note:collected').at(-1).noteId, open.noteId);
+  assert.equal(gp.inventory.slots[1], null, 'the note left the pocket');
+  assert.equal(gp.inventory.slots[0].id, 'battery', 'nothing else moved');
+  assert.equal(events.of('note:filed').at(-1).id, 'note_random');
+});
+
+test('notes: picking a note up (any path) files it instead of pocketing it', async () => {
+  const { pickup } = await import('../interaction/interaction.js');
+  const { gp, events, world } = fakeGame();
+  const n = world.objects.spawn('note_random', { x: 0, y: 0, z: -1 }, 0, { roomKey: 'roomA', spotKey: 'roomA/r1' });
+  assert.ok(pickup(gp, n));
+  assert.ok(gp.inventory.slots.every((s) => !s));
+  assert.equal(events.of('note:collected').length, 1);
+  assert.equal(events.of('item:pickup').length, 0, 'not a pocket item');
+});
+
+test('notes: a drawer never hands a note into the pockets (it is left in the drawer to read)', async () => {
+  const { giveOrPlace } = await import('../containers/give.js');
+  const { makeCtx } = await import('../scripts/api.js');
+  const { gp, world } = fakeGame();
+  const ctx = makeCtx(gp, { scriptId: 'container_open' });
+  const where = giveOrPlace(ctx, 'note_random', () => ({ x: 0, y: 0.5, z: -1 }), { from: 'drawer:1' });
+  assert.equal(where, 'world');
+  assert.ok(gp.inventory.slots.every((s) => !s));
+  assert.ok(world.objects.instances.some((i) => i.id === 'note_random'));
+  assert.equal(giveOrPlace(ctx, 'battery', () => ({ x: 0, y: 0.5, z: -1 }), { from: 'drawer:2' }), 'hand');
 });
 
 test('verbs: drop places the held item in front, keeps state, persists via world.run.placed', () => {

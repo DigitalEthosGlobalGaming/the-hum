@@ -26,7 +26,7 @@ so **change it only deliberately** and note the change in your commit.
 | `gameplay` | Gameplay | M4 | see "Gameplay (M4)" below |
 | `fullscreen` | `{ on, enter(), exit(), error? }` | main | enter() only works inside a real input event |
 | `paused` | bool | main | true while paused (Esc). `playing` is false then too. Scripts, gameplay, physics, power clock and `game.time` stop; the notebook is open at Settings with a free cursor |
-| `pause()`, `resume()` | fn | main | `pause()` → `game:pause`. `resume()` re-requests pointer lock, then fullscreen (if the setting is on), then emits `game:resume`; **call it only inside a real click/keydown handler** |
+| `pause()`, `resume()` | fn | main | `pause()` → `game:pause` (sets `game.pausedAt`, `performance.now()`). `resume()` re-requests pointer lock, then fullscreen (if the setting is on), then emits `game:resume`; **call it only inside a real click/keydown handler**. If the browser refuses the lock (no gesture: an Esc keydown is not one; or its ~1 s cooldown after the player left the lock with Esc) the game stays resumed, a keyed caption (`relock`) asks for a click, and the next canvas click captures (and re-enters fullscreen if the setting is on). Such refusals don't count toward the click-drag fallback (`input.requestLock` marks them forgiven) |
 | `settings` | object | settings (`src/settings/`) | live persisted settings, see "Settings" below |
 | `secrets` | `{ list(), count(), markFound(id) }` \| undefined | secrets (`src/secrets/`) | bound on the first gameplay frame (undefined before); read by the notebook's Secrets section, see "Secrets" and "Notebook hub" |
 | `footsteps` | FootstepSystem | surfaces (`src/surfaces/`) | installed by main; see "Surfaces + footprints" |
@@ -55,9 +55,14 @@ The notebook is a two-page spread and the game's menu. Sections, in page order, 
 `settings` · `controls` · `map` · `notes` · `photos` · `wanderers` · `secrets`.
 - **Keys** (handled in DOM key/mouse handlers, so pointer lock / fullscreen work): Tab/M open or close at the
   last section viewed (default Map) **without pausing**; Esc pauses and opens Settings (main: lock lost →
-  `pause()`; click-drag mode: Esc keydown). In the book: A/D ←/→ turn pages (multi-page sections page within
+  `pause()`; no lock held (click-drag mode, or playing on after a refused re-lock): Esc keydown). **Esc while
+  paused resumes** (toggle; a held slider / the "new tape" question is let go first; the Esc that paused is
+  ignored for 250 ms). **Esc while open unpaused (e.g. the map) only closes it**: main sees the lock (and
+  fullscreen) the browser drops on that Esc and does not pause on top (`menu.escClosedAt`; an alt-tab still
+  pauses). In the book: A/D ←/→ turn pages (multi-page sections page within
   themselves first), W/S ↑/↓ pick a row, E/Enter act; a slider row is *held* with E/Enter and then A/D move it.
-  Tab while paused flips to Map; Esc while open unpaused closes it. Mouse (free cursor): tabs, rows, ticks,
+  Tab while paused flips to Map. While a page turns, the tab labels (and the current tab's underline,
+  drawn on the 2D text layer) are clipped out of the turning leaf's silhouette. Mouse (free cursor): tabs, rows, ticks,
   slider drag, click a page's outer edge to turn. `input.captureSuspended` is set while the cursor serves the menu.
 - **Routing** `addPage({ kind })`: `map`/`mapReveal` → Map, `photo` → Photos, `wanderer` → Wanderers,
   `note` → Notes, `learned` → Notes ("what I've learned" block at the top; `{ id, text }`), `secret` → Secrets
@@ -189,6 +194,11 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 - `interact(inst?)`, `use()`, `drop()`, `pickup(inst)` — the same verbs E / Mouse0·R / G trigger.
 - `inputBlocked` (bool) — set true while the pockets view / notebook owns the keys; M4 then ignores slot/E/use/drop. `game.paused` does the same and also freezes script timers.
 - `runScript(id, { self, other?, params? })`, `stateOf(inst|stack)`, `notesCollected: Set<noteId>`, `noteOf(inst|stack)`.
+- `fileNote(inst|stack) → readable | null`: a loose note (notebook readable with `pickup`, `isFiledNote(def)` in
+  `gameplay.js`) is read into the notebook (`readable:open` display `notebook`), collected once (`note:collected`,
+  `notesCollected`, so story stage / Tenant threat / secrets still count it), and taken out of play: the world inst is
+  removed for good (spot taken), a pocket stack leaves its slot. Emits `note:filed`. E (read) and `pickup()` on a
+  loose note both file it; notes never enter the pockets. Script ctx: `ctx.notes.file(target)`.
 
 ## Events
 | name | payload | emitted by |
@@ -202,6 +212,7 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 | `item:combine` | `{ a, b, result? }` (ids; `a` = the held item) | M4 |
 | `readable:open` | `{ inst?, title, text, display: "notebook"\|"inspect"\|"surface", noteId? }` | M4 (M5 presents it) |
 | `note:collected` | `{ noteId, title, text }` | M4 (M5 adds a notebook page) |
+| `note:filed` | `{ noteId, id }` (`id` = the paper's object id) | M4 (`gameplay.fileNote`: the paper left the world / pocket) |
 | `ui:caption` | `{ text, seconds, key? }` (same `key` replaces the previous caption) | anyone (M5 shows sound captions/prompts when accessibility allows) |
 | `ui:captionClear` | `{ key }` | anyone (removes a keyed caption) |
 | `ui:watchBeep` | `{ text? }` | anyone (M5 watch) |
@@ -215,7 +226,7 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 | `power:fuse` | `{ roomKey, rooms: [roomKey], revived }` | power (a fuse went in; `rooms` = the room + neighbours) |
 | `power:switch` | `{ roomKey, on }` | power (wall switch flipped) |
 | `power:tube` | `{ roomKey, idx }` | power (spare tube installed in fixture `idx`) |
-| `light:timed` | `{ kind: 'match', light }` | power |
+| `light:timed` | `{ kind: 'match', light }` | power (`match_strike` then sets `light.kind = 'match'` plus its range / colour / flicker; one match light at a time; `src/viewmodel/matchFlame.js` shows a lit match in the right hand while it lives) |
 | `light:candle` | `{ inst }` | power (a candle was lit) |
 | `light:expired` | `{ id }` | power (a timed placed light, e.g. a glow marker, burned out) |
 | `aura:start` / `aura:end` | `{ aura }` | power (music box) |

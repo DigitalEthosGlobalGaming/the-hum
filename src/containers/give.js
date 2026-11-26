@@ -2,6 +2,7 @@
 // Every item gets `state.seed` derived from where it came from, so items with a per-item identity
 // (ID badges) stay the same for that drawer / coin in this run.
 import { hash } from '../core/rng.js';
+import { isFiledNote } from '../gameplay/gameplay.js';
 
 /** Pool context for container rolls (depth-gated entries work like room spots). */
 export function poolCtx(ctx, pos) {
@@ -18,6 +19,8 @@ export function poolCtx(ctx, pos) {
 export function giveOrPlace(ctx, id, spot, opts = {}) {
   const state = { seed: hash(ctx.seed, 'item', opts.from ?? id) };
   const name = (ctx.content.objects?.[id]?.name ?? id).toLowerCase();
+  // loose notes never go in a pocket: leave the paper where it was found, E reads it into the notebook
+  if (!opts.place && isFiledNote(ctx.content.objects?.[id])) opts = { ...opts, place: true };
   if (!opts.place) {
     const sel = ctx.inventory.selected;
     const index = ctx.inventory.freeIndexFor(id, sel);

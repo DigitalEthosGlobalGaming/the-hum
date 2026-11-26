@@ -184,21 +184,64 @@ export class Gameplay {
    * textId notes ("random", "spine" or a note id) resolve on first read and stick to the instance.
    */
   resolveReadable(inst) {
-    const r = inst.readable;
+    // a world inst carries `readable`; a pocket stack ({ id, def, state }) only has the component
+    const r = inst.readable ?? (inst.root ? null : readableOf(inst.def));
     if (!r) return null;
+    const name = inst.name ?? inst.def?.name;
     if (!r.textId) {
       if (!r.text) return null;
-      return { title: inst.name, text: r.text, display: r.display, noteId: r.display === 'notebook' ? `text:${inst.id}` : undefined };
+      return { title: name, text: r.text, display: r.display, noteId: r.display === 'notebook' ? `text:${inst.id}` : undefined };
     }
     const st = this.stateOf(inst);
     let note = st.noteId ? this.game.content.notes?.[st.noteId] : null;
     if (!note) {
-      const seed = hash(this.game.seed >>> 0, 'note', this.stableKey(inst) ?? inst.uid);
+      const key = this.stableKey(inst) ?? inst.uid ?? `stack:${st.seed ?? this.nextCall('noteStack')}`;
+      const seed = hash(this.game.seed >>> 0, 'note', key);
       note = resolveNote(r.textId, this.game.content.notes ?? {}, this.notesCollected, seed);
       if (!note) return null;
       st.noteId = note.id;
     }
-    inst.readable.text = note.text; // lets debug overlays show it
-    return { title: note.title ?? inst.name, text: note.text, display: r.display, noteId: note.id };
+    if (inst.readable) inst.readable.text = note.text; // lets debug overlays show it
+    return { title: note.title ?? name, text: note.text, display: r.display, noteId: note.id };
   }
+
+  /**
+   * File a loose note into the notebook: read it there (readable:open, display 'notebook'), count it
+   * as collected (note:collected, once per note id) and take the paper out of play: a world inst is
+   * removed for good, a pocket stack leaves the inventory. Emits note:filed { noteId, id }.
+   * Notes never sit in a pocket; the notebook's Notes section is where they live.
+   * @returns the resolved readable, or null when it has nothing to read (nothing changes then)
+   */
+  fileNote(target) {
+    if (!target) return null;
+    const r = this.resolveReadable(target);
+    if (!r) return null;
+    const ev = this.game.events;
+    this.playSound('paper_rustle', { volume: 0.5 }, target.root ? target : null);
+    ev.emit('readable:open', {
+      ...(target.root ? { inst: target } : {}), title: r.title, text: r.text, display: 'notebook', ...(r.noteId ? { noteId: r.noteId } : {}),
+    });
+    if (r.noteId && !this.notesCollected.has(r.noteId)) {
+      this.notesCollected.add(r.noteId);
+      ev.emit('note:collected', { noteId: r.noteId, title: r.title, text: r.text });
+    }
+    if (target.root) this.removeInst(target);
+    else {
+      const i = this.inventory.indexOf(target);
+      if (i >= 0) this.inventory.remove(i);
+    }
+    ev.emit('note:filed', { noteId: r.noteId ?? null, id: target.id });
+    return r;
+  }
+}
+
+function readableOf(def) {
+  const c = def?.components?.readable;
+  return c ? { text: c.text ?? null, textId: c.textId ?? null, display: c.display ?? 'inspect' } : null;
+}
+
+/** A loose paper that files itself into the notebook: a notebook-displayed readable you can take. */
+export function isFiledNote(def) {
+  const c = def?.components;
+  return !!(c?.readable && c.readable.display === 'notebook' && c.pickup);
 }

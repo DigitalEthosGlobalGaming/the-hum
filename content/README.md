@@ -43,7 +43,7 @@ Optional `tags: string[]` on an object let scripts find it (`ctx.world.findByTag
 | type | fields |
 |---|---|
 | collider ✓ | `{ shape: "box", solid: true }` blocks movement (uses mesh bounds) |
-| readable ✓ | `{ text \| textId, display: "notebook"\|"inspect"\|"surface" }`. `textId`: a note id, `"spine"` (next unread spine note) or `"random"` (an unread fragment, seeded). Resolved on first read and remembered by that object. `notebook` also adds the page to the notebook once, and picks the object up if it has `pickup` |
+| readable ✓ | `{ text \| textId, display: "notebook"\|"inspect"\|"surface" }`. `textId`: a note id, `"spine"` (next unread spine note) or `"random"` (an unread fragment, seeded). Resolved on first read and remembered by that object. `notebook` also adds the page to the notebook once. A `notebook` readable **with `pickup`** is a loose note: reading or taking it **files** it into the notebook's Notes section and removes the paper from the world for good; it never goes into a pocket (a drawer / vending roll leaves it in the world to read). The `read_held_note` use script files a note stack that is somehow in a pocket |
 | sound ✓ | `{ preset, trigger: "ambient"\|"proximity"\|"interact"\|"script", loop?, radius?, volume?, once? }` |
 | light ✓ | `{ color, intensity, range, flicker? }` |
 | interact ✓ | `{ verb, script, params?, once?, cooldown? (s) }`. E on the object runs the script. `verb` is the hand's label |
@@ -53,6 +53,8 @@ Optional `tags: string[]` on an object let scripts find it (`ctx.world.findByTag
 
 E priority on the aimed-at object: **combine** (held item) → **interact** → **readable** → **pickup**.
 Item scripts live in `src/scripts/items/` (list each in `index.js`); the `ctx` API is in `src/scripts/api.js`.
+`match_strike` (matches' `use`) params: `uses` (box count, 10), `seconds` (burn, 12), `radius` (candles lit, 2 m),
+`range` (light radius, 6 m), `color` ([r,g,b], may exceed 1), `flicker` (0..1), `sanity` (bonus when struck in the dark).
 | door, hide, anomaly | (later) |
 
 ## pools/*.json
