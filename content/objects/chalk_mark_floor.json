@@ -1,0 +1,18 @@
+{
+  "id": "chalk_mark_floor",
+  "name": "Chalk arrow",
+  "tags": [
+    "chalk",
+    "player_made"
+  ],
+  "mesh": {
+    "type": "plane",
+    "size": [
+      0.35,
+      0.35
+    ],
+    "texture": "proc:chalk_arrow",
+    "flat": true
+  },
+  "components": {}
+}

@@ -21,6 +21,7 @@ so **change it only deliberately** and note the change in your commit.
 | `stats` | `{ sanity 0..1, stamina 0..1, steps }` | M5 vitals updates sanity/stamina; main counts steps | |
 | `flashlight` | `{ on, battery 0..1, toggle(), recharge(amount) }` | M5 (replaces main's minimal one, same fields) | main feeds `on`/`battery` into the shader |
 | `inventory` | Inventory | M4 | see below |
+| `gameplay` | Gameplay | M4 | see "Gameplay (M4)" below |
 | `paused` | bool | M5 sets while the notebook settings page is open (M6) | |
 
 ## World (M3) — what other systems may call
@@ -30,6 +31,11 @@ so **change it only deliberately** and note the change in your commit.
 - `world.objects` (ObjectSystem): `spawn(id, pos, rotY, meta) → inst`, `remove(inst)`, `buildMesh(def) → THREE.Group`, `instances`, `defs`
 - `world.roomAt(x, z)` → placed room `{ key, json, ... } | null`
 - `world.run` → `{ spawnedUnique: Set, taken: Set<spotKey> }` (add an inst's `meta.spotKey` to `taken` when it's picked up so it never respawns)
+  - M4 adds (created lazily by `game.gameplay`, M3 streams them, M8 saves them):
+    - `taken` may also hold `"<roomKey>#<i>"` for a **fixed** room object (index `i` in `room.objects`) that was removed for good; the spawner should skip those too.
+    - `placed: Map<placedKey, { id, pos:[x,y,z], rotY, state, roomKey }>`: things the player put in the world (dropped items, chalk marks). When a room streams in, spawn each entry whose `roomKey` matches with `objects.spawn(id, pos, rotY, { roomKey, placedKey })` and set `inst.state = entry.state`. When it streams out just remove the insts; the map keeps them. Entries are deleted when the thing is picked up.
+    - `objState: Map<stableKey, state>`: per-run state of world objects that scripts touched (fuse box powered, phone answered). `game.gameplay.stateOf(inst)` rehydrates it lazily; keys are `placedKey`, `"<spotKey>:<id>"` or `"<roomKey>#<i>"`.
+    - `scriptState: {}`: per-run scratch shared by scripts (`ctx.state.run`).
 
 ## Object instance (`inst`)
 `{ uid, id, def, name, root (THREE.Group), meta {roomKey, spotKey?}, state {}, interactive, center, radius, readable? }`
@@ -38,7 +44,7 @@ so **change it only deliberately** and note the change in your commit.
 ```
 game.inventory = {
   size: 4,
-  slots: [ItemStack|null × 4],     // ItemStack = { id, def, state: {} }
+  slots: [ItemStack|null × 4],     // ItemStack = { id, def, state: {}, slot }
   selected: 0..3,
   held: ItemStack|null,            // slots[selected]
   add(id, state?) → bool,          // false when full
@@ -47,6 +53,17 @@ game.inventory = {
   select(index),
 }
 ```
+Extras (additive): `add(id, state, { index?, select? })`, `step(±1)` (wheel, wraps), `indexOf(stack)`,
+`freeIndexFor(id, prefer?)`, `canAdd(id)`, `changed()` (re-emit after mutating a stack's state), `serialize()`.
+A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots; `stack.slot` is the first.
+
+## Gameplay (M4)
+`game.gameplay` — what M5 (and later systems) may call:
+- `combineSlots(a, b) → bool` — item + item from the pockets view; `b` may be `"flashlight"` (the torch has no pocket).
+- `verbFor(inst = game.focus?.inst) → { verb, kind: 'combine'|'interact'|'readable'|'pickup' } | null` — label for the hand's verb tag.
+- `interact(inst?)`, `use()`, `drop()`, `pickup(inst)` — the same verbs E / Mouse0·R / G trigger.
+- `inputBlocked` (bool) — set true while the pockets view / notebook owns the keys; M4 then ignores slot/E/use/drop. `game.paused` does the same and also freezes script timers.
+- `runScript(id, { self, other?, params? })`, `stateOf(inst|stack)`, `notesCollected: Set<noteId>`, `noteOf(inst|stack)`.
 
 ## Events
 | name | payload | emitted by |
@@ -56,7 +73,7 @@ game.inventory = {
 | `inventory:change` | `{ slots, selected }` | M4 |
 | `inventory:full` | `{ id }` | M4 (M5 shakes the hand) |
 | `item:pickup` / `item:drop` / `item:use` | `{ id, stack }` | M4 |
-| `item:combine` | `{ a, b, result? }` | M4 |
+| `item:combine` | `{ a, b, result? }` (ids; `a` = the held item) | M4 |
 | `readable:open` | `{ inst?, title, text, display: "notebook"\|"inspect"\|"surface", noteId? }` | M4 (M5 presents it) |
 | `note:collected` | `{ noteId, title, text }` | M4 (M5 adds a notebook page) |
 | `ui:caption` | `{ text, seconds }` | anyone (M5 shows sound captions/prompts when accessibility allows) |
@@ -64,6 +81,8 @@ game.inventory = {
 | `flashlight:change` | `{ on, battery }` | M5 |
 
 ## Item scripts (M4)
-`src/scripts/items/<id>.js` default-exports `{ id, run(ctx, params) }`, auto-registered.
+`src/scripts/items/<id>.js` default-exports `{ id, run(ctx, params) }`, registered by listing it in
+`src/scripts/items/index.js` (esbuild can't glob; `npm run validate` errors on an unlisted file or an unknown script id).
+`run` returns `ctx.ok({ consume? })` or `ctx.fail(message)` (shows the message as a caption).
 `ctx` gives scripts a safe API (player, inventory, world spawn/remove, sound, ui via events, stats,
 flashlight, rng, state, timer, self, params) — see `src/scripts/api.js`.

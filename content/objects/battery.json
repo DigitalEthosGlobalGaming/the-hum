@@ -18,6 +18,14 @@
         "script": "flashlight_recharge",
         "consume": "self"
       }
-    ]
-  }
+    ],
+    "use": {
+      "script": "flashlight_recharge",
+      "consume": true,
+      "requiresHeld": "flashlight"
+    }
+  },
+  "tags": [
+    "power"
+  ]
 }

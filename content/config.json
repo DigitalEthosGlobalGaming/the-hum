@@ -16,7 +16,12 @@
     "fogFar": 22,
     "affine": 0.7,
     "affineNear": 1.0,
-    "affineFar": 4.0
+    "affineFar": 4.0,
+    "ambient": [
+      0.13,
+      0.115,
+      0.085
+    ]
   },
   "keys": {
     "forward": [
@@ -115,5 +120,10 @@
     "grainBase": 0.035,
     "grainLowSanity": 0.11,
     "vhsStrength": 1
+  },
+  "world": {
+    "loadRadius": 3,
+    "unloadRadius": 5,
+    "buildsPerFrame": 2
   }
 }

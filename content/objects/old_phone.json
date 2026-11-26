@@ -20,6 +20,21 @@
       "trigger": "proximity",
       "radius": 7,
       "once": true
+    },
+    "interact": {
+      "verb": "answer",
+      "script": "phone_answer",
+      "params": {
+        "lines": [
+          "...is the light still on where you are? Keep it on.",
+          "You picked up. Nobody picks up anymore.",
+          "Stop walking for a second. Listen. Do you hear it stop too?",
+          "It is taller than the doorways. Do not turn around to check."
+        ]
+      }
     }
-  }
+  },
+  "tags": [
+    "phone"
+  ]
 }

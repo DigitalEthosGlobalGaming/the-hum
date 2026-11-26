@@ -45,6 +45,7 @@ export function populateRoom(room, place, objects, pools, run) {
   const roomSeed = hash(place.worldSeed, 'room', place.key);
 
   for (const [i, o] of (room.objects ?? []).entries()) {
+    if (run.taken?.has(`${place.key}#${i}`)) continue; // fixed object removed for good this run
     const inst = objects.spawn(o.def, xf.point(o.pos), xf.rot(o.rot), { roomKey: place.key, fixed: i });
     if (inst) spawned.push(inst);
   }

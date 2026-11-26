@@ -26,6 +26,7 @@ async function boot() {
   shared.uAffine.value = cfg.render.affine;
   shared.uAffineNear.value = cfg.render.affineNear;
   shared.uAffineFar.value = cfg.render.affineFar;
+  if (cfg.render.ambient) shared.uAmbient.value.setRGB(...cfg.render.ambient);
   const scene = new THREE.Scene();
   scene.background = shared.uFogColor.value;
   const camera = new THREE.PerspectiveCamera(cfg.render.fov, renderer.aspect, 0.05, 60);
@@ -121,7 +122,7 @@ async function boot() {
     const look = game.focus;
     diag.update(dt, { renderer, input, synth, player, extra: [
       `seed       ${seed}`,
-      ...world.debugLines(),
+      ...world.debugLines(player.pos),
       `looking at ${look ? look.inst.name + (look.inst.readable?.text ? ' — "' + look.inst.readable.text + '"' : '') : '-'}`,
     ] });
     input.endFrame();
