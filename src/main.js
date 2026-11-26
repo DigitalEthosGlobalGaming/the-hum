@@ -17,6 +17,8 @@ async function boot() {
   shared.uFogNear.value = cfg.render.fogNear;
   shared.uFogFar.value = cfg.render.fogFar;
   shared.uAffine.value = cfg.render.affine;
+  shared.uAffineNear.value = cfg.render.affineNear;
+  shared.uAffineFar.value = cfg.render.affineFar;
   const scene = new THREE.Scene();
   scene.background = shared.uFogColor.value;
   const camera = new THREE.PerspectiveCamera(cfg.render.fov, renderer.aspect, 0.05, 60);

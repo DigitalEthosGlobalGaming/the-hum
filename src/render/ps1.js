@@ -22,6 +22,8 @@ export const shared = {
   uFlashCos: { value: Math.cos(THREE.MathUtils.degToRad(24)) },
   uFlashRange: { value: 14 },
   uAffine: { value: 0.7 }, // 0 = perspective-correct, 1 = full PS1 warp
+  uAffineNear: { value: 1.0 }, // warp fades in between these view depths (m),
+  uAffineFar: { value: 4.0 },  // so walls you're standing beside don't smear
 };
 
 const vertexShader = /* glsl */`
@@ -82,6 +84,8 @@ uniform float uFlashOn;
 uniform float uFlashCos;
 uniform float uFlashRange;
 uniform float uAffine;
+uniform float uAffineNear;
+uniform float uAffineFar;
 varying vec2 vUvA;
 varying float vW;
 varying vec2 vUvP;
@@ -90,7 +94,7 @@ varying float vFogDepth;
 varying vec3 vWorldPos;
 varying vec3 vNormal;
 void main() {
-  vec2 uv = mix(vUvP, vUvA / vW, uAffine);
+  vec2 uv = mix(vUvP, vUvA / vW, uAffine * smoothstep(uAffineNear, uAffineFar, vFogDepth));
   vec4 tex = texture2D(map, uv);
   if (tex.a < 0.5) discard;
   vec3 light = vLight;

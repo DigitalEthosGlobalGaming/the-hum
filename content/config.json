@@ -9,7 +9,7 @@
     "mouseSensitivity": 0.0022,
     "bobAmount": 0.045
   },
-  "render": { "height": 240, "fov": 70, "fogNear": 4, "fogFar": 22, "affine": 0.7 },
+  "render": { "height": 240, "fov": 70, "fogNear": 4, "fogFar": 22, "affine": 0.7, "affineNear": 1.0, "affineFar": 4.0 },
   "keys": {
     "forward": ["KeyW", "ArrowUp"],
     "back": ["KeyS", "ArrowDown"],

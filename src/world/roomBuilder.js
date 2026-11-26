@@ -5,6 +5,10 @@ import { makePS1Material } from '../render/ps1.js';
 
 export const CELL = 2;
 export const WALL_H = 3;
+// Tessellation: ~0.5 m sub-quads.
+const SUB_FLOOR = 4;
+const SUB_WALL_U = 4;
+const SUB_WALL_V = 6;
 
 // Built-in tile kinds a legend symbol can map to.
 const KINDS = {
@@ -17,16 +21,35 @@ const KINDS = {
 };
 
 // Accumulates quads per material key, then emits one BufferGeometry per key.
+// Each quad is tessellated into su × sv sub-quads (bilinear over corners a b c d, uv 0..1).
+// Smaller triangles keep PS1 affine warping and per-vertex lighting from going extreme up close.
 class QuadBatch {
   constructor() { this.groups = new Map(); }
-  quad(key, a, b, c, d, n, uv = [0, 0, 1, 0, 1, 1, 0, 1]) {
+  quad(key, a, b, c, d, n, su = 1, sv = 1) {
     let g = this.groups.get(key);
     if (!g) this.groups.set(key, (g = { pos: [], nrm: [], uv: [], idx: [] }));
     const base = g.pos.length / 3;
-    for (const v of [a, b, c, d]) g.pos.push(v[0], v[1], v[2]);
-    for (let i = 0; i < 4; i++) g.nrm.push(n[0], n[1], n[2]);
-    g.uv.push(...uv);
-    g.idx.push(base, base + 1, base + 2, base, base + 2, base + 3);
+    for (let j = 0; j <= sv; j++) {
+      const v = j / sv;
+      for (let i = 0; i <= su; i++) {
+        const u = i / su;
+        // bottom edge a→b, top edge d→c
+        for (let k = 0; k < 3; k++) {
+          const bot = a[k] + (b[k] - a[k]) * u;
+          const top = d[k] + (c[k] - d[k]) * u;
+          g.pos.push(bot + (top - bot) * v);
+        }
+        g.nrm.push(n[0], n[1], n[2]);
+        g.uv.push(u, v);
+      }
+    }
+    const row = su + 1;
+    for (let j = 0; j < sv; j++) {
+      for (let i = 0; i < su; i++) {
+        const p = base + j * row + i;
+        g.idx.push(p, p + 1, p + row + 1, p, p + row + 1, p + row);
+      }
+    }
   }
   build() {
     const out = [];
@@ -78,9 +101,9 @@ export function buildRoom(room, textures, origin = { x: 0, z: 0 }) {
       const x0 = ox + cx * CELL, x1 = x0 + CELL;
       const z0 = oz + cz * CELL, z1 = z0 + CELL;
       // floor (faces up) and ceiling (faces down)
-      batch.quad('floor', [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [x0, 0, z0], [0, 1, 0]);
+      batch.quad('floor', [x0, 0, z1], [x1, 0, z1], [x1, 0, z0], [x0, 0, z0], [0, 1, 0], SUB_FLOOR, SUB_FLOOR);
       const ceilKey = k.light ? 'ceilingLight' : 'ceiling';
-      batch.quad(ceilKey, [x0, WALL_H, z0], [x1, WALL_H, z0], [x1, WALL_H, z1], [x0, WALL_H, z1], [0, -1, 0]);
+      batch.quad(ceilKey, [x0, WALL_H, z0], [x1, WALL_H, z0], [x1, WALL_H, z1], [x0, WALL_H, z1], [0, -1, 0], SUB_FLOOR, SUB_FLOOR);
       if (k.light) {
         lights.push({ pos: new THREE.Vector3(x0 + CELL / 2, WALL_H - 0.3, z0 + CELL / 2), seed: cx * 31 + cz * 17 });
       }
@@ -99,7 +122,7 @@ export function buildRoom(room, textures, origin = { x: 0, z: 0 }) {
         // Counter-clockwise as seen from inside the cell (b → a), so the front face points at the player.
         batch.quad(key,
           [s.b[0], 0, s.b[2]], [s.a[0], 0, s.a[2]],
-          [s.a[0], WALL_H, s.a[2]], [s.b[0], WALL_H, s.b[2]], s.n);
+          [s.a[0], WALL_H, s.a[2]], [s.b[0], WALL_H, s.b[2]], s.n, SUB_WALL_U, SUB_WALL_V);
       }
     }
   }
