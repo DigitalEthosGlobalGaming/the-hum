@@ -6,7 +6,7 @@ import { CELL, TILE_KINDS } from './validate.mjs';
 
 // Display glyph per tile kind (independent of the room's own legend characters,
 // so they never clash with the object letters and spot digits).
-const GLYPH = { wall: '#', pillar: '%', floor: '.', door: '=', light: '*', void: ' ' };
+const GLYPH = { wall: '#', pillar: '%', floor: '.', door: '=', light: '*', deadlight: 'x', flickerlight: 'f', void: ' ' };
 const OBJ_MARKS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const SPOT_MARKS = '123456789abcdefghijklmnopqrstuvwxyz';
 
