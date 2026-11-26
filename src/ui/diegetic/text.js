@@ -1,7 +1,6 @@
 // Text for the diegetic kit, all drawn on canvases (no web fonts):
 //  - a hand-made 3x5 pixel font + 7-segment digits for the watch LCD
-//  - "ink" handwriting: system cursive fonts drawn with per-letter jitter, then thresholded to
-//    hard pixels so it survives the low-res target without turning to mush
+//  - the handwriting font stack + word wrapping (drawn crisp by textLayer.js)
 //  - paper scraps (torn edges, speckle) used by tags, captions and notebook pages
 import { Rng } from '../../core/rng.js';
 
@@ -81,42 +80,6 @@ export function wrapText(g, text, maxW, font) {
     out.push(line);
   }
   return out;
-}
-
-/**
- * Draw lines of jittered handwriting onto g, thresholded to crisp 1-bit ink.
- * opts: { size (px), lineH, color, seed, jitter (px), slant (rad), weight, threshold }
- */
-export function inkLines(g, lines, x, y, opts = {}) {
-  const { size = 10, lineH = Math.round(size * 1.25), color = [38, 34, 52], seed = 1, jitter = 0.6,
-    slant = -0.04, weight = 'bold', threshold = 110, align = 'left' } = opts;
-  const W = g.canvas.width, H = g.canvas.height;
-  const [tc, t] = makeCanvas(W, H);
-  const rng = new Rng(seed);
-  t.font = `${weight} ${size}px ${HAND_FONT}`;
-  t.textBaseline = 'top';
-  t.fillStyle = '#000';
-  lines.forEach((line, li) => {
-    let cx = x;
-    if (align === 'center') cx = x - t.measureText(line).width / 2;
-    const ly = y + li * lineH + (rng.next() - 0.5) * jitter;
-    for (const ch of line) {
-      t.save();
-      t.translate(cx, ly + (rng.next() - 0.5) * jitter);
-      t.rotate(slant + (rng.next() - 0.5) * 0.12);
-      t.fillText(ch, 0, 0);
-      t.restore();
-      cx += t.measureText(ch).width + (rng.next() - 0.5) * jitter * 0.5;
-    }
-  });
-  const img = t.getImageData(0, 0, W, H);
-  const d = img.data;
-  for (let i = 0; i < d.length; i += 4) {
-    const on = d[i + 3] > threshold;
-    d[i] = color[0]; d[i + 1] = color[1]; d[i + 2] = color[2]; d[i + 3] = on ? 255 : 0;
-  }
-  t.putImageData(img, 0, 0);
-  g.drawImage(tc, 0, 0);
 }
 
 /** Paper scrap: torn ragged edges, speckle, faint ruled line. Leaves outside transparent. */

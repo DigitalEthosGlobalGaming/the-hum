@@ -58,8 +58,8 @@ export class SeenMap {
     for (let cz = fz - rz; cz <= fz + rz; cz++) for (let cx = fx - rx; cx <= fx + rx; cx++) {
       if (this.cells.get(cx + ',' + cz) !== FLOOR) continue;
       const r = new Rng(hash('fl', cx, cz));
-      g.fillStyle = 'rgba(70,70,80,0.22)';
-      for (let i = 0; i < 4; i++) g.fillRect(Math.round(toX(cx + r.next())), Math.round(toY(cz + r.next())), 1, 1);
+      g.fillStyle = 'rgba(70,70,80,0.3)';
+      for (let i = 0; i < 7; i++) g.fillRect(Math.round(toX(cx + r.next())), Math.round(toY(cz + r.next())), 1, 1);
     }
     // walls: a wobbly line on every floor edge that borders a seen wall
     g.strokeStyle = 'rgba(48,46,58,0.9)';

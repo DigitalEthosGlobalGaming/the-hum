@@ -2,9 +2,11 @@
 // watch, notebook (auto-map + notes), pockets, vitals, captions.
 // install() once; update() each frame; render() after the world render.
 //
-// Rendering: the view-model scene and the screen-space paper scene are registered as overlays on
-// game.renderer (PS1Renderer.addOverlay), so main's single renderer.render() call draws them into
-// the same low-res target right after the world (depth cleared) and before the dither/post pass.
+// Rendering: the view-model scene is registered as an overlay on game.renderer
+// (PS1Renderer.addOverlay), so main's single renderer.render() call draws it into the same low-res
+// target right after the world (depth cleared) and before the dither/post pass. All *text* (tags,
+// captions, notebook writing, pocket labels) is drawn afterwards by renderDiegetic() on a
+// full-resolution 2D canvas layer, so it is never dithered or quantised.
 import { ViewModel, damp } from '../../viewmodel/viewModel.js';
 import { Flashlight } from '../../viewmodel/flashlight.js';
 import { LeftArm, RightArm } from '../../viewmodel/arms.js';
@@ -13,10 +15,9 @@ import { Watch } from './watch.js';
 import { Notebook } from './notebook.js';
 import { Pockets } from './pockets.js';
 import { SeenMap } from './automap.js';
-import { PaperOverlay } from './paperOverlay.js';
+import { TextLayer } from './textLayer.js';
 import { installInputGate } from './inputGate.js';
 import { installInventoryStub, updateInventoryStub } from './devStub.js';
-import { wrapText, makeCanvas, HAND_FONT } from './text.js';
 
 const MOVE = ['forward', 'back', 'left', 'right', 'sprint'];
 let S = null;
@@ -35,16 +36,16 @@ export function installDiegetic(game) {
   const notebook = new Notebook(game);
   const pockets = new Pockets(game);
   vm.scene.add(left.root, right.root, notebook.group, notebook.sheet, pockets.group);
-  const paper = new PaperOverlay(game);
+  const text = new TextLayer(game);
   const map = new SeenMap();
   const vitals = new Vitals(game);
 
   S = {
-    game, gate, vm, flashlight, left, right, watch, notebook, pockets, paper, map, vitals,
+    game, gate, vm, flashlight, left, right, watch, notebook, pockets, text, map, vitals,
     w: { watch: 0, note: 0, pockets: 0, inspect: 0, reach: 0 },
     notebookOpen: false, inspect: false, pocketsOpen: false, watchUp: false,
     captions: [], surface: null, mapSeen: -1, inv: game.inventory ?? null,
-    measure: makeCanvas(4, 4)[1],
+    reading: false,
   };
 
   // Public read-only state other systems may check (see CONTRACTS.md, "game.diegetic").
@@ -80,12 +81,11 @@ export function installDiegetic(game) {
       const idx = notebook.addNote(p);
       notebook.open(idx);
       S.notebookOpen = true;
-      S.inspect = false;
-      game.synth?.play?.('paper_rustle', { volume: 0.7 });
+      S.inspect = false; // (M4 plays paper_rustle itself for notebook reads)
     }
   });
   ev.on('ui:caption', (p) => pushCaption(p?.text ?? '', p?.seconds ?? 3));
-  ev.on('game:resize', () => { vm.resize(); paper.resize(); });
+  ev.on('game:resize', () => { vm.resize(); text.resize(); });
 
   right.onInventoryChange();
   right.swap = 0.99; // first item appears from below
@@ -95,13 +95,16 @@ export function installDiegetic(game) {
 function pushCaption(text, seconds = 3, system = false) {
   if (!S || !text) return;
   if (!system && S.game.cfg.ui?.captions === false) return;
-  S.captions.push({ text: String(text), until: S.game.time + seconds, seconds });
-  if (S.captions.length > 4) S.captions.shift();
+  const now = S.game.time;
+  S.captions.push({ text: String(text), until: now + seconds, seconds, born: now });
+  // at most 3 visible: the oldest of the rest fades out quickly instead of vanishing
+  const live = S.captions.filter((c) => !c.leaving);
+  for (let i = 0; i < live.length - 3; i++) { live[i].leaving = true; live[i].until = Math.min(live[i].until, now + 0.35); }
 }
 
 export function updateDiegetic(game, dt) {
   if (!S) return;
-  const { gate, vm, flashlight, left, right, watch, notebook, pockets, paper, map, vitals, w } = S;
+  const { gate, vm, flashlight, left, right, watch, notebook, pockets, map, vitals, w } = S;
   const raw = gate.raw;
   const playing = game.playing;
   const ui = game.cfg.ui ?? {};
@@ -125,16 +128,17 @@ export function updateDiegetic(game, dt) {
     const dismiss = ['interact', 'use', 'pause', ...MOVE].some((a) => raw.wasPressed(a));
     if (dismiss) S.inspect = false;
   }
-  const reading = S.notebookOpen || S.inspect;
+  const reading = (S.reading = S.notebookOpen || S.inspect);
   S.pocketsOpen = playing && !reading && raw.held('pockets');
   S.watchUp = playing && !reading && !S.pocketsOpen && raw.held('watch');
 
   // gate other systems' input for the next frame
   gate.blocked.clear();
   if (reading) for (const a of [...MOVE, 'interact', 'use', 'drop']) gate.blocked.add(a);
-  if (S.pocketsOpen) { gate.blocked.add('use'); gate.blocked.add('drop'); }
+  if (S.pocketsOpen) for (const a of ['use', 'drop', 'left', 'right']) gate.blocked.add(a); // A/D move the pocket cursor
   if (vitals.exhausted) gate.blocked.add('sprint');
   gate.blockLook = S.pocketsOpen;
+  if (game.gameplay) game.gameplay.inputBlocked = reading || S.pocketsOpen; // M4 ignores slot/E/use/drop
 
   // ── eased weights ──
   const glance = watch.beepT > 0 && !reading && !S.pocketsOpen ? 0.8 : 0;
@@ -159,8 +163,8 @@ export function updateDiegetic(game, dt) {
 
   // ── view-model ──
   const busy = Math.max(w.note, w.inspect);
-  left.update(vm, { watch: w.watch, hidden: Math.max(busy, w.pockets) });
-  const pointAt = pockets.update(dt, w.pockets, raw, gate.look);
+  left.update(vm, { watch: w.watch, hidden: busy, pockets: w.pockets });
+  const pointAt = pockets.update(dt, w.pockets, raw, gate.look, left.torch);
   right.pointAt.copy(pointAt);
   right.update(vm, dt, { reach: w.reach, hidden: busy, pockets: w.pockets });
   watch.update(dt, w.watch, { bpm: vitals.bpm, sanity: game.stats.sanity, light: vm.light });
@@ -170,45 +174,67 @@ export function updateDiegetic(game, dt) {
     return changed;
   });
 
-  // ── paper overlay: captions, prompt tag, surface lines, pocket tags ──
-  paper.begin();
-  drawCaptions(game);
   if (S.surface && game.time > S.surface.until) S.surface = null;
-  if (S.surface && !reading) {
-    const lines = wrapText(S.measure, S.surface.text, paper.W * 0.6, `bold ${Math.round(10 * paper.scale)}px ${HAND_FONT}`).slice(0, 4);
-    const fade = Math.min(1, (S.surface.until - game.time) * 2);
-    paper.draw(lines, paper.W / 2, Math.round(paper.H * 0.2), { anchor: [0.5, 0], size: 10, key: 'surf', opacity: fade, color: '#cfc6aa' });
+  S.captions = S.captions.filter((c) => game.time < c.until);
+}
+
+// After the world + view-model render and the PS1 post pass: crisp text on the full-res layer.
+export function renderDiegetic(game) {
+  if (!S) return;
+  const { text, w, notebook, pockets, vm, left } = S;
+  const ui = game.cfg.ui ?? {};
+  const prompts = ui.textPrompts !== false;
+  const tagShown = prompts && game.focus && !S.reading && !S.pocketsOpen && w.reach > 0.3;
+  const anything = S.captions.length || S.surface || tagShown || w.note > 0.6 || w.inspect > 0.6 || w.pockets > 0.6;
+  if (!anything && !text.dirty) return;
+  text.begin();
+  text.dirty = !!anything;
+
+  const { W, H, margin: M } = text;
+  const colW = Math.max(160, W * 0.34);          // centre column: verb tag + surface strip
+  // reserve the tag's height (2 lines) so the surface strip never jumps or overlaps it
+  const tagH = text.measure(['Mg', 'Mg'], { maxW: colW }).h;
+
+  // notebook / inspected paper writing (projected onto the page in the view-model)
+  if (w.note > 0.6 || w.inspect > 0.6) notebook.drawText(text, vm.camera, w.note, w.inspect);
+  if (S.notebookOpen && prompts && w.note > 0.9 && notebook.pages.length > 1) {
+    const kl = (a, d) => keyLabel(game.cfg.keys?.[a]?.[0] ?? d);
+    text.tag(`${kl('left', 'KeyA')} ←  page  → ${kl('right', 'KeyD')}`, W / 2, H - M, { anchor: [0.5, 1], size: 0.8 });
   }
-  if (ui.textPrompts !== false && game.focus && !reading && !S.pocketsOpen && w.reach > 0.3) {
+
+  // pocket name tags
+  if (w.pockets > 0.6) { pockets.group.updateMatrixWorld(true); pockets.drawTags(text, vm.camera, w.pockets, left.torch); }
+
+  // verb tag, bottom centre
+  if (tagShown) {
     const inst = game.focus.inst;
     const key = keyLabel(game.cfg.keys?.interact?.[0] ?? 'KeyE');
-    paper.draw([inst.name ?? inst.id, `${key} · ${verbFor(inst, game.inventory?.held)}`], paper.W / 2, 8, {
-      anchor: [0.5, 0], size: 10, key: 'tag', opacity: Math.min(1, (w.reach - 0.3) * 2.5),
-    });
+    const verb = game.gameplay?.verbFor ? game.gameplay.verbFor(inst)?.verb : verbFor(inst, game.inventory?.held);
+    if (verb) {
+      text.tag([inst.name ?? inst.id, `${key} · ${verb.toLowerCase()}`], W / 2, H - M, {
+        anchor: [0.5, 1], maxW: colW, opacity: Math.min(1, (w.reach - 0.3) * 2.5),
+      });
+    }
   }
-  if (S.notebookOpen && ui.textPrompts !== false && w.note > 0.9 && notebook.pages.length > 1) {
-    paper.draw(['A ◂  ▸ D'], paper.W / 2, 3, { anchor: [0.5, 0], size: 8, key: 'flip', color: '#b9b19a' });
+
+  // surface writing: opaque strip in the centre column, above the (reserved) tag slot
+  if (S.surface && !S.reading) {
+    const fade = Math.min(1, (S.surface.until - game.time) * 3);
+    const m = text.measure(S.surface.text, { maxW: colW });
+    m.lines = m.lines.slice(0, 4);
+    text.tag(null, W / 2, H - M - tagH - Math.round(M * 0.5), { m, anchor: [0.5, 1], opacity: fade, seed: 3 });
   }
-  if (w.pockets > 0.6) { pockets.group.updateMatrixWorld(true); pockets.drawTags(paper, vm.camera, w.pockets); }
-  paper.end();
-}
 
-export function renderDiegetic(game) {
-  // Nothing to do: both diegetic passes are PS1Renderer overlays, already drawn inside main's
-  // renderer.render() into the low-res target before the dither pass. Kept as the hook for M6
-  // (CRT title / settings pages) per the contract.
-}
-
-function drawCaptions(game) {
-  const { paper } = S;
-  S.captions = S.captions.filter((c) => game.time < c.until);
-  let y = 6;
+  // captions: bottom-left column, newest at the bottom, stacking up; never into the centre column
+  const capW = Math.max(150, W / 2 - colW / 2 - M * 2);
+  let y = H - M;
   for (let i = S.captions.length - 1; i >= 0; i--) {
     const c = S.captions[i];
-    const lines = wrapText(S.measure, c.text, paper.W * 0.42, `bold ${Math.round(9 * paper.scale)}px ${HAND_FONT}`).slice(0, 3);
-    const fade = Math.min(1, (c.until - game.time) * 2, (game.time - (c.until - c.seconds)) * 6);
-    const r = paper.draw(lines, 6, y, { anchor: [0, 0], size: 9, key: 'cap', opacity: fade, color: '#cbc2a4' });
-    y += r.h + 2;
+    const fade = Math.max(0, Math.min(1, (c.until - game.time) * 3, (game.time - c.born) * 6));
+    const m = text.measure(c.text, { maxW: capW, size: 0.92 });
+    m.lines = m.lines.slice(0, 3);
+    const r = text.tag(null, M, y, { m, anchor: [0, 1], opacity: fade, seed: i + 11 });
+    y = r.y - Math.round(M * 0.3);
   }
 }
 
@@ -216,7 +242,7 @@ function keyLabel(code) {
   return code.replace(/^Key/, '').replace(/^Digit/, '').replace(/^Mouse0$/, 'Click');
 }
 
-/** Verb for the interaction tag, from the target's components (and what's in hand). */
+/** Fallback verb (when M4's gameplay.verbFor is missing), from components and what's in hand. */
 export function verbFor(inst, held) {
   const c = inst.def?.components ?? {};
   if (held) {

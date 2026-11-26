@@ -38,13 +38,14 @@ export class LeftArm {
     this.arm.hand.add(this.torch);
     this.poses = {
       idle: P(-0.16, -0.15, -0.36, 0.04, -0.14, 0.08),
-      watch: P(-0.03, -0.1, -0.27, 0.2, -1.35, -1.25),
+      watch: P(0.0, -0.07, -0.23, 0.22, -1.35, -1.2),
+      pockets: P(-0.25, -0.11, -0.34, 0.45, -0.3, 0.25), // torch offered up beside the jacket
     };
   }
 
   /** w: { watch, hidden } eased 0..1 */
   update(vm, w) {
-    blend(this.poses.idle, [[this.poses.watch, smooth(w.watch)]]);
+    blend(this.poses.idle, [[this.poses.watch, smooth(w.watch)], [this.poses.pockets, smooth(w.pockets ?? 0)]]);
     _p.y -= smooth(w.hidden) * 0.42;
     this.root.position.copy(_p);
     this.root.rotation.set(_r.x, _r.y, _r.z);
@@ -64,7 +65,7 @@ export class RightArm {
     this.poses = {
       idle: P(0.17, -0.165, -0.38, 0.06, 0.16, -0.06),
       reach: P(0.13, -0.135, -0.47, 0.18, 0.06, -0.02),
-      point: P(0, 0, 0, -0.5, 0.25, 0.1),
+      point: P(0, 0, 0, 0.45, 0.2, 0.1),
     };
     this.shownKey = null;    // stack identity currently in the hand
     this.item = null;

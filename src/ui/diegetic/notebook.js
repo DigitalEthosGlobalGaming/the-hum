@@ -1,15 +1,20 @@
 // The notebook (held up in both hands) and the "inspect" sheet (a found paper held close).
-// Page 1 is the auto-map; following pages are collected notes, paginated. Pages are canvas
-// textures in jittered, thresholded handwriting.
+// Page 1 is the auto-map; following pages are collected notes, paginated. The page *texture* holds
+// only paper, rules and the pencil map (it goes through the PS1 pass with the hands); the writing
+// is drawn crisp on the full-res text layer, mapped onto the page's projected corners.
 import * as THREE from 'three';
+const _c = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
 import { makeVMMaterial, canvasTexture } from '../../viewmodel/vmMaterial.js';
 import { box, smooth } from '../../viewmodel/viewModel.js';
-import { makeCanvas, inkLines, wrapText, HAND_FONT } from './text.js';
+import { makeCanvas, wrapText, HAND_FONT } from './text.js';
+import { INK, RED_INK } from './textLayer.js';
 import { hash, Rng } from '../../core/rng.js';
 
 const PW = 160, PH = 216;          // page texture size
-const TEXT = { size: 11, lineH: 13, x: 16, top: 30, width: PW - 26 };
-const LINES_PER_PAGE = Math.floor((PH - TEXT.top - 18) / TEXT.lineH);
+// page units (= texture px). Line height 1.4, ~28 characters per line max.
+const TEXT = { size: 9.5, lineH: 13.3, x: 17, top: 28, width: PW - 30 };
+const LINES_PER_PAGE = Math.floor((PH - TEXT.top - 20) / TEXT.lineH);
+const FONT = (s) => `bold ${s}px ${HAND_FONT}`;
 
 function paperBase(g, seed, { margin = true } = {}) {
   const r = new Rng(seed);
@@ -19,7 +24,7 @@ function paperBase(g, seed, { margin = true } = {}) {
     g.fillRect(r.int(0, PW - 1), r.int(0, PH - 1), 1, 1);
   }
   g.fillStyle = 'rgba(90,110,160,0.28)';
-  for (let y = TEXT.top + TEXT.lineH - 2; y < PH - 10; y += TEXT.lineH) g.fillRect(4, y, PW - 8, 1);
+  for (let y = TEXT.top + TEXT.size + 2.5; y < PH - 12; y += TEXT.lineH) g.fillRect(4, Math.round(y), PW - 8, 1);
   if (margin) { g.fillStyle = 'rgba(170,60,60,0.3)'; g.fillRect(12, 0, 1, PH); }
   // grubby thumb smudge + corner wear
   g.fillStyle = 'rgba(60,45,30,0.06)';
@@ -57,7 +62,7 @@ export class Notebook {
     this.pivot.position.set(-0.093, 0, 0.0035);
     g.add(this.pivot);
     this.pageMat = makeVMMaterial(this.tex, { emissive: 0.18, affine: 0, side: THREE.DoubleSide });
-    const page = new THREE.Mesh(new THREE.PlaneGeometry(0.188, 0.258), this.pageMat);
+    const page = this.pageMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.188, 0.258), this.pageMat);
     page.position.x = 0.094;
     page.frustumCulled = false;
     this.pivot.add(page);
@@ -69,7 +74,7 @@ export class Notebook {
   buildSheet(textures) {
     const g = new THREE.Group();
     this.sheetMat = makeVMMaterial(this.iTex, { emissive: 0.18, affine: 0, side: THREE.DoubleSide });
-    const p = new THREE.Mesh(new THREE.PlaneGeometry(0.19, 0.258), this.sheetMat);
+    const p = this.sheetMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.19, 0.258), this.sheetMat);
     p.frustumCulled = false;
     g.add(p);
     addHands(g, textures, 0.093, 0.118);
@@ -82,7 +87,7 @@ export class Notebook {
     const id = noteId ?? `${title}|${text}`;
     const found = this.pages.findIndex((p) => p.id === id);
     if (found >= 0) return found;
-    const lines = wrapText(this.g, text ?? '', TEXT.width, `bold ${TEXT.size}px ${HAND_FONT}`);
+    const lines = wrapText(this.g, text ?? '', TEXT.width, FONT(TEXT.size));
     const first = this.pages.length;
     const per = LINES_PER_PAGE - 1; // first line of each page is the title
     for (let i = 0; i < Math.max(1, lines.length); i += per) {
@@ -106,16 +111,7 @@ export class Notebook {
     const g = this.g;
     const p = this.pages[i];
     paperBase(g, hash('page', i, p.id ?? 'map'), { margin: p.kind !== 'map' });
-    if (p.kind === 'map') {
-      inkLines(g, ['where I have been'], 16, 6, { size: 11, seed: 7, color: [40, 38, 60] });
-      this.game.diegetic?.map?.draw(g, PW, PH, this.game.player, { top: 26, bottom: PH - 16 });
-    } else {
-      const title = (p.cont ? '(cont.) ' : '') + p.title;
-      inkLines(g, [title], TEXT.x, 8, { size: 12, seed: hash(p.id, 't'), color: [110, 30, 28] });
-      inkLines(g, p.lines, TEXT.x, TEXT.top + 1, { size: TEXT.size, lineH: TEXT.lineH, seed: hash(p.id, i) });
-    }
-    // page number, bottom corner
-    inkLines(g, [`${i + 1}/${this.pages.length}`], PW - 30, PH - 15, { size: 9, seed: i, color: [80, 76, 90] });
+    if (p.kind === 'map') this.game.diegetic?.map?.draw(g, PW, PH, this.game.player, { top: 26, bottom: PH - 16 });
     this.tex.needsUpdate = true;
     this.drawnPage = i;
   }
@@ -124,11 +120,33 @@ export class Notebook {
   inspect({ title, text }) {
     const g = this.ig;
     paperBase(g, hash('inspect', title, text), { margin: false });
-    inkLines(g, [title ?? ''], 10, 8, { size: 12, seed: hash(title), color: [110, 30, 28] });
-    const lines = wrapText(g, text ?? '', PW - 20, `bold 11px ${HAND_FONT}`).slice(0, LINES_PER_PAGE);
-    inkLines(g, lines, 10, TEXT.top + 1, { size: 11, lineH: TEXT.lineH, seed: hash(text) });
+    const lines = wrapText(g, text ?? '', TEXT.width + 6, FONT(TEXT.size)).slice(0, LINES_PER_PAGE);
     this.iTex.needsUpdate = true;
-    this.inspecting = { title, text, at: this.game.time, pos: this.game.player.pos.clone() };
+    this.inspecting = { title, text, lines, at: this.game.time, pos: this.game.player.pos.clone() };
+  }
+
+  /** Crisp writing on the full-res text layer (call from renderDiegetic, after the render). */
+  drawText(layer, camera, wBook, wSheet) {
+    if (wBook > 0.6 && this.group.visible) {
+      const p = this.pages[this.page];
+      const k = this.flipDir ? (this.flipT < 0.5 ? this.flipT * 2 : (1 - this.flipT) * 2) : 0;
+      const alpha = Math.min(1, (wBook - 0.6) / 0.35) * Math.max(0, 1 - k * 3);
+      if (alpha > 0.01 && p) {
+        const [tl, tr, bl] = corners(this.pageMesh, 0.094, 0.129, camera, layer.W, layer.H);
+        layer.page(tl, tr, bl, PW, PH, alpha, (g) => writePage(g, {
+          title: p.kind === 'map' ? 'where I have been' : (p.cont ? '(cont.) ' : '') + p.title,
+          titleColor: p.kind === 'map' ? INK : RED_INK,
+          lines: p.lines, label: `${this.page + 1}/${this.pages.length}`, seed: hash(p.id ?? 'map', this.page),
+        }));
+      }
+    }
+    if (wSheet > 0.6 && this.inspecting && this.sheet.visible) {
+      const [tl, tr, bl] = corners(this.sheetMesh, 0.095, 0.129, camera, layer.W, layer.H);
+      const s = this.inspecting;
+      layer.page(tl, tr, bl, PW, PH, Math.min(1, (wSheet - 0.6) / 0.35), (g) => writePage(g, {
+        title: s.title, lines: s.lines, seed: hash(s.text),
+      }));
+    }
   }
 
   /** wBook / wSheet: eased visibility 0..1. */
@@ -152,6 +170,36 @@ export class Notebook {
     pose(this.group, vm, wBook, -0.33);
     pose(this.sheet, vm, wSheet, -0.29);
   }
+}
+
+/** Project a page plane's top-left / top-right / bottom-left corners to CSS px. */
+function corners(mesh, hw, hh, camera, W, H) {
+  mesh.updateWorldMatrix(true, false);
+  _c[0].set(-hw, hh, 0); _c[1].set(hw, hh, 0); _c[2].set(-hw, -hh, 0);
+  return _c.map((v) => {
+    mesh.localToWorld(v).project(camera);
+    return { x: (v.x * 0.5 + 0.5) * W, y: (0.5 - v.y * 0.5) * H };
+  });
+}
+
+function writePage(g, { title, lines, label, seed, titleColor = RED_INK }) {
+  const r = new Rng(seed);
+  g.textBaseline = 'alphabetic';
+  if (title) {
+    g.font = FONT(11); g.fillStyle = titleColor;
+    g.fillText(title, TEXT.x, 20, PW - TEXT.x - 6);
+  }
+  g.font = FONT(TEXT.size); g.fillStyle = INK;
+  const space = g.measureText(' ').width;
+  lines?.forEach((line, i) => {
+    let x = TEXT.x;
+    const y = TEXT.top + TEXT.size + i * TEXT.lineH;
+    for (const word of line.split(' ')) {
+      g.fillText(word, x, y + (r.next() - 0.5) * 0.25); // ≤ 1 screen px of wobble per word
+      x += g.measureText(word).width + space;
+    }
+  });
+  if (label) { g.font = FONT(8); g.fillStyle = '#4a4438'; g.fillText(label, PW - 34, PH - 8); }
 }
 
 function pose(g, vm, w, z) {

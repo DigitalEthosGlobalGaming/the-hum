@@ -97,28 +97,6 @@ export function toViewModel(root) {
   return root;
 }
 
-// Flat textured quad for screen-space paper (tags, captions): unlit, fades by opacity. Drawn
-// into the low-res target so the post pass dithers it like everything else.
-const flatVert = /* glsl */`
-varying vec2 vUv;
-void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
-const flatFrag = /* glsl */`
-uniform sampler2D map;
-uniform float uOpacity;
-varying vec2 vUv;
-void main() {
-  vec4 t = texture2D(map, vUv);
-  if (t.a < 0.5) discard;
-  gl_FragColor = vec4(t.rgb, uOpacity);
-}`;
-export function makeFlatMaterial(texture) {
-  return new THREE.ShaderMaterial({
-    uniforms: { map: { value: texture }, uOpacity: { value: 1 } },
-    vertexShader: flatVert, fragmentShader: flatFrag,
-    transparent: true, depthTest: false, depthWrite: false,
-  });
-}
-
 /** Nearest-filtered CanvasTexture (PS1 look). linear=true for small handwriting that must stay legible. */
 export function canvasTexture(canvas, linear = false) {
   const t = new THREE.CanvasTexture(canvas);

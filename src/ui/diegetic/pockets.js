@@ -6,11 +6,17 @@ import * as THREE from 'three';
 import { box, damp, smooth } from '../../viewmodel/viewModel.js';
 import { toViewModel } from '../../viewmodel/vmMaterial.js';
 import { fitInto } from '../../viewmodel/arms.js';
-import { wrapText, makeCanvas, HAND_FONT } from './text.js';
 
 const SLOT_X = [-0.235, -0.085, 0.085, 0.235];
-const SLOT_Y = -0.095, SLOT_Z = -0.43;
+const SLOT_Y = -0.035, SLOT_Z = -0.43;
 const _v = new THREE.Vector3();
+
+/** Repeat a mesh's texture n times (keeps texels small on big panels). */
+function tile(mesh, n) {
+  const uv = mesh.geometry.attributes.uv;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * n, uv.getY(i) * n);
+  return mesh;
+}
 
 export class Pockets {
   constructor(game) {
@@ -19,11 +25,11 @@ export class Pockets {
     this.group.visible = false;
     const jt = game.textures.get('proc:jacket');
     for (const s of [-1, 1]) {
-      const panel = box(0.34, 0.42, 0.02, jt);
+      const panel = tile(box(0.34, 0.42, 0.02, jt), 4);
       panel.position.set(s * 0.2, -0.13, -0.47);
       panel.rotation.y = -s * 0.28;
       this.group.add(panel);
-      const lapel = box(0.05, 0.42, 0.024, jt, { tint: 0xb8b0a0 });
+      const lapel = tile(box(0.05, 0.42, 0.024, jt, { tint: 0xb8b0a0 }), 3);
       lapel.position.set(s * 0.045, -0.13, -0.455);
       lapel.rotation.y = -s * 0.28;
       this.group.add(lapel);
@@ -70,7 +76,7 @@ export class Pockets {
    * w: eased open amount. input: raw input (ungated). Returns the view-space point the right
    * hand should point at.
    */
-  update(dt, w, raw, rawLook) {
+  update(dt, w, raw, rawLook, torch) {
     const inv = this.game.inventory;
     this.group.visible = w > 0.01;
     const open = w > 0.5;
@@ -78,53 +84,70 @@ export class Pockets {
     this.wasOpen = open;
     const e = smooth(w);
     this.group.position.y = -(1 - e) * 0.35;
-    if (!this.group.visible || !inv) return this.slots[this.hover].g.position;
+    if (!this.group.visible || !inv) return _v.set(0, -0.3, -0.3);
 
     if (open) {
-      this.hoverF = Math.max(0, Math.min(3, this.hoverF + rawLook.x * 0.01));
+      // -1 = the torch in the left hand (battery + flashlight combine), 0..3 = pockets
+      this.hoverF = Math.max(-1, Math.min(3, this.hoverF + rawLook.x * 0.01));
+      if (raw.wasPressed('left')) this.hoverF = Math.max(-1, Math.round(this.hoverF) - 1);
+      if (raw.wasPressed('right')) this.hoverF = Math.min(3, Math.round(this.hoverF) + 1);
       this.hover = Math.round(this.hoverF);
       if (raw.wasPressed('use')) this.click();
     }
     for (const s of this.slots) {
       const stack = inv.slots?.[s.i] ?? null;
       this.syncSlot(s, stack);
-      const target = (s.i === inv.selected ? 0.055 : 0) + (s.i === this.hover && open ? 0.02 : 0);
+      const target = (s.i === inv.selected ? 0.03 : 0) + (s.i === this.hover && open ? 0.02 : 0);
       s.lift = damp(s.lift, target, 14, dt);
       s.wob = Math.max(0, s.wob - dt);
-      s.holder.position.set(Math.sin(s.wob * 60) * 0.008 * (s.wob / 0.4), 0.03 + s.lift, 0);
+      s.holder.position.set(Math.sin(s.wob * 60) * 0.008 * (s.wob / 0.4), 0.008 + s.lift, 0); // half tucked behind the pocket front
       s.holder.rotation.x = s.i === inv.selected ? -0.35 : 0;
     }
-    const hp = this.slots[this.hover].g.position;
+    if (this.hover < 0 && torch) {
+      torch.getWorldPosition(_v); // vm scene space (camera sits at the origin)
+      return _v.set(_v.x + 0.1, _v.y - 0.05, _v.z + 0.12);
+    }
+    const hp = this.slots[Math.max(0, this.hover)].g.position;
     return _v.set(hp.x + 0.035, hp.y - 0.075, hp.z + 0.14);
   }
 
   click() {
     const inv = this.game.inventory;
-    const a = inv.selected, b = this.hover;
-    if (a === b || !inv.slots?.[a] || !inv.slots?.[b]) { this.slots[b].wob = 0.4; return; }
-    if (this.game.gameplay?.combineSlots) this.game.gameplay.combineSlots(a, b);
-    else this.slots[b].wob = 0.4; // nothing to combine with yet (M4 not merged)
+    const a = inv.selected;
+    const b = this.hover < 0 ? 'flashlight' : this.hover;
+    const nudge = () => { if (this.hover >= 0) this.slots[this.hover].wob = 0.4; };
+    if (a === b || !inv.slots?.[a] || (b !== 'flashlight' && !inv.slots?.[b])) return nudge();
+    // gameplay.combineSlots returns false when the two don't combine: wiggle the target
+    if (!this.game.gameplay?.combineSlots?.(a, b)) nudge();
   }
 
-  /** Name tags under each pocket, via the screen-space paper overlay. */
-  drawTags(paper, vmCamera, w) {
+  /** Name tags under each pocket, on the full-res text layer (call after the render). */
+  drawTags(layer, vmCamera, w, torch) {
     if (w < 0.6 || !this.game.inventory) return;
     const inv = this.game.inventory;
-    const [, m] = this._mc ?? (this._mc = makeCanvas(4, 4));
-    const size = 8;
+    const opacity = Math.min(1, (w - 0.6) * 3);
+    const toScreen = () => ({ x: (_v.x * 0.5 + 0.5) * layer.W, y: (0.5 - _v.y * 0.5) * layer.H });
+    // tag width: a bit less than the spacing between pockets on screen
+    _v.set(SLOT_X[0], SLOT_Y, SLOT_Z).project(vmCamera); const a = toScreen();
+    _v.set(SLOT_X[1], SLOT_Y, SLOT_Z).project(vmCamera); const b = toScreen();
+    const maxW = Math.max(90, Math.abs(b.x - a.x) * 0.92);
+    if (this.hover < 0 && torch) {
+      torch.getWorldPosition(_v).project(vmCamera);
+      const t = toScreen();
+      layer.tag('torch', t.x, t.y - layer.px * 1.5, { anchor: [0.5, 1], size: 0.85, opacity });
+    }
     for (const s of this.slots) {
       const stack = inv.slots?.[s.i];
       const name = stack ? (stack.def?.name ?? this.game.content.objects?.[stack.id]?.name ?? stack.id) : '(empty)';
-      const lines = wrapText(m, name, 62 * paper.scale, `bold ${Math.round(size * paper.scale)}px ${HAND_FONT}`).slice(0, 2);
       _v.set(0, -0.065, 0.02);
-      s.g.localToWorld(_v);
-      _v.project(vmCamera);
-      const x = (_v.x * 0.5 + 0.5) * paper.W, y = (_v.y * 0.5 + 0.5) * paper.H;
+      s.g.localToWorld(_v).project(vmCamera);
+      const p = toScreen();
       const sel = s.i === inv.selected;
-      paper.draw(lines, x, y, {
-        anchor: [0.5, 1], size, key: 'pk',
-        color: sel ? '#efe6c4' : s.i === this.hover ? '#d8cfb4' : '#b9b19a',
-        opacity: Math.min(1, (w - 0.6) * 3),
+      const m = layer.measure(name, { size: 0.95, maxW });
+      m.lines = m.lines.slice(0, 2);
+      layer.tag(null, p.x, p.y, {
+        m, anchor: [0.5, 0], opacity,
+        color: sel ? '#f3ead2' : s.i === this.hover ? '#e9e0c9' : '#cfc6ae',
       });
     }
   }

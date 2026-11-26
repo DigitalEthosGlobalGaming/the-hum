@@ -23,6 +23,23 @@ so **change it only deliberately** and note the change in your commit.
 | `inventory` | Inventory | M4 | see below |
 | `gameplay` | Gameplay | M4 | see "Gameplay (M4)" below |
 | `paused` | bool | M5 sets while the notebook settings page is open (M6) | |
+| `diegetic` | read-only state | M5 | `notebookOpen`, `pocketsOpen`, `inspecting`, `reading`, `bpm`, `map` (SeenMap: `toJSON()/fromJSON()` for saves), `notebook`, `vitals` |
+
+## Renderer overlays (M5)
+- `renderer.addOverlay(scene, camera) → { visible, remove() }`: drawn every `render()` into the same
+  low-res target after the world, with depth cleared first, then dithered by the post pass. M5
+  registers the view-model scene (hands, torch, held item, watch, notebook, pockets) here.
+- `renderer.render(scene, camera, time, overlays?)`: optional extra overlays for one call.
+- `renderer.postUniforms`: post-pass uniforms; M5 vitals drives `uGrain` and `uDistort` (0..1 VHS
+  wobble + chroma split at low sanity). `renderer.lowRes` is the target size.
+- Text is **not** rendered through the PS1 pass: `renderDiegetic()` draws tags, captions, pocket
+  labels and notebook writing on a full-res 2D canvas layer over the game canvas.
+
+## Input gating (M5)
+M5 wraps the `game.input` instance (not `core/input.js`): while the notebook / an inspected paper is
+up, `held()`/`wasPressed()` return false for movement, `interact`, `use`, `drop`; while the pockets view
+is open, mouse look reads 0 and `use`/`drop`/`left`/`right` drive the pocket cursor; when exhausted,
+`sprint` reads false. M5 also sets `game.gameplay.inputBlocked` in those modes.
 
 ## World (M3) — what other systems may call
 - `world.isSolidAt(x, z)` → bool (cell walls; props not included)
@@ -78,7 +95,7 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 | `note:collected` | `{ noteId, title, text }` | M4 (M5 adds a notebook page) |
 | `ui:caption` | `{ text, seconds }` | anyone (M5 shows sound captions/prompts when accessibility allows) |
 | `ui:watchBeep` | `{ text? }` | anyone (M5 watch) |
-| `flashlight:change` | `{ on, battery }` | M5 |
+| `flashlight:change` | `{ on, battery }` | M5 (on toggle, recharge, and when an LED goes out at 66/33/5 %) |
 
 ## Item scripts (M4)
 `src/scripts/items/<id>.js` default-exports `{ id, run(ctx, params) }`, registered by listing it in
