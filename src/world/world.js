@@ -120,6 +120,13 @@ export class World {
     placed.objects = populateRoom(entry.room, {
       key, origin, quarterTurns: 0, depth, zone: entry.zone, worldSeed: this.seed,
     }, this.objects, this.content.pools ?? {}, this.run);
+    // things the player left here (drops, chalk marks) come back with the room
+    const alive = new Set(this.objects.instances.map((i) => i.meta.placedKey).filter(Boolean));
+    for (const [placedKey, e] of this.run.placed ?? []) {
+      if (e.roomKey !== key || alive.has(placedKey)) continue;
+      const inst = this.objects.spawn(e.id, new THREE.Vector3(...e.pos), e.rotY, { roomKey: key, placedKey });
+      if (inst) { inst.state = e.state; placed.objects.push(inst); }
+    }
     this.rooms.set(key, placed);
     for (const sk of entry.bigRoom?.slots ?? [entry.slotKey]) this.bySlot.set(sk, placed);
     this.stats.built++;
@@ -132,7 +139,10 @@ export class World {
     if (!placed) return;
     this.scene.remove(placed.built.group);
     placed.built.group.traverse((o) => o.geometry?.dispose());
-    for (const inst of placed.objects) if (this.objects.instances.includes(inst)) this.objects.remove(inst);
+    // everything that belongs to this room, including things gameplay dropped/placed here
+    for (const inst of [...this.objects.instances]) {
+      if (inst.meta.roomKey === key || placed.objects.includes(inst)) this.objects.remove(inst);
+    }
     for (const sk of placed.entry.bigRoom?.slots ?? [placed.entry.slotKey]) {
       if (this.bySlot.get(sk) === placed) this.bySlot.delete(sk);
     }
