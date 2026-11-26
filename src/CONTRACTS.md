@@ -95,7 +95,8 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 | `item:combine` | `{ a, b, result? }` (ids; `a` = the held item) | M4 |
 | `readable:open` | `{ inst?, title, text, display: "notebook"\|"inspect"\|"surface", noteId? }` | M4 (M5 presents it) |
 | `note:collected` | `{ noteId, title, text }` | M4 (M5 adds a notebook page) |
-| `ui:caption` | `{ text, seconds }` | anyone (M5 shows sound captions/prompts when accessibility allows) |
+| `ui:caption` | `{ text, seconds, key? }` (same `key` replaces the previous caption) | anyone (M5 shows sound captions/prompts when accessibility allows) |
+| `ui:captionClear` | `{ key }` | anyone (removes a keyed caption) |
 | `ui:watchBeep` | `{ text? }` | anyone (M5 watch) |
 | `flashlight:change` | `{ on, battery }` | M5 (on toggle, recharge, and when an LED goes out at 66/33/5 %) |
 

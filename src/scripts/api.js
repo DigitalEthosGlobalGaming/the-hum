@@ -92,7 +92,8 @@ export function makeCtx(gp, { self = null, other = null, params = {}, scriptId =
     },
 
     ui: {
-      caption: (text, seconds) => gp.caption(text, seconds),
+      caption: (text, seconds, key) => gp.caption(text, seconds, key),
+      clearCaption: (key) => gp.clearCaption(key),
       watchBeep: (text) => game.events.emit('ui:watchBeep', text != null ? { text } : {}),
       read: (title, text, display = 'inspect', noteId) =>
         game.events.emit('readable:open', { title, text, display, ...(noteId ? { noteId } : {}) }),

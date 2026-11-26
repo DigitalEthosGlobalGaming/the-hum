@@ -84,7 +84,8 @@ export function installDiegetic(game) {
       S.inspect = false; // (M4 plays paper_rustle itself for notebook reads)
     }
   });
-  ev.on('ui:caption', (p) => pushCaption(p?.text ?? '', p?.seconds ?? 3));
+  ev.on('ui:caption', (p) => pushCaption(p?.text ?? '', p?.seconds ?? 3, false, p?.key));
+  ev.on('ui:captionClear', (p) => dropCaption(p?.key));
   ev.on('game:resize', () => { vm.resize(); text.resize(); });
 
   right.onInventoryChange();
@@ -92,11 +93,18 @@ export function installDiegetic(game) {
   if (__DEV__) { window.__humDiegetic = S; mountGritSlider(game); }
 }
 
-function pushCaption(text, seconds = 3, system = false) {
+// Keyed captions (e.g. one per tape recorder) replace their previous line instead of stacking.
+function dropCaption(key) {
+  if (!S || !key) return;
+  S.captions = S.captions.filter((c) => c.key !== key);
+}
+
+function pushCaption(text, seconds = 3, system = false, key = null) {
   if (!S || !text) return;
   if (!system && S.game.cfg.ui?.captions === false) return;
   const now = S.game.time;
-  S.captions.push({ text: String(text), until: now + seconds, seconds, born: now });
+  dropCaption(key);
+  S.captions.push({ text: String(text), until: now + seconds, seconds, born: now, key });
   // at most 3 visible: the oldest of the rest fades out quickly instead of vanishing
   const live = S.captions.filter((c) => !c.leaving);
   for (let i = 0; i < live.length - 3; i++) { live[i].leaving = true; live[i].until = Math.min(live[i].until, now + 0.35); }

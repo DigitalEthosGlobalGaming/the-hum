@@ -146,11 +146,14 @@ export class Gameplay {
     inst.sound.handle?.stop?.(0.15);
   }
 
-  caption(text, seconds) {
+  /** key (optional): a new caption with the same key replaces the old one instead of stacking. */
+  caption(text, seconds, key) {
     if (!text) return;
     const s = seconds ?? Math.max(2, Math.min(6, 1.5 + text.length * 0.05));
-    this.game.events.emit('ui:caption', { text, seconds: s });
+    this.game.events.emit('ui:caption', { text, seconds: s, key });
   }
+
+  clearCaption(key) { if (key) this.game.events.emit('ui:captionClear', { key }); }
 
   // ---- timers (play time; paused whenever updateGameplay isn't running) ----
   after(sec, fn) {
