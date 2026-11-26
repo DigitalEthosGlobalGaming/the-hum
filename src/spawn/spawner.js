@@ -32,7 +32,7 @@ export function makeRoomTransform(origin, quarterTurns = 0, widthM = 0, depthM =
 /**
  * Populate one placed room.
  * @param room  room JSON
- * @param place { key, origin:{x,z}, quarterTurns, depth, zone, worldSeed }
+ * @param place { key, origin:{x,z}, quarterTurns, depth, zone, worldSeed, stage? (Tenant story stage 0..3, for minStage) }
  * @param objects ObjectSystem
  * @param pools content.pools
  * @param run   per-run state { spawnedUnique: Set, taken: Set<string> } (picked-up spot keys never respawn)
@@ -50,7 +50,7 @@ export function populateRoom(room, place, objects, pools, run) {
     if (inst) spawned.push(inst);
   }
 
-  const ctx = { depth: place.depth ?? 0, zone: place.zone, spawnedUnique: run.spawnedUnique };
+  const ctx = { depth: place.depth ?? 0, zone: place.zone, stage: place.stage ?? 0, spawnedUnique: run.spawnedUnique };
   for (const spot of room.spots ?? []) {
     const spotKey = `${place.key}/${spot.id}`;
     if (run.taken?.has(spotKey)) continue;

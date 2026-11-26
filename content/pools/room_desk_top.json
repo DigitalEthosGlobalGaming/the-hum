@@ -28,7 +28,8 @@
     },
     {
       "def": "flash_camera",
-      "w": 1
+      "w": 1,
+      "minStage": 2
     },
     {
       "def": "blank_tape",
@@ -53,6 +54,16 @@
     {
       "def": "matches",
       "w": 1
+    },
+    {
+      "def": "blank_tape",
+      "w": 3,
+      "minStage": 1
+    },
+    {
+      "def": "flash_camera",
+      "w": 2,
+      "minStage": 2
     },
     {
       "def": null,

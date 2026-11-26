@@ -10,7 +10,7 @@ so **change it only deliberately** and note the change in your commit.
 | `seed` | u32 | main | run seed |
 | `canvas`, `renderer` (PS1Renderer), `scene`, `camera` | | main | world camera; view-model uses its own scene/camera (M5) |
 | `textures` | TextureBank | main | `get(name)`, supports `proc:*` |
-| `input` | Input | main | `held(action)`, `wasPressed(action)`, `lookDX/DY`, `locked`, `mode` |
+| `input` | Input | main | `held(action)`, `wasPressed(action)`, `lookDX/DY` (already × `sensitivity`, Y flipped by `invertY`), `locked`, `mode`, `captureSuspended` (canvas clicks don't re-lock while a menu owns the cursor) |
 | `events` | Events | main | `on(name, fn) → unsubscribe`, `emit(name, payload)` |
 | `synth` | Synth | audio | `play(presetId, {position, volume, loop, delay, occlude}) → handle`, `has(id)`; see "Ambience" for the env bus, acoustics and occlusion |
 | `ambience` | AmbienceSystem | ambience | environmental audio (bound on the first gameplay frame); `debugLines()` |
@@ -18,16 +18,56 @@ so **change it only deliberately** and note the change in your commit.
 | `world` | World | world (M3) | see below |
 | `player` | Player | player | `pos` (feet, Vector3), `yaw`, `pitch`, `eye`, `speedNow`; camera follows it |
 | `playing` | bool | main | false on title / pause |
-| `time` | seconds | main | |
+| `time` | seconds | main | play time: advances only while not `paused` (the renderer's grain still uses wall time) |
 | `focus` | `{ inst, distance } \| null` | main | aimed-at interactable this frame (cylinder pick, highlighted) |
 | `stats` | `{ sanity 0..1, stamina 0..1, steps }` | M5 vitals updates sanity/stamina; main counts steps | |
 | `flashlight` | `{ on, battery 0..1, toggle(), recharge(amount) }` | M5 (replaces main's minimal one, same fields) | main feeds `on`/`battery` into the shader |
 | `inventory` | Inventory | M4 | see below |
 | `gameplay` | Gameplay | M4 | see "Gameplay (M4)" below |
 | `fullscreen` | `{ on, enter(), exit(), error? }` | main | enter() only works inside a real input event |
-| `paused` | bool | M5 sets while the notebook settings page is open (M6) | |
-| `secrets` | Secrets | secrets | bound on the first gameplay frame; see "Secrets" below |
-| `diegetic` | read-only state | M5 | `notebookOpen`, `pocketsOpen`, `inspecting`, `reading`, `bpm`, `map` (SeenMap: `toJSON()/fromJSON()` for saves), `notebook`, `vitals` |
+| `paused` | bool | main | true while paused (Esc). `playing` is false then too. Scripts, gameplay, physics, power clock and `game.time` stop; the notebook is open at Settings with a free cursor |
+| `pause()`, `resume()` | fn | main | `pause()` → `game:pause`. `resume()` re-requests pointer lock, then fullscreen (if the setting is on), then emits `game:resume`; **call it only inside a real click/keydown handler** |
+| `settings` | object | settings (`src/settings/`) | live persisted settings, see "Settings" below |
+| `secrets` | `{ list(), count(), markFound(id) }` \| undefined | secrets (`src/secrets/`) | bound on the first gameplay frame (undefined before); read by the notebook's Secrets section, see "Secrets" and "Notebook hub" |
+| `diegetic` | read-only state | M5 | `notebookOpen`, `section` (open section id or null), `pocketsOpen`, `inspecting`, `reading`, `bpm`, `map` (SeenMap: `toJSON()/fromJSON()` for saves), `notebook`, `menu`, `vitals` |
+
+## Settings (`src/settings/`)
+`game.settings` is installed in main before gameplay/diegetic. Plain data fields plus non-enumerable
+`set(key, value)` (coerces + clamps, applies, emits `settings:change { key, value, settings }`, saves),
+`status` (`ok`|`default`|`migrated`|`newer`|`corrupt`|`blocked`), `persisted` (false when storage is blocked
+or a newer build wrote it), `defaults`, `save()`. Stored in `localStorage['the-hum.settings.v1']` as
+`{ version: 1, values }`; every storage access is try/caught and the game runs on defaults without it.
+| key | type / range | applied to |
+|---|---|---|
+| `mouseSensitivity` | 0.25..3 (× `config.player.mouseSensitivity`, log slider) | `input.sensitivity` |
+| `invertY` | bool | `input.invertY` |
+| `masterVolume`, `ambienceVolume` | 0..1 | `synth.setVolume('master'|'ambience', v)` (gain = v²) |
+| `effectsVolume` | 0..1 | `synth.setVolume('sfx', v)` and `('tenant', min(1, 1.25 v))` |
+| `textScale` | 0.8..1.5 | `cfg.ui.textScale` (tags, captions, the notebook's notes/secret lists) |
+| `textGrit` | 0..1 | `cfg.ui.textGrit` + `setTextGrit` |
+| `captions`, `textPrompts`, `reduceFlashing` | bool | `cfg.ui.*` (read live by their systems) |
+| `calm` | bool | **read by the Tenant**: "the Tenant keeps its distance" |
+| `fullscreen` | bool | whether main enters fullscreen on start / resume; the Enter key and the Settings tick update it |
+
+## Notebook hub (M5/M6: `src/ui/diegetic/menu.js`, `hub.js`, `keys.js`)
+The notebook is a two-page spread and the game's menu. Sections, in page order, as paper index tabs:
+`settings` · `controls` · `map` · `notes` · `photos` · `wanderers` · `secrets`.
+- **Keys** (handled in DOM key/mouse handlers, so pointer lock / fullscreen work): Tab/M open or close at the
+  last section viewed (default Map) **without pausing**; Esc pauses and opens Settings (main: lock lost →
+  `pause()`; click-drag mode: Esc keydown). In the book: A/D ←/→ turn pages (multi-page sections page within
+  themselves first), W/S ↑/↓ pick a row, E/Enter act; a slider row is *held* with E/Enter and then A/D move it.
+  Tab while paused flips to Map; Esc while open unpaused closes it. Mouse (free cursor): tabs, rows, ticks,
+  slider drag, click a page's outer edge to turn. `input.captureSuspended` is set while the cursor serves the menu.
+- **Routing** `addPage({ kind })`: `map`/`mapReveal` → Map, `photo` → Photos, `wanderer` → Wanderers,
+  `note` → Notes, `learned` → Notes ("what I've learned" block at the top; `{ id, text }`), `secret` → Secrets
+  (`{ id, title, text }` shown as found), anything else → Notes (scraps). `addNote` / `addPage` return the entry
+  index (deduped by id) and `notebook.open(index)` opens its section and page; `notebook.pages` is the entry list.
+- **Notes**: spine notes numbered with progress (`7 / 12 pages`, unfound = blank lines, numbering from
+  `content.notes[].spine`), then "scraps"; the selected note is read full-size on the facing page.
+- **Secrets** ("oddities N / M"): reads `game.secrets.list() → [{ id, title, hint, found, foundAt? }]` (stable
+  order; `game.secrets` may be missing). Found: title + hint line. Unfound: "? ? ?" with a scribbled-out bar,
+  plus the hint only if non-empty; the title is never drawn. On `secret:found { id, title }` a caption
+  "(something written in the back of the notebook)" shows.
 
 ## Renderer overlays (M5)
 - `renderer.addOverlay(scene, camera) → { visible, remove() }`: drawn every `render()` into the same
@@ -149,7 +189,8 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 ## Events
 | name | payload | emitted by |
 |---|---|---|
-| `game:start`, `game:resize`, `game:pause`, `game:resume` | `{}` | main |
+| `game:start`, `game:resize`, `game:pause`, `game:resume` | `{}` | main (pause → the notebook opens at Settings; resume closes it) |
+| `settings:change` | `{ key, value, settings }` | settings (`game.settings.set`) |
 | `player:step` | `{ intensity }` | main |
 | `inventory:change` | `{ slots, selected }` | M4 |
 | `inventory:full` | `{ id }` | M4 (M5 shakes the hand) |
@@ -176,7 +217,7 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 | `aura:start` / `aura:end` | `{ aura }` | power (music box) |
 | `prop:collide` | `{ a, b, speed, pos }` | physics (two props hit; debounced per pair) |
 | `phone:answer` | `{ inst, first }` | `phone_answer` script (a desk phone was picked up) |
-| `secret:found` | `{ id, title, first }` | secrets (first time this run; `first` = never found in any run before) |
+| `secret:found` | `{ id, title, first }` | secrets (first time this run; `first` = never found in any run before; the notebook captions it) |
 
 ## Item scripts (M4)
 `src/scripts/items/<id>.js` default-exports `{ id, run(ctx, params) }`, registered by listing it in
@@ -211,13 +252,13 @@ Registered from `src/story/register.js` (one line in `src/extensions.js`).
   once per run, seeded `hash(seed, 'container', stableKey, i)`; state (`opened`, `rolled`, `rattles`, `coins`)
   lives in `gameplay.stateOf(inst)` so it persists per run. Opened with the `container_open` interact script;
   vending with a `{ with: "coin", script: "vend_coin", consume: "other" }` combine rule.
-- **`game.dangerLevel`** 0..1 (default 0, set at bind). The Tenant should set it; the walkie static reads it.
+- **`game.dangerLevel`** 0..1 (default 0, set at bind). The Tenant director sets it every frame (its smoothed tension); the walkie static reads it.
 - **Tape recorder**: G always drops it. Dropped while recording → the recording stops (keeps what it heard) and it plays
   back on the floor as a lure; dropped while playing back → lure (as before). Recording stops if the recorder leaves the pockets.
 - **Run state** (`world.run.scriptState` = `ctx.state.run`) keys: `badges: Set<badgeId>` +
   `badgeInfo[badgeId] = { name, role, clearance }` (for keycard doors), `threads: [{ id, pts: [[x,z]], len, open }]`
   (red string), `photos` (count), `typewriterLine`, `walkieHint`, `threadSeq`.
-- **Notebook** (`game.diegetic.notebook`): `addPage({ kind: 'photo'|'wanderer'|'mapReveal', id, title, caption, ... })`
+- **Notebook** (`game.diegetic.notebook`; sections in "Notebook hub"): `addPage({ kind: 'photo'|'wanderer'|'mapReveal'|'learned'|'secret', id, title, caption, ... })`
   → page index (deduped by id). Open a page with `readable:open { display: 'notebook', noteId: <page id> }`.
 - **Auto-map** (`game.diegetic.map`): `reveal(cells [[cx,cz,v]], { id, cx, cz, lie })`, `contradictions()`,
   `drawReveal(...)`, `revealsJSON()` (saves; `toJSON()` is unchanged).
@@ -260,3 +301,27 @@ frame like the story runtime and runs as a `world.addSystem` system. Tunables: `
   They are not `world.noise` (the Tenant doesn't hear them).
 - **Debug.** Dev builds: F7 toggles an overlay (emitters, acoustics, occlusion per voice, env gain, peak into
   the soft-clipper from `synth.meterPeak()`).
+
+## The Tenant (`src/tenant/`)
+Registered from `src/tenant/register.js` (one line in `src/extensions.js`); binds on the first gameplay frame
+like the story runtime and runs as a `world.addSystem` system. Tunables: `config.tenant` (PLAN §6.1).
+- **`game.tenant`**: `stage` (behaviour stage 0..3, Calm caps it at 1), `storyStage` (uncapped, drives pools +
+  notebook lines), `threat`, `state` (`Dormant|Glimpse|Stalk|Hunt|Lose`), `tension`, `distort`, `calm`, `ai`,
+  `director`, `debugLines()`. Dev: `setStage(n|null)`, `spawnGlimpse()`, `stalk()`, `forceHunt()`, `catchMe()`,
+  `hold` (glimpses don't vanish, for screenshots). Same object at `window.__hum.tenant` in dev builds.
+- **Threat** = spine notes collected + `min(bumpCap, badges·0.25 + fuses·0.35 + evac maps·0.25 + photos·0.15)`
+  (from `notesCollected`, `runState.badges`, `power:fuse`, `diegetic.map.reveals`, `runState.photos`).
+  Stages at threat 3 / 6 / 9 (`tenant.stages`). It only rises. **Calm** = `config.tenant.calm || game.settings.calm`
+  (read live; turning it on mid-hunt sends it away).
+- **Run state**: `runState.tenant = { unlocked: { [stage]: true }, fuses, caught }`. `world.storyStage` is the story
+  stage for the spawner (`ctx.stage`, pool entries' `minStage`).
+- **Notebook**: each stage writes `addPage({ kind: 'learned', id: 'tenant:sound'|'tenant:light'|'tenant:flash'|'tenant:hunt', text })`.
+- **Reads**: `world:noise` (hearing radius = loudness; noise > 3 m from the player = a lure), `camera:flash`,
+  `world.isSolidAt` / `wallBetween` / `lightAt` / `auraAt`. **Writes**: `game.dangerLevel`,
+  `audioDirector.intensity` (max of `config.audio.intensity` and tension; `trigger('steps')` on a stage rise),
+  fixture `stutterFrom/stutterUntil` near it, `stats.sanity` (drain while in view; −0.35 when caught).
+  `vitals` takes `max(own uDistort, game.tenant.distort)`.
+- **Events**: `tenant:stage { stage, storyStage, threat, prev }`, `tenant:caught { pos, stage }`,
+  `tenant:wake { pos, ended, sanityBefore, sanityAfter, dropped, forgotten }`, `run:end { reason: 'caught' }`
+  (sanity was < 0.1: placeholder "the tape ejects" card, click = new seed; the CRT title replaces it later).
+- **Debug**: dev builds, F8 (`keys.tenantDebug`) toggles the overlay.

@@ -44,7 +44,8 @@
     },
     {
       "def": "flash_camera",
-      "w": 2
+      "w": 2,
+      "minStage": 2
     },
     {
       "def": "blank_tape",
@@ -61,6 +62,36 @@
     {
       "def": "glass_bottle",
       "w": 2
+    },
+    {
+      "def": "soda_can",
+      "w": 4,
+      "minStage": 1
+    },
+    {
+      "def": "glass_bottle",
+      "w": 3,
+      "minStage": 1
+    },
+    {
+      "def": "blank_tape",
+      "w": 3,
+      "minStage": 1
+    },
+    {
+      "def": "music_box",
+      "w": 2,
+      "minStage": 2
+    },
+    {
+      "def": "glow_stick",
+      "w": 4,
+      "minStage": 2
+    },
+    {
+      "def": "flash_camera",
+      "w": 3,
+      "minStage": 2
     },
     {
       "def": null,

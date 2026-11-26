@@ -7,7 +7,8 @@
 //   { id?, rolls?, entries: [ ... ] }           → full pool object
 // Entry fields:
 //   def: "object_id" | null (null = nothing)    pool: "other_pool_id" (nested roll)
-//   w: number > 0                                minDepth, maxDepth, zones: [..], unique: true
+//   w: number > 0                                minDepth, maxDepth, zones: [..], unique: true,
+//                                                minStage (Tenant story stage 0..3; ctx.stage, default 0)
 
 /** Normalise any pool form into { id, rolls, entries }. */
 export function resolvePool(pool, pools) {
@@ -26,6 +27,7 @@ export function eligible(entry, ctx = {}) {
   if (entry.minDepth != null && (ctx.depth ?? 0) < entry.minDepth) return false;
   if (entry.maxDepth != null && (ctx.depth ?? 0) > entry.maxDepth) return false;
   if (entry.zones && ctx.zone && !entry.zones.includes(ctx.zone)) return false;
+  if (entry.minStage != null && (ctx.stage ?? 0) < entry.minStage) return false; // Tenant story stage (PLAN §6.1)
   if (entry.unique && entry.def && ctx.spawnedUnique?.has(entry.def)) return false;
   return true;
 }
@@ -48,7 +50,7 @@ export function pickEntry(entries, rng, ctx = {}) {
 
 /**
  * Roll a pool. Returns an array of object ids (nulls removed).
- * ctx: { depth, zone, spawnedUnique: Set } — unique defs are added to spawnedUnique.
+ * ctx: { depth, zone, stage, spawnedUnique: Set } — unique defs are added to spawnedUnique.
  */
 export function rollPool(pool, pools, rng, ctx = {}, _depth = 0) {
   if (_depth > 8) throw new Error('Pool nesting deeper than 8 (cycle?)');

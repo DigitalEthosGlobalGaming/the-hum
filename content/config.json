@@ -104,6 +104,9 @@
     ],
     "physicsDebug": [
       "F6"
+    ],
+    "tenantDebug": [
+      "F8"
     ]
   },
   "vitals": {
@@ -228,5 +231,205 @@
     ],
     "pausedLevel": 0.15,
     "pauseFade": 0.5
+  },
+  "tenant": {
+    "calm": false,
+    "stages": [
+      0,
+      3,
+      6,
+      9
+    ],
+    "bumps": {
+      "badge": 0.25,
+      "fuse": 0.35,
+      "evacMap": 0.25,
+      "photo": 0.15
+    },
+    "bumpCap": 1.5,
+    "height": 2.4,
+    "minStateTime": 0.5,
+    "glimpse": {
+      "distance": [
+        [
+          25,
+          40
+        ],
+        [
+          15,
+          25
+        ],
+        [
+          15,
+          25
+        ],
+        [
+          15,
+          25
+        ]
+      ],
+      "behindChance": [
+        0,
+        0.4,
+        0.4,
+        0.4
+      ],
+      "behindCone": 40,
+      "lookCone": 9,
+      "lookSeconds": 0.6,
+      "vanishNear": [
+        15,
+        8,
+        8,
+        8
+      ],
+      "seenMax": [
+        0,
+        1.6,
+        1.6,
+        1.6
+      ],
+      "timeout": 45
+    },
+    "stalk": {
+      "spawn": [
+        14,
+        24
+      ],
+      "speed": 2.8,
+      "far": 16,
+      "near": [
+        10,
+        5
+      ],
+      "creep": 0.06,
+      "duration": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          40,
+          80
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "giveUp": 45
+    },
+    "hunt": {
+      "speed": [
+        3.6,
+        3.6,
+        3.6,
+        4.1
+      ],
+      "duration": [
+        [
+          12,
+          18
+        ],
+        [
+          12,
+          18
+        ],
+        [
+          10,
+          18
+        ],
+        [
+          20,
+          35
+        ]
+      ],
+      "noise": 6.5,
+      "stare": 3,
+      "stareNear": 12,
+      "stareFar": 14,
+      "loseLos": 6,
+      "light": 0.5,
+      "lightHold": 1,
+      "repath": 0.5,
+      "linger": 3,
+      "catchRadius": 1
+    },
+    "flash": {
+      "range": 14,
+      "cone": 18,
+      "freeze": 3
+    },
+    "director": {
+      "gap": [
+        [
+          120,
+          300
+        ],
+        [
+          60,
+          150
+        ],
+        [
+          45,
+          100
+        ],
+        [
+          40,
+          80
+        ]
+      ],
+      "firstGap": 0.4,
+      "stalkChance": 0.65,
+      "afterHunt": [
+        40,
+        60
+      ],
+      "calm3": [
+        30,
+        50
+      ],
+      "stalk3": [
+        25,
+        50
+      ],
+      "alertGap": 8
+    },
+    "caught": {
+      "sanity": 0.35,
+      "endBelow": 0.1,
+      "smudge": 0.4,
+      "wakeBlocks": [
+        6,
+        15
+      ]
+    },
+    "presence": {
+      "sanityDrain": [
+        0.004,
+        0.01,
+        0.014,
+        0.018
+      ],
+      "heartbeatNear": 18,
+      "flickerRadius": 9,
+      "flickerEvery": [
+        0.5,
+        1.6
+      ],
+      "distortRange": 10,
+      "distortMax": 0.55,
+      "stepCaption": 16,
+      "stingVolume": [
+        0.35,
+        0.5,
+        0.65,
+        0.8
+      ]
+    }
   }
 }
