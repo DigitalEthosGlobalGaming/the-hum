@@ -83,7 +83,7 @@ export function wrapText(g, text, maxW, font) {
 }
 
 /** Paper scrap: torn ragged edges, speckle, faint ruled line. Leaves outside transparent. */
-export function paperScrap(g, w, h, seed, { color = '#d8cfb4', ruled = false, edge = 2 } = {}) {
+export function paperScrap(g, w, h, seed, { color = '#d8cfb4', ruled = false, edge = 2, noise = 0.08 } = {}) {
   const rng = new Rng(seed);
   g.clearRect(0, 0, w, h);
   g.fillStyle = color;
@@ -96,7 +96,7 @@ export function paperScrap(g, w, h, seed, { color = '#d8cfb4', ruled = false, ed
     const l = rng.int(0, edge), r = rng.int(0, edge);
     g.clearRect(0, y, l, 1); g.clearRect(w - r, y, r, 1);
   }
-  for (let i = 0; i < w * h * 0.08; i++) {
+  for (let i = 0; i < w * h * noise; i++) {
     g.fillStyle = rng.chance(0.5) ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.08)';
     g.fillRect(rng.int(edge, w - edge - 1), rng.int(edge, h - edge - 1), 1, 1);
   }

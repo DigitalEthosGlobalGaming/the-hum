@@ -7,7 +7,6 @@ const _c = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
 import { makeVMMaterial, canvasTexture } from '../../viewmodel/vmMaterial.js';
 import { box, smooth } from '../../viewmodel/viewModel.js';
 import { makeCanvas, wrapText, HAND_FONT } from './text.js';
-import { INK, RED_INK } from './textLayer.js';
 import { hash, Rng } from '../../core/rng.js';
 
 const PW = 160, PH = 216;          // page texture size
@@ -133,9 +132,9 @@ export class Notebook {
       const alpha = Math.min(1, (wBook - 0.6) / 0.35) * Math.max(0, 1 - k * 3);
       if (alpha > 0.01 && p) {
         const [tl, tr, bl] = corners(this.pageMesh, 0.094, 0.129, camera, layer.W, layer.H);
-        layer.page(tl, tr, bl, PW, PH, alpha, (g) => writePage(g, {
+        layer.page(tl, tr, bl, PW, PH, alpha, (g) => writePage(layer, g, {
           title: p.kind === 'map' ? 'where I have been' : (p.cont ? '(cont.) ' : '') + p.title,
-          titleColor: p.kind === 'map' ? INK : RED_INK,
+          red: p.kind !== 'map',
           lines: p.lines, label: `${this.page + 1}/${this.pages.length}`, seed: hash(p.id ?? 'map', this.page),
         }));
       }
@@ -143,7 +142,7 @@ export class Notebook {
     if (wSheet > 0.6 && this.inspecting && this.sheet.visible) {
       const [tl, tr, bl] = corners(this.sheetMesh, 0.095, 0.129, camera, layer.W, layer.H);
       const s = this.inspecting;
-      layer.page(tl, tr, bl, PW, PH, Math.min(1, (wSheet - 0.6) / 0.35), (g) => writePage(g, {
+      layer.page(tl, tr, bl, PW, PH, Math.min(1, (wSheet - 0.6) / 0.35), (g) => writePage(layer, g, {
         title: s.title, lines: s.lines, seed: hash(s.text),
       }));
     }
@@ -182,24 +181,11 @@ function corners(mesh, hw, hh, camera, W, H) {
   });
 }
 
-function writePage(g, { title, lines, label, seed, titleColor = RED_INK }) {
-  const r = new Rng(seed);
-  g.textBaseline = 'alphabetic';
-  if (title) {
-    g.font = FONT(11); g.fillStyle = titleColor;
-    g.fillText(title, TEXT.x, 20, PW - TEXT.x - 6);
-  }
-  g.font = FONT(TEXT.size); g.fillStyle = INK;
-  const space = g.measureText(' ').width;
-  lines?.forEach((line, i) => {
-    let x = TEXT.x;
-    const y = TEXT.top + TEXT.size + i * TEXT.lineH;
-    for (const word of line.split(' ')) {
-      g.fillText(word, x, y + (r.next() - 0.5) * 0.25); // ≤ 1 screen px of wobble per word
-      x += g.measureText(word).width + space;
-    }
-  });
-  if (label) { g.font = FONT(8); g.fillStyle = '#4a4438'; g.fillText(label, PW - 34, PH - 8); }
+// Writing goes through layer.ink so the textGrit dial (jitter, bleed, ink colour) applies here too.
+function writePage(layer, g, { title, lines, label, seed, red = true }) {
+  if (title) layer.ink([title], TEXT.x, 20, 11, 13, hash(seed, 't'), red ? layer.red : undefined, g);
+  if (lines?.length) layer.ink(lines, TEXT.x, TEXT.top + TEXT.size, TEXT.size, TEXT.lineH, seed, undefined, g);
+  if (label) layer.ink([label], PW - 34, PH - 8, 8, 10, hash(seed, 'n'), '#4a4438', g);
 }
 
 function pose(g, vm, w, z) {

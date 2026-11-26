@@ -89,7 +89,7 @@ export function installDiegetic(game) {
 
   right.onInventoryChange();
   right.swap = 0.99; // first item appears from below
-  if (__DEV__) window.__humDiegetic = S;
+  if (__DEV__) { window.__humDiegetic = S; mountGritSlider(game); }
 }
 
 function pushCaption(text, seconds = 3, system = false) {
@@ -236,6 +236,36 @@ export function renderDiegetic(game) {
     const r = text.tag(null, M, y, { m, anchor: [0, 1], opacity: fade, seed: i + 11 });
     y = r.y - Math.round(M * 0.3);
   }
+  text.end(); // grit: Bayer dither + 15-bit quantise over what was drawn
+}
+
+/**
+ * Text look dial, 0 (crisp) .. 1 (full PS1 crunch). Live: no reload. The M6 notebook settings
+ * page should call this too. Writes cfg.ui.textGrit.
+ */
+export function setTextGrit(v) {
+  if (!S) return;
+  const ui = (S.game.cfg.ui ??= {});
+  ui.textGrit = Math.max(0, Math.min(1, Number(v) || 0));
+  S.text.dirty = true;
+}
+
+// DEV: a small range slider (bottom-right) to dial the text look in live.
+function mountGritSlider(game) {
+  const box = document.createElement('label');
+  Object.assign(box.style, {
+    position: 'fixed', right: '8px', bottom: '8px', zIndex: 20, font: '11px monospace', color: '#d8cf8a',
+    background: 'rgba(0,0,0,0.65)', padding: '4px 8px', display: 'flex', gap: '6px', alignItems: 'center',
+  });
+  const input = Object.assign(document.createElement('input'), { type: 'range', min: 0, max: 1, step: 0.01 });
+  input.value = game.cfg.ui?.textGrit ?? 0.4;
+  const out = document.createElement('span');
+  const sync = () => { setTextGrit(input.value); out.textContent = Number(input.value).toFixed(2); };
+  input.addEventListener('input', sync);
+  input.addEventListener('keydown', (e) => e.stopPropagation());
+  box.append('text grit', input, out);
+  document.body.appendChild(box);
+  sync();
 }
 
 function keyLabel(code) {

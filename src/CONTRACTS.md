@@ -33,7 +33,9 @@ so **change it only deliberately** and note the change in your commit.
 - `renderer.postUniforms`: post-pass uniforms; M5 vitals drives `uGrain` and `uDistort` (0..1 VHS
   wobble + chroma split at low sanity). `renderer.lowRes` is the target size.
 - Text is **not** rendered through the PS1 pass: `renderDiegetic()` draws tags, captions, pocket
-  labels and notebook writing on a full-res 2D canvas layer over the game canvas.
+  labels and notebook writing on a 2D canvas layer over the game canvas. Its look is the
+  `ui.textGrit` dial (0 crisp .. 1 PS1 crunch); `setTextGrit(v)` (exported from
+  `src/ui/diegetic/index.js`) changes it live, for the M6 settings page.
 
 ## Input gating (M5)
 M5 wraps the `game.input` instance (not `core/input.js`): while the notebook / an inspected paper is

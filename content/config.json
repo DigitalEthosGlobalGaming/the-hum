@@ -119,7 +119,8 @@
     "pocketLookDown": 0.6,
     "grainBase": 0.035,
     "grainLowSanity": 0.11,
-    "vhsStrength": 1
+    "vhsStrength": 1,
+    "textGrit": 0.4
   },
   "world": {
     "loadRadius": 3,
