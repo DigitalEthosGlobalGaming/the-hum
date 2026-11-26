@@ -6,5 +6,6 @@ import './ambience/register.js';
 import './decor/register.js';
 import './physics/register.js';
 import './power/register.js';
+import './secrets/register.js';
 import './story/register.js';
 import './tenant/register.js';

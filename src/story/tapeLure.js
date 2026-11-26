@@ -1,5 +1,5 @@
 // Tape recorder with a blank tape: record 10 s (a red light while it records), play it back, and drop
-// it while it's playing to leave a lure: looping noise events at that spot for 20 s.
+// it while it's playing (or recording) to leave a lure: looping noise events at that spot for 20 s.
 // Recorder state: { blank, recording, recorded, heard: [noise sources] }.
 import { story, onReady, onUpdate, tempLight, caption, sound, playing } from './runtime.js';
 import { describeNoise } from './walkie.js';
@@ -19,12 +19,13 @@ export function startRecording(st) {
   R.rec = { st, left: RECORD_S, light: null, shown: -1 };
 }
 
-export function stopRecording(st) {
+export function stopRecording(st, { quiet = false } = {}) {
   if (R.rec?.st !== st) return;
   st.recording = false;
   st.recorded = true;
   if (R.rec.light) R.rec.light.range = 0;
   R.rec = null;
+  if (quiet) return;
   sound('battery_click', { volume: 0.4 });
   caption(`(recorded: ${heardText(st)})`, 3, 'tape-rec');
 }
@@ -50,18 +51,33 @@ onReady((game) => {
     const p = game.player.pos;
     if (Math.hypot(n.x - p.x, n.z - p.z) < Math.max(4, n.loudness)) r.st.heard.push(n.source);
   });
-  // drop it while it plays back → a lure at that spot
-  game.events.on('item:drop', ({ id, stack } = {}) => {
-    if (id !== 'tape_recorder' || !stack || !R.play.has(stack.state)) return;
-    const p = R.play.get(stack.state);
-    p.handle?.stop?.(0.1);
-    R.play.delete(stack.state);
-    const pos = game.gameplay.dropPoint();
-    R.lures.push({ st: stack.state, pos, left: LURE_S, tick: 0, handle: sound('tape_lure', { at: pos, loop: true, volume: 1 }) });
-    game.gameplay.clearCaption('tape-play');
-    caption('(you leave it playing on the floor)', 2.5, 'tape-lure');
+  // Dropping always works (interaction.dropHeld). If the recorder was recording or playing back,
+  // it keeps going on the floor as a lure; nothing it does stays attached to your hand.
+  game.events.on('item:drop', ({ id, stack, inst } = {}) => {
+    if (id !== 'tape_recorder' || !stack?.state) return;
+    const r = inst?.root?.position;
+    recorderDropped(stack.state, r ? { x: r.x, y: r.y, z: r.z } : game.gameplay.dropPoint());
   });
 });
+
+/**
+ * A recorder with state `st` was just dropped at `pos`. Recording → the recording stops (keeping
+ * what it heard) and plays back on the floor as a lure; playing back → it carries on as a lure.
+ * Idle recorders just lie there. Returns the lure, or null.
+ */
+export function recorderDropped(st, pos) {
+  const wasRecording = R.rec?.st === st;
+  if (wasRecording) stopRecording(st, { quiet: true });
+  const p = R.play.get(st);
+  if (!p && !wasRecording) return null;
+  if (p) { p.handle?.stop?.(0.1); R.play.delete(st); }
+  story.gp?.clearCaption('tape-play');
+  story.gp?.clearCaption('tape-rec');
+  const lure = { st, pos: { x: pos.x, y: pos.y ?? 0, z: pos.z }, left: LURE_S, tick: 0, handle: sound('tape_lure', { at: pos, loop: true, volume: 1 }) };
+  R.lures.push(lure);
+  caption(wasRecording ? '(you set it down. It clicks over and plays back what it heard.)' : '(you leave it playing on the floor)', 2.5, 'tape-lure');
+  return lure;
+}
 
 /** Does a dropped recorder with this state still lie in the world (or in a streamed-out room)? */
 function stillPlaced(game, st) {
@@ -71,6 +87,8 @@ function stillPlaced(game, st) {
 
 onUpdate((dt, game) => {
   if (!playing()) return;
+  // the red light lives in your hand: if the recorder left the pockets some other way, stop
+  if (R.rec && !game.inventory?.slots?.some((s) => s?.state === R.rec.st)) stopRecording(R.rec.st);
   const r = R.rec;
   if (r) {
     r.left -= dt;

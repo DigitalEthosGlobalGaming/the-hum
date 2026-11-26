@@ -1,0 +1,17 @@
+{
+  "id": "chair_spin",
+  "note": "Office chair spinning wildly on its gas lift: a whirring caster rumble that winds down, and a dry squeak every turn.",
+  "bus": "sfx",
+  "volume": 0.85,
+  "spatial": true,
+  "refDistance": 1.5,
+  "maxDistance": 25,
+  "rolloff": 1,
+  "reverb": 0.25,
+  "vary": {"pitch": 1.5, "filter": 0.2},
+  "layers": [
+    {"note": "whirr", "noise": "brown", "gain": 0.5, "filter": {"type": "lowpass", "freq": 420, "q": 1}, "env": {"a": 0.02, "d": 0.2, "s": 0.8, "sus": 1.2, "r": 0.7, "curve": "lin"}, "lfo": {"target": "gain", "wave": "sine", "rate": 7, "depth": 0.5}},
+    {"note": "gas lift creak", "osc": "triangle", "freq": 160, "gain": 0.08, "filter": {"type": "bandpass", "freq": 500, "q": 3}, "pitchEnv": {"to": 0.85, "time": 1.8, "curve": "lin"}, "env": {"a": 0.05, "d": 1.8}},
+    {"note": "squeak per turn", "osc": "saw", "freq": 880, "gain": 0.09, "filter": {"type": "bandpass", "freq": 2200, "q": 6}, "pitchEnv": {"to": 1.2, "time": 0.1, "curve": "lin"}, "env": {"a": 0.01, "d": 0.12}, "repeat": {"count": 11, "interval": 0.18, "jitter": 0.04}, "vary": {"pitch": 2, "gain": 4}}
+  ]
+}

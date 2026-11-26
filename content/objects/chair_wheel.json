@@ -1,0 +1,35 @@
+{
+  "id": "chair_wheel",
+  "name": "Caster wheel",
+  "tags": [
+    "throwable"
+  ],
+  "mesh": {
+    "type": "box",
+    "size": [
+      0.055,
+      0.055,
+      0.035
+    ],
+    "tint": "#1d1d1f"
+  },
+  "components": {
+    "pickup": {},
+    "physics": {
+      "mode": "throw",
+      "shape": "circle",
+      "radius": 0.035,
+      "mass": 0.15,
+      "friction": 0.8,
+      "stop": 0.3,
+      "restitution": 0.5,
+      "spin": 0.9,
+      "noise": 6,
+      "throwSpeed": 7,
+      "sound": {
+        "impact": "wheel_clatter",
+        "land": "wheel_clatter"
+      }
+    }
+  }
+}

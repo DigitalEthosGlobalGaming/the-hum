@@ -4,7 +4,9 @@
 // With a blank tape in it (blank_tape + tape_recorder, see tape_load_blank) it records instead:
 //   first use         → records 10 s (red light, ● REC); use again stops early
 //   later uses        → play the recording back / stop it. Drop it while it plays → a 20 s lure
-//                       (looping noise events at that spot, src/story/tapeLure.js)
+//                       (looping noise events at that spot, src/story/tapeLure.js). Dropping it
+//                       while it records ends the recording and leaves it playing back as a lure.
+// G always drops it (interaction.dropHeld); nothing here intercepts the drop.
 // params: { logs: string[], loop = true }
 import { isRecording, startRecording, stopRecording, togglePlayback } from '../../story/tapeLure.js';
 

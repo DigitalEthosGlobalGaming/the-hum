@@ -28,7 +28,7 @@ so **change it only deliberately** and note the change in your commit.
 | `paused` | bool | main | true while paused (Esc). `playing` is false then too. Scripts, gameplay, physics, power clock and `game.time` stop; the notebook is open at Settings with a free cursor |
 | `pause()`, `resume()` | fn | main | `pause()` → `game:pause`. `resume()` re-requests pointer lock, then fullscreen (if the setting is on), then emits `game:resume`; **call it only inside a real click/keydown handler** |
 | `settings` | object | settings (`src/settings/`) | live persisted settings, see "Settings" below |
-| `secrets` | `{ list(), count() }` \| undefined | secrets system | optional; read by the notebook's Secrets section, see "Notebook hub" |
+| `secrets` | `{ list(), count(), markFound(id) }` \| undefined | secrets (`src/secrets/`) | bound on the first gameplay frame (undefined before); read by the notebook's Secrets section, see "Secrets" and "Notebook hub" |
 | `diegetic` | read-only state | M5 | `notebookOpen`, `section` (open section id or null), `pocketsOpen`, `inspecting`, `reading`, `bpm`, `map` (SeenMap: `toJSON()/fromJSON()` for saves), `notebook`, `menu`, `vitals` |
 
 ## Settings (`src/settings/`)
@@ -149,6 +149,14 @@ Light is safety: the Tenant avoids lit space, sanity recovers under working ligh
 - Keys: `throw` (Mouse2 / T) throws the carried prop or a held `throw`-mode pocket item; `physicsDebug` (F6, dev builds) draws noise rings and body outlines. Tunables: `config.physics`.
 - `verbFor` kinds added: `push` (only while touching), `carry`, `putdown` (while carrying; has `alt: { verb: 'throw', key }`). The hand tag's key is still E, so carry also shows a keyed `ui:caption` (`physics:prompt`) with the throw key.
 - Noise sources: `impact:<id>`, `topple:<id>`, `roll:<id>` (soft, while rolling), `place:<id>`, `shatter:<id>`.
+- **Body-to-body contacts**: `prop:collide { a, b, speed, pos }` (a, b = insts, speed = relative approach speed m/s) once per
+  contact pair when the speed is at least `config.physics.collideSpeed` (0.3); the pair stays quiet while it keeps touching
+  or re-hits within `collideGap` (0.5 s) (`ContactDebounce` in `sim.js`). Player pushes count: a chair you shove into another reports.
+- **Scripted motion** (additive, used by secrets; also via `ctx.physics`): `spin(inst, { w, seconds, wobble })` (forced, decaying
+  spin, then the sim takes over), `toss(inst, { vx, vy, vz, w })` (bodies launch like a throw; body-less insts such as a paper
+  follow a kinematic arc to the floor and their `run.placed` record follows), `breakProp(inst, { dir, angle })` (the prop
+  slumps `angle` rad toward its local side `dir`; `inst.broken` + `stateOf(inst).broken`, so it persists per run and is
+  re-applied in `onRoomPlaced`).
 
 ## Object instance (`inst`)
 `{ uid, id, def, name, root (THREE.Group), meta {roomKey, spotKey?}, state {}, interactive, center, radius, readable? }`
@@ -183,11 +191,10 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 |---|---|---|
 | `game:start`, `game:resize`, `game:pause`, `game:resume` | `{}` | main (pause → the notebook opens at Settings; resume closes it) |
 | `settings:change` | `{ key, value, settings }` | settings (`game.settings.set`) |
-| `secret:found` | `{ id, title }` | secrets system (the notebook captions it) |
 | `player:step` | `{ intensity }` | main |
 | `inventory:change` | `{ slots, selected }` | M4 |
 | `inventory:full` | `{ id }` | M4 (M5 shakes the hand) |
-| `item:pickup` / `item:drop` / `item:use` | `{ id, stack }` | M4 |
+| `item:pickup` / `item:drop` / `item:use` | `{ id, stack }` (`item:drop` also has `inst`, the dropped world object) | M4 |
 | `item:combine` | `{ a, b, result? }` (ids; `a` = the held item) | M4 |
 | `readable:open` | `{ inst?, title, text, display: "notebook"\|"inspect"\|"surface", noteId? }` | M4 (M5 presents it) |
 | `note:collected` | `{ noteId, title, text }` | M4 (M5 adds a notebook page) |
@@ -208,6 +215,9 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 | `light:candle` | `{ inst }` | power (a candle was lit) |
 | `light:expired` | `{ id }` | power (a timed placed light, e.g. a glow marker, burned out) |
 | `aura:start` / `aura:end` | `{ aura }` | power (music box) |
+| `prop:collide` | `{ a, b, speed, pos }` | physics (two props hit; debounced per pair) |
+| `phone:answer` | `{ inst, first }` | `phone_answer` script (a desk phone was picked up) |
+| `secret:found` | `{ id, title, first }` | secrets (first time this run; `first` = never found in any run before; the notebook captions it) |
 
 ## Item scripts (M4)
 `src/scripts/items/<id>.js` default-exports `{ id, run(ctx, params) }`, registered by listing it in
@@ -215,6 +225,20 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 `run` returns `ctx.ok({ consume? })` or `ctx.fail(message)` (shows the message as a caption).
 `ctx` gives scripts a safe API (player, inventory, world spawn/remove, sound, ui via events, stats,
 flashlight, rng, state, timer, self, params) — see `src/scripts/api.js`.
+
+Script ctx additions (secrets, additive): `ctx.physics.{ spin, toss, breakProp }` (no-ops without physics),
+`ctx.world.lightAt(pos)`, `ctx.secrets.{ markFound(id), isFound(id) }`. Secret scripts run with `ctx.verb === 'secret'`.
+
+## Secrets (src/secrets)
+Registered from `src/secrets/register.js` (one line in `src/extensions.js`); binds on the first gameplay frame (wraps
+`Gameplay.prototype.update`, like the story runtime). Data: `content/secrets/*.json` (format + matcher in `content/README.md`).
+- `game.secrets.list()` → `[{ id, title, hint, found, foundAt? }]` in a stable order (`order`, then id). `hint` is `null`
+  when the secret has none. `foundAt` (epoch ms of the first discovery) only when found.
+- `game.secrets.count()` → `{ found, total }`. `markFound(id)` → true the first time in this run; emits `secret:found`.
+- Found state: per run in `world.run.scriptState.secrets.found` (`{ id: epochMs }`, plain JSON) and across runs in
+  localStorage `the-hum.secrets.v1` (`{ v: 1, found: { id: { at } } }`; every access is try/catch: blocked storage = no
+  memory, never an error). A secret found in an earlier run stays `found` in `list()` but fires (and rewards) again once per run.
+- Each secret's trigger runs its item script (`src/scripts/items/secret_*.js`); the secret counts as found when it returns ok.
 
 ## Containers + story props (src/containers, src/story)
 Registered from `src/story/register.js` (one line in `src/extensions.js`).
@@ -229,6 +253,8 @@ Registered from `src/story/register.js` (one line in `src/extensions.js`).
   lives in `gameplay.stateOf(inst)` so it persists per run. Opened with the `container_open` interact script;
   vending with a `{ with: "coin", script: "vend_coin", consume: "other" }` combine rule.
 - **`game.dangerLevel`** 0..1 (default 0, set at bind). The Tenant director sets it every frame (its smoothed tension); the walkie static reads it.
+- **Tape recorder**: G always drops it. Dropped while recording → the recording stops (keeps what it heard) and it plays
+  back on the floor as a lure; dropped while playing back → lure (as before). Recording stops if the recorder leaves the pockets.
 - **Run state** (`world.run.scriptState` = `ctx.state.run`) keys: `badges: Set<badgeId>` +
   `badgeInfo[badgeId] = { name, role, clearance }` (for keycard doors), `threads: [{ id, pts: [[x,z]], len, open }]`
   (red string), `photos` (count), `typewriterLine`, `walkieHint`, `threadSeq`.
