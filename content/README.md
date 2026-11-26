@@ -30,7 +30,7 @@ Full design rationale: [PLAN.md §4](../PLAN.md).
 ## objects/*.json
 `{ id, name, mesh, components: { <type>: {...} } }`
 
-**mesh**: `{ type: "box", size:[x,y,z], texture?, tint? }` · `{ type: "plane", size:[w,h], texture?, tint?, doubleSided? }` ·
+**mesh**: `{ type: "box", size:[x,y,z], texture?, tint? }` · `{ type: "plane", size:[w,h], texture?, tint?, doubleSided?, flat? }` (`flat: true` lies on the surface below it) ·
 `{ type: "sprite", size:[w,h], texture, tint? }` (always faces camera on Y) · `{ type: "prefab", name, tint? }` (built-in models, see `src/objects/prefabs.js`).
 Box/plane origin is at the **bottom centre** (so `pos.y` = what it stands on).
 `texture` may be a Kenney name or `proc:<name>` (procedural canvas texture, see `src/objects/procTextures.js`).

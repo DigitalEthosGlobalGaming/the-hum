@@ -190,7 +190,7 @@ The rule is exactly as you described: **chance = weight ÷ sum of all weights in
   "id": "lobby_floor_loot",
   "rolls": 1,                         // how many picks for this spot (default 1)
   "entries": [
-    { "def": "almond_water_bottle", "w": 75 },
+    { "def": "almond_water", "w": 75 },
     { "def": "battery",             "w": 5  },
     { "def": "note_random",         "w": 1  },
     { "def": null,                  "w": 19 }   // "nothing" is just another weighted entry
