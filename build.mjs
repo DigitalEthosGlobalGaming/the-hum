@@ -11,9 +11,10 @@ import { validateAll, printResult } from './tools/validate.mjs';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname);
 const OUT_DIR = path.join(ROOT, 'dist');
-const OUT_FILE = path.join(OUT_DIR, 'the-hum.html');
 const MAX_BYTES = 10 * 1024 * 1024;
 const args = new Set(process.argv.slice(2));
+// Dev (watch) builds go to their own file so a release build never clobbers what the dev server shows.
+const OUT_FILE = path.join(OUT_DIR, args.has('--watch') ? 'the-hum.dev.html' : 'the-hum.html');
 const WATCH = args.has('--watch');
 
 // virtual:textures → { name: dataURI } for every PNG in assets/textures

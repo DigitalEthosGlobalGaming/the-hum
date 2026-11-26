@@ -51,6 +51,23 @@ export class World {
 
   get colliders() { return this.objects.colliders; }
 
+  /** Does a wall cell sit between two points? (coarse 0.25 m march, ignores props) */
+  wallBetween(a, b) {
+    const dx = b.x - a.x, dz = b.z - a.z;
+    const n = Math.ceil(Math.hypot(dx, dz) / 0.25);
+    for (let i = 1; i < n; i++) {
+      if (this.isSolidAt(a.x + (dx * i) / n, a.z + (dz * i) / n)) return true;
+    }
+    return false;
+  }
+
+  /** Aimed-at interactable, highlighted. Returns { inst, distance } or null. */
+  updateFocus(camera) {
+    const hit = this.objects.pickInteractable(camera, { occluded: (a, b) => this.wallBetween(a, b) });
+    this.objects.setHighlight(hit?.inst ?? null);
+    return hit;
+  }
+
   update(dt, ctx) {
     this.objects.update(dt, ctx);
     this.updateLights(ctx.camera, ctx.time);

@@ -124,6 +124,64 @@ export function makePS1Material(texture, { tint = 0xffffff, emissive = 0 } = {})
   });
 }
 
+// Highlight overlay for the object the player is looking at. Uses the *same* vertex shader as
+// the PS1 material, so snapped vertices line up exactly and depth `<=` passes on the object's own
+// surface. Additive: a soft pulsing glow plus a brighter rim so the silhouette pops in the dark.
+const highlightFrag = /* glsl */`
+uniform sampler2D map;
+uniform vec3 uColor;
+uniform float uStrength;
+varying vec2 vUvP;
+varying vec3 vWorldPos;
+varying vec3 vNormal;
+void main() {
+  if (texture2D(map, vUvP).a < 0.5) discard;
+  vec3 v = normalize(cameraPosition - vWorldPos);
+  float rim = 1.0 - abs(dot(normalize(vNormal), v));
+  gl_FragColor = vec4(uColor * uStrength * (0.35 + rim * rim * 1.4), 1.0);
+}`;
+
+export function makeHighlightMaterial(texture) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      ...shared,
+      map: { value: texture },
+      uEmissive: { value: 0 },
+      uColor: highlightUniforms.uColor,
+      uStrength: highlightUniforms.uStrength,
+    },
+    vertexShader,
+    fragmentShader: highlightFrag,
+    blending: THREE.AdditiveBlending,
+    transparent: true,
+    depthWrite: false,
+    depthFunc: THREE.LessEqualDepth,
+    side: THREE.DoubleSide,
+  });
+}
+
+// Thin outline shell for the highlighted object: drawn back-faces-only on a slightly scaled copy,
+// so a 1–2 low-res-pixel rim shows around the silhouette. Same vertex shader → same snapping.
+const outlineFrag = /* glsl */`
+uniform vec3 uColor;
+uniform float uStrength;
+void main() { gl_FragColor = vec4(uColor * (0.55 + uStrength), 1.0); }`;
+
+export function makeOutlineMaterial() {
+  return new THREE.ShaderMaterial({
+    uniforms: { ...shared, uEmissive: { value: 0 }, uColor: highlightUniforms.uColor, uStrength: highlightUniforms.uStrength },
+    vertexShader,
+    fragmentShader: outlineFrag,
+    side: THREE.BackSide,
+  });
+}
+
+// Shared so one update per frame pulses every highlight material.
+export const highlightUniforms = {
+  uColor: { value: new THREE.Color(1.0, 0.86, 0.55) },
+  uStrength: { value: 0 },
+};
+
 // Post pass: sample the low-res target per low-res pixel, quantise to 15-bit with
 // a 4x4 Bayer dither, add a little grain. Draws to the full-size canvas.
 const postVert = /* glsl */`

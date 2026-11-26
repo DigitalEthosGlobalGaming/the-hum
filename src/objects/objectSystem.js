@@ -1,11 +1,17 @@
 // Object definitions (content/objects/*.json) → live instances in the world.
 // An object = mesh + components. The engine only knows component *types*; content picks them.
 import * as THREE from 'three';
-import { makePS1Material } from '../render/ps1.js';
+import { makePS1Material, makeHighlightMaterial, makeOutlineMaterial } from '../render/ps1.js';
 import { prefabs } from './prefabs.js';
 import { components } from './components/index.js';
 
 const DEG = Math.PI / 180;
+
+// Components that make an object something you can act on (and so worth highlighting).
+const INTERACTIVE = ['pickup', 'readable', 'interact', 'use', 'door', 'hide'];
+const _v = new THREE.Vector3();
+const _fwd = new THREE.Vector3();
+const _box = new THREE.Box3();
 
 export class ObjectSystem {
   constructor({ defs, textures, scene, audio }) {
@@ -19,6 +25,8 @@ export class ObjectSystem {
     this.colliders = [];          // world AABBs { minX, maxX, minZ, maxZ, inst }
     this.lights = [];             // { pos, color, range, flicker, seed, inst }
     this.raycastRoots = [];
+    this.highlightCache = new Map();
+    this.highlighted = null;
     this._nextId = 1;
   }
 
@@ -95,6 +103,10 @@ export class ObjectSystem {
     root.updateMatrixWorld(true);
 
     const inst = { uid: this._nextId++, id, def, name: def.name ?? id, root, meta, state: {}, comps: [] };
+    inst.interactive = INTERACTIVE.some((t) => def.components?.[t]);
+    _box.setFromObject(root);
+    inst.center = _box.getCenter(new THREE.Vector3());
+    inst.radius = Math.max(0.08, _box.getSize(_v).length() / 2);
     root.userData.inst = inst;
     this.byMesh.set(root, inst);
     this.raycastRoots.push(root);
@@ -108,7 +120,73 @@ export class ObjectSystem {
     return inst;
   }
 
+  /** Show the glow overlay on one instance (or none). */
+  setHighlight(inst) {
+    if (this.highlighted === inst) return;
+    if (this.highlighted) {
+      for (const o of this.highlighted.overlays ?? []) o.parent?.remove(o);
+      this.highlighted.overlays = null;
+    }
+    this.highlighted = inst;
+    if (!inst) return;
+    inst.overlays = [];
+    const meshes = [];
+    inst.root.traverse((m) => { if (m.isMesh && !m.userData.overlay) meshes.push(m); });
+    this.outlineMat ??= makeOutlineMaterial();
+    for (const m of meshes) {
+      // 1) additive glow on the surface itself
+      const tex = m.material.uniforms?.map?.value;
+      let mat = this.highlightCache.get(tex);
+      if (!mat) this.highlightCache.set(tex, (mat = makeHighlightMaterial(tex)));
+      const glow = new THREE.Mesh(m.geometry, mat);
+      glow.userData.overlay = true;
+      glow.renderOrder = 10;
+      m.add(glow);
+      inst.overlays.push(glow);
+      // 2) outline shell: scaled about the part's own centre by ~2.5 cm (skip flat planes)
+      m.geometry.computeBoundingBox();
+      const bb = m.geometry.boundingBox;
+      const size = bb.getSize(new THREE.Vector3());
+      if (Math.min(size.x, size.y, size.z) < 0.01) continue;
+      const c = bb.getCenter(new THREE.Vector3());
+      const shell = new THREE.Mesh(m.geometry, this.outlineMat);
+      shell.userData.overlay = true;
+      const t = 0.025;
+      shell.scale.set(1 + (2 * t) / size.x, 1 + (2 * t) / size.y, 1 + (2 * t) / size.z);
+      shell.position.set(c.x * (1 - shell.scale.x), c.y * (1 - shell.scale.y), c.z * (1 - shell.scale.z));
+      m.add(shell);
+      inst.overlays.push(shell);
+    }
+  }
+
+  /**
+   * The interactable the player is aiming at: closest to the view centre inside a small cone,
+   * so tiny things (a battery on the carpet) don't need pixel-perfect aim.
+   * @param occluded (from, to) => bool, e.g. a wall check
+   */
+  // Cylinder pick: anything whose centre lies within `radius` (+ half its own size) of the view
+  // ray, between the eye and maxDist, is a candidate; the one closest to the ray wins.
+  // Forgiving for tiny props, but still precise when several sit side by side.
+  pickInteractable(camera, { maxDist = 2.6, radius = 0.35, occluded } = {}) {
+    camera.getWorldDirection(_fwd);
+    let best = null, bestScore = Infinity;
+    for (const inst of this.instances) {
+      if (!inst.interactive) continue;
+      _v.copy(inst.center).sub(camera.position);
+      const along = _v.dot(_fwd);                       // distance along the ray
+      if (along < 0.1 || along > maxDist) continue;
+      const perp = Math.sqrt(Math.max(0, _v.lengthSq() - along * along)); // distance from the ray
+      const allow = radius + inst.radius * 0.5;
+      if (perp > allow) continue;
+      if (occluded?.(camera.position, inst.center)) continue;
+      const score = perp / allow + along * 0.02;        // closest to centre first, nearer breaks ties
+      if (score < bestScore) { bestScore = score; best = inst; }
+    }
+    return best ? { inst: best, distance: camera.position.distanceTo(best.center) } : null;
+  }
+
   remove(inst) {
+    if (this.highlighted === inst) this.setHighlight(null);
     for (const c of inst.comps) c.impl.detach?.(inst, c.cfg, this);
     this.scene.remove(inst.root);
     this.byMesh.delete(inst.root);

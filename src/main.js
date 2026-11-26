@@ -1,7 +1,7 @@
 // THE HUM · boot + main loop (milestone 2: test room populated from content JSON).
 import * as THREE from 'three';
 import content from 'virtual:content';
-import { PS1Renderer, shared } from './render/ps1.js';
+import { PS1Renderer, shared, highlightUniforms } from './render/ps1.js';
 import { TextureBank } from './core/textures.js';
 import { Input } from './core/input.js';
 import { Diagnostics } from './core/diagnostics.js';
@@ -89,8 +89,9 @@ async function boot() {
     shared.uFlashDir.value.copy(fwd);
     synth.setListener(camera.position, fwd, camera.up);
     world.update(dt, { camera, time });
+    const look = playing ? world.updateFocus(camera) : null;
+    highlightUniforms.uStrength.value = 0.32 + 0.12 * Math.sin(time * 4); // slow pulse
     renderer.render(scene, camera, time);
-    const look = world.objects.pick(camera, 3);
     diag.update(dt, { renderer, input, synth, player, extra: [
       `seed       ${seed}`,
       `objects    ${world.objects.instances.length} (${world.colliders.length} solid, ${world.objects.lights.length} lit)`,
