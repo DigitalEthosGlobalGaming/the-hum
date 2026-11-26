@@ -1,0 +1,53 @@
+{
+  "id": "lobby_long_corridor",
+  "zones": {
+    "lobby": 6
+  },
+  "tags": ["lobby", "corridor", "narrow"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["wall", "*"],
+    "s": ["*", "wall"],
+    "e": ["!wall"],
+    "w": ["!wall"]
+  },
+  "layout": [
+    "################",
+    "##########....##",
+    "##########....##",
+    "#..L...........#",
+    "#..........L...#",
+    "##....##########",
+    "##....##########",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [],
+  "spots": [
+    {
+      "id": "nook",
+      "pos": [23, 0, 3],
+      "rot": 0,
+      "pool": "lobby_floor_loot"
+    },
+    {
+      "id": "branch",
+      "pos": [7, 0, 13],
+      "rot": 90,
+      "pool": "lobby_clutter"
+    }
+  ]
+}

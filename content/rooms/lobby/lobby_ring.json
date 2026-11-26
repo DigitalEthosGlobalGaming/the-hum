@@ -1,0 +1,59 @@
+{
+  "id": "lobby_ring",
+  "zones": {
+    "lobby": 5
+  },
+  "tags": ["lobby", "loop"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["*", "*"],
+    "s": ["*", "*"],
+    "e": ["*"],
+    "w": ["*"]
+  },
+  "layout": [
+    "################",
+    "#..............#",
+    "#..............#",
+    "#....######....#",
+    "#....######....#",
+    "#..............#",
+    "#..L........L..#",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern_damaged",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [
+    {
+      "def": "wall_scrawl",
+      "pos": [16, 1.5, 5.98],
+      "rot": 0
+    }
+  ],
+  "spots": [
+    {
+      "id": "behind",
+      "pos": [17, 0, 11],
+      "rot": 180,
+      "pool": "lobby_floor_loot"
+    },
+    {
+      "id": "corner",
+      "pos": [29, 0, 3],
+      "rot": 0,
+      "pool": "lobby_clutter"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "id": "lobby_partial_walls",
+  "zones": {
+    "lobby": 8
+  },
+  "tags": ["lobby", "partitions"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["*", "*"],
+    "s": ["*", "*"],
+    "e": ["*"],
+    "w": ["*"]
+  },
+  "layout": [
+    "################",
+    "#.....#........#",
+    "#.....#..####..#",
+    "#..L..#.....#..#",
+    "#...........#..#",
+    "#..####.....L..#",
+    "#......#.......#",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern_damaged",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [],
+  "spots": [
+    {
+      "id": "behind_wall",
+      "pos": [17, 0, 7],
+      "rot": 0,
+      "pool": "lobby_floor_loot"
+    },
+    {
+      "id": "clutter",
+      "pos": [5, 0, 13],
+      "rot": 300,
+      "pool": "lobby_clutter"
+    }
+  ]
+}

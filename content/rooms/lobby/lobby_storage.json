@@ -1,0 +1,74 @@
+{
+  "id": "lobby_storage",
+  "zones": {
+    "lobby": 5
+  },
+  "tags": ["lobby", "room", "clutter"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["*", "*"],
+    "s": ["*", "*"],
+    "e": ["*"],
+    "w": ["*"]
+  },
+  "layout": [
+    "################",
+    "#..............#",
+    "#..##..........#",
+    "#..##...PP.....#",
+    "#.......PP..##.#",
+    "#...........##.#",
+    "#.......L......#",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [
+    {
+      "def": "cardboard_box",
+      "pos": [12, 0, 3],
+      "rot": 5
+    },
+    {
+      "def": "cardboard_box",
+      "pos": [13.1, 0, 3.4],
+      "rot": -20
+    },
+    {
+      "def": "cardboard_box",
+      "pos": [26, 0, 13],
+      "rot": 40
+    },
+    {
+      "def": "wet_floor_sign",
+      "pos": [20, 0, 11],
+      "rot": 30
+    }
+  ],
+  "spots": [
+    {
+      "id": "corner_clutter",
+      "pos": [5, 0, 13],
+      "rot": 0,
+      "pool": "lobby_clutter"
+    },
+    {
+      "id": "shelf_loot",
+      "pos": [29, 0, 3],
+      "rot": 0,
+      "pool": "lobby_floor_loot"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "lobby_crossroads",
+  "zones": {
+    "lobby": 5
+  },
+  "tags": ["lobby", "corridor", "narrow"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["*", "*"],
+    "s": ["*", "*"],
+    "e": ["*"],
+    "w": ["*"]
+  },
+  "layout": [
+    "################",
+    "###..######..###",
+    "###..######..###",
+    "#..............#",
+    "#..L........L..#",
+    "###..######..###",
+    "###..######..###",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [],
+  "spots": [
+    {
+      "id": "junction",
+      "pos": [9, 0, 7],
+      "rot": 0,
+      "pool": "lobby_floor_loot"
+    }
+  ]
+}

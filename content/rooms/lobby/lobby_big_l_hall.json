@@ -1,0 +1,69 @@
+{
+  "id": "lobby_big_l_hall",
+  "zones": {
+    "lobby": 5
+  },
+  "tags": ["lobby", "big", "open", "pillars"],
+  "slots": [2, 3],
+  "layout": [
+    "################",
+    "#..............#",
+    "#..P....L...P..#",
+    "#..............#",
+    "#..............#",
+    "#..P........P..#",
+    "#..............#",
+    "#.......########",
+    "#......#        ",
+    "#..P...#        ",
+    "#......#        ",
+    "#...L..#        ",
+    "#......#        ",
+    "#..P...#        ",
+    "#......#        ",
+    "#......#        ",
+    "#......#        ",
+    "#..L...#        ",
+    "#......#        ",
+    "#..P...#        ",
+    "#......#        ",
+    "#......#        ",
+    "#......#        ",
+    "########        "
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [
+    {
+      "def": "office_chair",
+      "pos": [7, 0, 30],
+      "rot": 90
+    }
+  ],
+  "spots": [
+    {
+      "id": "far_end",
+      "pos": [3, 0, 43],
+      "rot": 0,
+      "pool": "lobby_floor_loot"
+    },
+    {
+      "id": "hall",
+      "pos": [27, 0, 3],
+      "rot": 0,
+      "pool": "lobby_clutter"
+    }
+  ]
+}
