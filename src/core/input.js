@@ -12,6 +12,11 @@ export class Input {
     this.dragging = false;
     this.pointerLock = { supported: 'requestPointerLock' in canvas, state: 'idle', error: '' };
     this.mode = 'lock';             // 'lock' | 'drag'
+    this.sensitivity = 1;           // look multiplier (settings: mouse sensitivity)
+    this.invertY = false;           // settings: invert Y
+    // True while a menu owns the free cursor (the paused notebook): clicks on the canvas don't
+    // re-capture the pointer, don't fire Mouse actions and don't drag-look.
+    this.captureSuspended = false;
 
     addEventListener('keydown', (e) => {
       if (e.repeat) return;
@@ -22,7 +27,7 @@ export class Input {
     addEventListener('blur', () => this.down.clear());
     // Mouse buttons are codes "Mouse0" (left), "Mouse2" (right); wheel is "WheelUp"/"WheelDown"
     // (edge-only). In the click-drag look fallback the left button is look, so it never fires actions.
-    canvas.addEventListener('mousedown', (e) => { if (this.locked) this.press('Mouse' + e.button); });
+    canvas.addEventListener('mousedown', (e) => { if (this.locked && !this.captureSuspended) this.press('Mouse' + e.button); });
     addEventListener('mouseup', (e) => this.down.delete('Mouse' + e.button));
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     addEventListener('wheel', (e) => {
@@ -33,11 +38,12 @@ export class Input {
 
     addEventListener('mousemove', (e) => {
       if (this.locked || (this.mode === 'drag' && this.dragging)) {
-        this.lookDX += e.movementX || 0;
-        this.lookDY += e.movementY || 0;
+        this.lookDX += (e.movementX || 0) * this.sensitivity;
+        this.lookDY += (e.movementY || 0) * this.sensitivity * (this.invertY ? -1 : 1);
       }
     });
     canvas.addEventListener('mousedown', () => {
+      if (this.captureSuspended) return;
       this.dragging = true;
       // Always try to (re)capture on click, even in the drag fallback: a lock that failed once
       // (e.g. during a fullscreen transition) often works on the next click.

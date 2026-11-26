@@ -1,36 +1,54 @@
-// The notebook (held up in both hands) and the "inspect" sheet (a found paper held close).
-// Page 1 is the auto-map; following pages are collected notes, paginated. The page *texture* holds
-// only paper, rules and the pencil map (it goes through the PS1 pass with the hands); the writing
-// is drawn crisp on the full-res text layer, mapped onto the page's projected corners.
+// The notebook (held open in both hands, a two-page spread) and the "inspect" sheet (a found paper
+// held close). The notebook is also the hub menu: its sections (settings, controls, map, notes,
+// photos, wanderers, secrets) are reached with paper index tabs along the top edge; the menu logic
+// and the ink live in menu.js. Page *textures* hold only paper, rules and pictures (the pencil map,
+// taped photos, badges); they go through the PS1 pass with the hands. All writing is drawn crisp on
+// the full-res text layer, mapped onto each page's projected corners.
 //
-// Page kinds: 'map' (page 1, the auto-map), 'note' (addNote), and through addPage():
+// Entries (this.pages, kept for compatibility: story/pages.js checks `pages.some(p => p.id === id)`):
+//   'map'       the auto-map (always entry 0)
+//   'note'      addNote({ noteId, title, text })
+//   through addPage({ kind, id, title, caption, ... }):
 //   'photo'     { image: canvas, caption }        a flash-camera photo taped in, handwritten caption
 //   'wanderer'  { face, name, role, text }        an ID badge copied in (face drawn by story/wanderers)
 //   'mapReveal' { revealId, caption }             an evacuation map sketched from the wall
-// Images go into the page texture (so they get the PS1 treatment with the hands); captions are ink.
+//   'learned'   { text }                          a short line the player has worked out (Notes, top)
+//   'secret'    { title, text }                   an oddity (Secrets section)
+//   anything else goes to Notes.
 import * as THREE from 'three';
-const _c = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
 import { makeVMMaterial, canvasTexture } from '../../viewmodel/vmMaterial.js';
 import { box, smooth } from '../../viewmodel/viewModel.js';
 import { makeCanvas, wrapText, HAND_FONT } from './text.js';
 import { hash, Rng } from '../../core/rng.js';
 import { drawFace } from '../../story/wanderers.js';
+import { SECTIONS } from './hub.js';
+import { Menu } from './menu.js';
 
-const PW = 160, PH = 216;          // page texture size
-// page units (= texture px). Line height 1.4, ~28 characters per line max.
-const TEXT = { size: 9.5, lineH: 13.3, x: 17, top: 28, width: PW - 30 };
+const _v = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+
+export const PW = 160, PH = 216;          // page texture size = page units
+// page units. Line height 1.4, ~28 characters per line max.
+export const TEXT = { size: 9.5, lineH: 13.3, x: 17, top: 28, width: PW - 30, bottom: 178 };
+export const FONT = (s) => `bold ${s}px ${HAND_FONT}`;
 const LINES_PER_PAGE = Math.floor((PH - TEXT.top - 20) / TEXT.lineH);
-const FONT = (s) => `bold ${s}px ${HAND_FONT}`;
 
-function paperBase(g, seed, { margin = true } = {}) {
+const PAGE_W = 0.188, PAGE_H = 0.258;    // metres
+const GUTTER = 0.004;                    // spine to page edge
+const TAB_W = 0.054, TAB_STEP = 0.0575, TAB_H = 0.03;
+const TAB_TINT = [0xbdb7a4, 0xcdbd8c, 0xa7bf9e, 0xd9cf9f, 0xc8a9a4, 0xa9b6cc, 0xb6a6c6];
+const FLIP_TIME = 0.42;
+
+export function paperBase(g, seed, { margin = true, ruled = true } = {}) {
   const r = new Rng(seed);
   g.fillStyle = '#d9d1b8'; g.fillRect(0, 0, PW, PH);
   for (let i = 0; i < 900; i++) {
     g.fillStyle = r.chance(0.5) ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.07)';
     g.fillRect(r.int(0, PW - 1), r.int(0, PH - 1), 1, 1);
   }
-  g.fillStyle = 'rgba(90,110,160,0.28)';
-  for (let y = TEXT.top + TEXT.size + 2.5; y < PH - 12; y += TEXT.lineH) g.fillRect(4, Math.round(y), PW - 8, 1);
+  if (ruled) {
+    g.fillStyle = 'rgba(90,110,160,0.28)';
+    for (let y = TEXT.top + TEXT.size + 2.5; y < PH - 12; y += TEXT.lineH) g.fillRect(4, Math.round(y), PW - 8, 1);
+  }
   if (margin) { g.fillStyle = 'rgba(170,60,60,0.3)'; g.fillRect(12, 0, 1, PH); }
   // grubby thumb smudge + corner wear
   g.fillStyle = 'rgba(60,45,30,0.06)';
@@ -40,39 +58,66 @@ function paperBase(g, seed, { margin = true } = {}) {
 export class Notebook {
   constructor(game) {
     this.game = game;
-    this.pages = [{ kind: 'map' }];
-    this.page = 0;
-    this.flipT = 0; this.flipDir = 0; this._swapped = false;
+    this.pages = [{ kind: 'map', id: 'map' }];
+    this.version = 0;                     // bumps whenever an entry is added
+    // four page canvases: the two open pages + both faces of the turning leaf
+    this.slots = {};
+    for (const k of ['L', 'R', 'F', 'B']) {
+      const [canvas, g] = makeCanvas(PW, PH);
+      this.slots[k] = { canvas, g, tex: canvasTexture(canvas, true), key: null };
+    }
+    this.g = this.slots.L.g;              // measuring context (wrapText)
     this.mapTimer = 0;
-    this.drawnPage = -1;
-    [this.canvas, this.g] = makeCanvas(PW, PH);
-    this.tex = canvasTexture(this.canvas, true);
+    this.flipping = null;                 // { dir, t, to: [L, R] }
+    this.inkT = 1;                        // ink fades back in after a turn
     this.group = this.buildBook(game.textures);
     // inspect sheet
     [this.iCanvas, this.ig] = makeCanvas(PW, PH);
     this.iTex = canvasTexture(this.iCanvas, true);
     this.sheet = this.buildSheet(game.textures);
     this.inspecting = null;
+    this.menu = new Menu(game, this);
   }
 
   buildBook(textures) {
     const g = new THREE.Group();
-    const cover = box(0.205, 0.275, 0.01, textures.get('proc:cover'));
+    const cover = box(PAGE_W * 2 + 0.03, PAGE_H + 0.018, 0.01, textures.get('proc:cover'));
     cover.position.z = -0.006;
     g.add(cover);
-    // page stack edge
-    const stack = box(0.19, 0.262, 0.006, null, { tint: 0xc9c0a5 });
-    stack.position.set(0.004, 0, 0.0);
-    g.add(stack);
-    this.pivot = new THREE.Group();
-    this.pivot.position.set(-0.093, 0, 0.0035);
-    g.add(this.pivot);
-    this.pageMat = makeVMMaterial(this.tex, { emissive: 0.18, affine: 0, side: THREE.DoubleSide });
-    const page = this.pageMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.188, 0.258), this.pageMat);
-    page.position.x = 0.094;
-    page.frustumCulled = false;
-    this.pivot.add(page);
-    addHands(g, textures, 0.105, 0.12);
+    for (const s of [-1, 1]) {           // page stacks
+      const stack = box(PAGE_W + 0.002, PAGE_H + 0.004, 0.006, null, { tint: 0xc9c0a5 });
+      stack.position.set(s * (GUTTER + PAGE_W / 2), 0, 0);
+      g.add(stack);
+    }
+    const spine = box(0.006, PAGE_H, 0.004, null, { tint: 0x6f6650 });
+    spine.position.z = 0.002;
+    g.add(spine);
+    const mat = (k, side = THREE.DoubleSide) => makeVMMaterial(this.slots[k].tex, { emissive: 0.18, affine: 0, side });
+    const plane = () => new THREE.PlaneGeometry(PAGE_W, PAGE_H);
+    this.pageL = new THREE.Mesh(plane(), mat('L'));
+    this.pageR = new THREE.Mesh(plane(), mat('R'));
+    this.pageL.position.set(-(GUTTER + PAGE_W / 2), 0, 0.0035);
+    this.pageR.position.set(GUTTER + PAGE_W / 2, 0, 0.0035);
+    // the leaf that turns: front = a right-hand page, back = the left-hand page behind it
+    this.leaf = new THREE.Group();
+    this.leaf.position.z = 0.0048;
+    const front = new THREE.Mesh(plane(), mat('F', THREE.FrontSide));
+    front.position.x = GUTTER + PAGE_W / 2;
+    const back = new THREE.Mesh(plane(), mat('B', THREE.FrontSide));
+    back.position.x = GUTTER + PAGE_W / 2;
+    back.rotation.y = Math.PI;
+    this.leaf.add(front, back);
+    this.leaf.visible = false;
+    for (const m of [this.pageL, this.pageR, front, back]) m.frustumCulled = false;
+    g.add(this.pageL, this.pageR, this.leaf);
+    // paper index tabs poking up from between the pages; the current one stands taller
+    this.tabs = SECTIONS.map((s, i) => {
+      const t = box(TAB_W, TAB_H, 0.002, null, { tint: TAB_TINT[i % TAB_TINT.length], emissive: 0.2 });
+      t.position.set(-((SECTIONS.length - 1) * TAB_STEP) / 2 + i * TAB_STEP, PAGE_H / 2 + 0.004, 0.0005);
+      g.add(t);
+      return t;
+    });
+    addHands(g, textures, PAGE_W + GUTTER + 0.008, 0.12);
     g.visible = false;
     return g;
   }
@@ -88,57 +133,74 @@ export class Notebook {
     return g;
   }
 
-  /** Add a note's pages (deduped). Returns the index of its first page. */
+  /** Add a note (deduped by noteId). Returns its entry index. */
   addNote({ noteId, title, text }) {
     const id = noteId ?? `${title}|${text}`;
     const found = this.pages.findIndex((p) => p.id === id);
     if (found >= 0) return found;
-    const lines = wrapText(this.g, text ?? '', TEXT.width, FONT(TEXT.size));
-    const first = this.pages.length;
-    const per = LINES_PER_PAGE - 1; // first line of each page is the title
-    for (let i = 0; i < Math.max(1, lines.length); i += per) {
-      this.pages.push({ kind: 'note', id, title: title ?? '', lines: lines.slice(i, i + per), cont: i > 0 });
-    }
-    this.drawnPage = -1;
-    return first;
+    this.pages.push({ kind: 'note', id, title: title ?? '', text: text ?? '' });
+    this.version++;
+    return this.pages.length - 1;
   }
 
   /**
-   * Add a picture page (photo / wanderer / mapReveal; see the header). Deduped by `page.id`.
-   * `page.caption` is wrapped into handwritten lines under the picture. Returns the page index.
+   * Add a page entry (see the header for kinds). Deduped by `page.id`. `page.caption` is wrapped
+   * into handwritten lines under the picture. Returns the entry index.
    */
   addPage(page) {
     const id = page.id ?? `${page.kind}:${this.pages.length}`;
     const found = this.pages.findIndex((p) => p.id === id);
     if (found >= 0) return found;
     const top = PAGE_TOP[page.kind] ?? TEXT.top;
-    const max = Math.max(1, Math.floor((PH - top - TEXT.size - 12) / TEXT.lineH) + 1);
+    const max = Math.max(1, Math.floor((TEXT.bottom - top - TEXT.size) / TEXT.lineH) + 1);
     const lines = wrapText(this.g, page.caption ?? '', TEXT.width, FONT(TEXT.size)).slice(0, max);
     this.pages.push({ ...page, id, title: page.title ?? '', lines, top });
-    this.drawnPage = -1;
+    this.version++;
     return this.pages.length - 1;
   }
 
-  open(page = this.page) { this.page = Math.max(0, Math.min(this.pages.length - 1, page)); this.drawnPage = -1; }
+  /** Open the notebook at an entry (its section and page). */
+  open(index) { this.menu.openEntry(index); }
+  flip(dir) { return this.menu.flip(dir); }
 
-  flip(dir) {
-    const next = this.page + dir;
-    if (next < 0 || next >= this.pages.length || this.flipDir) return false;
-    this.flipDir = dir; this.flipT = 0; this._swapped = false;
-    this.game.synth?.play?.('paper_rustle', { volume: 0.6 });
-    return true;
+  /** Paint a page description into a slot's texture (only when it changed). */
+  paint(slot, desc, force = false) {
+    const s = this.slots[slot];
+    if (!force && s.key === desc.key) return;
+    const g = s.g;
+    const e = desc.entry;
+    const kind = desc.kind;
+    paperBase(g, hash('page', desc.key), { margin: !['map', 'photo', 'wanderer', 'reveal', 'blank'].includes(kind) });
+    if (kind === 'map') this.game.diegetic?.map?.draw(g, PW, PH, this.game.player, { top: 26, bottom: TEXT.bottom });
+    else if (kind === 'photo') drawPhoto(g, e, hash('photo', e.id));
+    else if (kind === 'wanderer') drawBadge(g, e);
+    else if (kind === 'reveal') this.game.diegetic?.map?.drawReveal?.(g, PW, PH, e.revealId, { top: 26, bottom: e.top - 6 });
+    s.tex.needsUpdate = true;
+    s.key = desc.key;
   }
 
-  drawPage(i) {
-    const g = this.g;
-    const p = this.pages[i];
-    paperBase(g, hash('page', i, p.id ?? 'map'), { margin: p.kind !== 'map' });
-    if (p.kind === 'map') this.game.diegetic?.map?.draw(g, PW, PH, this.game.player, { top: 26, bottom: PH - 16 });
-    else if (p.kind === 'photo') drawPhoto(g, p, hash('photo', p.id));
-    else if (p.kind === 'wanderer') drawBadge(g, p);
-    else if (p.kind === 'mapReveal') this.game.diegetic?.map?.drawReveal?.(g, PW, PH, p.revealId, { top: 26, bottom: p.top - 6 });
-    this.tex.needsUpdate = true;
-    this.drawnPage = i;
+  /** Turn the leaf: dir > 0 forward (right page over to the left). from/to: [descL, descR]. */
+  startFlip(dir, from, to) {
+    if (this.flipping) this.endFlip();
+    if (dir > 0) {
+      this.paint('F', from[1]); this.paint('B', to[0]);
+      this.paint('L', from[0]); this.paint('R', to[1]);
+    } else {
+      this.paint('B', from[0]); this.paint('F', to[1]);
+      this.paint('L', to[0]); this.paint('R', from[1]);
+    }
+    this.flipping = { dir, t: 0, to };
+    this.leaf.visible = true;
+    this.leaf.rotation.y = dir > 0 ? 0 : -Math.PI;
+    this.inkT = 0;
+    this.game.synth?.play?.('paper_rustle', { volume: 0.6 });
+  }
+
+  endFlip() {
+    const f = this.flipping;
+    this.flipping = null;
+    this.leaf.visible = false;
+    this.paint('L', f.to[0]); this.paint('R', f.to[1]);
   }
 
   /** Hold a found paper up close (readable display "inspect"). */
@@ -153,20 +215,28 @@ export class Notebook {
   /** Crisp writing on the full-res text layer (call from renderDiegetic, after the render). */
   drawText(layer, camera, wBook, wSheet) {
     if (wBook > 0.6 && this.group.visible) {
-      const p = this.pages[this.page];
-      const k = this.flipDir ? (this.flipT < 0.5 ? this.flipT * 2 : (1 - this.flipT) * 2) : 0;
-      const alpha = Math.min(1, (wBook - 0.6) / 0.35) * Math.max(0, 1 - k * 3);
-      if (alpha > 0.01 && p) {
-        const [tl, tr, bl] = corners(this.pageMesh, 0.094, 0.129, camera, layer.W, layer.H);
-        layer.page(tl, tr, bl, PW, PH, alpha, (g) => writePage(layer, g, {
-          title: p.kind === 'map' ? 'where I have been' : (p.cont ? '(cont.) ' : '') + p.title,
-          red: p.kind !== 'map',
-          lines: p.lines, label: `${this.page + 1}/${this.pages.length}`, seed: hash(p.id ?? 'map', this.page), top: p.top,
-        }));
+      const alpha = Math.min(1, (wBook - 0.6) / 0.35);
+      const [dL, dR] = this.menu.current();
+      const geo = this.menu.geo;
+      geo.L = projectRect(this.pageL, -PAGE_W / 2, PAGE_H / 2, PAGE_W / 2, -PAGE_H / 2, 0, camera, layer.W, layer.H);
+      geo.R = projectRect(this.pageR, -PAGE_W / 2, PAGE_H / 2, PAGE_W / 2, -PAGE_H / 2, 0, camera, layer.W, layer.H);
+      this.menu.regions.length = 0;
+      const ink = alpha * smooth(Math.min(1, this.inkT));
+      if (ink > 0.01) {
+        layer.page(geo.L[0], geo.L[1], geo.L[2], PW, PH, ink, (g) => this.menu.ink(layer, g, dL, 'L'));
+        layer.page(geo.R[0], geo.R[1], geo.R[2], PW, PH, ink, (g) => this.menu.ink(layer, g, dR, 'R'));
       }
+      // tab labels: on the part of each tab that shows above the pages
+      geo.tabs = this.tabs.map((t, i) => {
+        const top = TAB_H / 2, bottom = PAGE_H / 2 - t.position.y + 0.001;
+        const c = projectRect(t, -TAB_W / 2, top, TAB_W / 2, bottom, 0.0011, camera, layer.W, layer.H);
+        const tw = 60, th = Math.max(8, (60 * (top - bottom)) / TAB_W);
+        layer.page(c[0], c[1], c[2], tw, th, alpha, (g) => this.menu.inkTab(layer, g, i, tw, th));
+        return c;
+      });
     }
     if (wSheet > 0.6 && this.inspecting && this.sheet.visible) {
-      const [tl, tr, bl] = corners(this.sheetMesh, 0.095, 0.129, camera, layer.W, layer.H);
+      const [tl, tr, bl] = projectRect(this.sheetMesh, -0.095, 0.129, 0.095, -0.129, 0, camera, layer.W, layer.H);
       const s = this.inspecting;
       layer.page(tl, tr, bl, PW, PH, Math.min(1, (wSheet - 0.6) / 0.35), (g) => writePage(layer, g, {
         title: s.title, lines: s.lines, seed: hash(s.text),
@@ -176,43 +246,55 @@ export class Notebook {
 
   /** wBook / wSheet: eased visibility 0..1. */
   update(dt, vm, wBook, wSheet, mapVersionChanged) {
-    // flip animation: page swings around the spine, swaps texture at the halfway point
-    if (this.flipDir) {
-      this.flipT = Math.min(1, this.flipT + dt / 0.32);
-      if (this.flipT >= 0.5 && !this._swapped) { this.page += this.flipDir; this._swapped = true; this.drawnPage = -1; }
-      const k = this.flipT < 0.5 ? this.flipT * 2 : (1 - this.flipT) * 2;
-      this.pivot.rotation.y = -smooth(k) * 1.45 * (this.flipDir > 0 ? 1 : -1) * 0.9;
-      if (this.flipT >= 1) { this.flipDir = 0; this.pivot.rotation.y = 0; }
+    const f = this.flipping;
+    if (f) {
+      f.t = Math.min(1, f.t + dt / FLIP_TIME);
+      const k = smooth(f.t);
+      this.leaf.rotation.y = f.dir > 0 ? -Math.PI * k : -Math.PI * (1 - k);
+      this.leaf.position.z = 0.0048 + Math.sin(Math.PI * k) * 0.012; // lifts off the stack mid-turn
+      if (f.t >= 1) this.endFlip();
+    } else {
+      this.inkT = Math.min(1, this.inkT + dt / 0.18);
     }
-    if (wBook > 0.01) {
+    if (wBook > 0.01 && !this.flipping) {
+      const [dL, dR] = this.menu.current();
       this.mapTimer -= dt;
-      const kind = this.pages[this.page]?.kind;
-      const isMap = kind === 'map' || kind === 'mapReveal'; // reveal pages grow "?" as you learn more
-      if (this.drawnPage !== this.page || (isMap && this.mapTimer <= 0 && mapVersionChanged())) {
-        this.drawPage(this.page);
-        this.mapTimer = 0.25;
-      }
+      const mapShown = dL.kind === 'map' || dR.kind === 'map' || dL.kind === 'reveal' || dR.kind === 'reveal';
+      const refresh = mapShown && this.mapTimer <= 0 && mapVersionChanged();
+      if (refresh) this.mapTimer = 0.25;
+      this.paint('L', dL, refresh && (dL.kind === 'map' || dL.kind === 'reveal'));
+      this.paint('R', dR, refresh && (dR.kind === 'map' || dR.kind === 'reveal'));
     }
-    pose(this.group, vm, wBook, -0.33);
-    pose(this.sheet, vm, wSheet, -0.29);
+    // tabs: the current section's stands taller
+    const cur = this.menu.section;
+    this.tabs.forEach((t, i) => {
+      const target = PAGE_H / 2 + (i === cur ? 0.012 : 0.004);
+      t.position.y += (target - t.position.y) * Math.min(1, dt * 14);
+    });
+    // aspect fit: keep the whole spread (and the hands) on screen on narrow windows
+    const cam = vm.camera;
+    const halfW = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * cam.aspect;
+    const z = Math.max(0.37, 0.25 / Math.max(0.1, halfW));
+    pose(this.group, vm, wBook, -z, -0.022);
+    pose(this.sheet, vm, wSheet, -0.29, 0);
   }
 }
 
-/** Project a page plane's top-left / top-right / bottom-left corners to CSS px. */
-function corners(mesh, hw, hh, camera, W, H) {
-  mesh.updateWorldMatrix(true, false);
-  _c[0].set(-hw, hh, 0); _c[1].set(hw, hh, 0); _c[2].set(-hw, -hh, 0);
-  return _c.map((v) => {
-    mesh.localToWorld(v).project(camera);
+/** Project a local rect (x0,y0 top-left .. x1,y1 bottom-right, at z) → [tl, tr, bl] in CSS px. */
+function projectRect(obj, x0, y0, x1, y1, z, camera, W, H) {
+  obj.updateWorldMatrix(true, false);
+  _v[0].set(x0, y0, z); _v[1].set(x1, y0, z); _v[2].set(x0, y1, z);
+  return _v.map((v) => {
+    obj.localToWorld(v).project(camera);
     return { x: (v.x * 0.5 + 0.5) * W, y: (0.5 - v.y * 0.5) * H };
   });
 }
 
 // Writing goes through layer.ink so the textGrit dial (jitter, bleed, ink colour) applies here too.
-function writePage(layer, g, { title, lines, label, seed, red = true, top = TEXT.top }) {
+export function writePage(layer, g, { title, lines, label, seed, red = true, top = TEXT.top }) {
   if (title) layer.ink([title], TEXT.x, 20, 11, 13, hash(seed, 't'), red ? layer.red : undefined, g);
   if (lines?.length) layer.ink(lines, TEXT.x, top + TEXT.size, TEXT.size, TEXT.lineH, seed, undefined, g);
-  if (label) layer.ink([label], PW - 34, PH - 8, 8, 10, hash(seed, 'n'), '#4a4438', g);
+  if (label) layer.ink([label], PW / 2 - 8, PH - 12, 8, 10, hash(seed, 'n'), '#4a4438', g);
 }
 
 // Where the handwriting starts on picture pages (page units).
@@ -252,11 +334,11 @@ function drawBadge(g, p) {
   for (let i = 0; i < 22; i++) if ((p.number?.charCodeAt(i % 4) ?? 3) * (i + 3) % 3) g.fillRect(x + 8 + i * 2, y + 82, 1, 6);
 }
 
-function pose(g, vm, w, z) {
+function pose(g, vm, w, z, y0) {
   g.visible = w > 0.01;
   if (!g.visible) return;
   const e = smooth(w);
-  g.position.set(0, -0.012 - (1 - e) * 0.42, z);
+  g.position.set(0, -0.012 + y0 - (1 - e) * 0.42, z);
   g.rotation.set(-0.1 - (1 - e) * 0.9, 0, (1 - e) * 0.2);
   vm.applyRig(g, 0.35, 1);
 }

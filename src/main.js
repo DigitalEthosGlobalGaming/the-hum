@@ -16,6 +16,7 @@ import { Synth } from './audio/synth.js';
 import { mountSoundBoard } from './audio/soundBoard.js';
 import { installGameplay, updateGameplay } from './gameplay/index.js';
 import { installDiegetic, updateDiegetic, renderDiegetic } from './ui/diegetic/index.js';
+import { installSettings } from './settings/install.js';
 
 const cfg = content.config;
 const canvas = document.getElementById('game');
@@ -69,6 +70,7 @@ async function boot() {
     world.noise(player.pos, 2 + 3 * k, 'footstep'); // crouch-walk ~3 m, sprint ~8 m
   };
 
+  installSettings(game);       // game.settings (persisted); applied to input / synth / cfg.ui
   installGameplay(game);
   installDiegetic(game);
 
@@ -87,9 +89,11 @@ async function boot() {
   document.body.appendChild(title);
 
   // ---- fullscreen + pause/resume -------------------------------------------------------------
-  // Esc makes the browser drop pointer lock (and fullscreen). We pause and show a resume card;
-  // clicking it restores both. Fullscreen must be requested inside a real input event handler.
-  let wantFullscreen = cfg.ui?.fullscreenOnStart !== false;
+  // Esc makes the browser drop pointer lock (and fullscreen). We pause: the notebook opens at its
+  // Settings page (the diegetic UI listens for game:pause). Its "back to it" line calls
+  // game.resume() from inside the click / key event, which restores the lock, then fullscreen.
+  // Whether we want fullscreen is the persisted `fullscreen` setting.
+  const wantFullscreen = () => game.settings?.fullscreen !== false;
   let fsToggling = false; // true while *we* change fullscreen, so it doesn't count as "Esc"
   const fs = {
     get on() { return !!document.fullscreenElement; },
@@ -109,45 +113,45 @@ async function boot() {
   };
   game.fullscreen = fs;
 
-  const pauseCard = document.createElement('div');
-  pauseCard.innerHTML = '<div style="font:bold 28px monospace;letter-spacing:10px">PAUSED</div>'
-    + '<div style="font:15px monospace;margin-top:14px">click to return</div>'
-    + '<div style="font:12px monospace;margin-top:22px;opacity:.6">Enter · fullscreen on/off&nbsp;&nbsp;&nbsp;Esc · pause</div>';
-  Object.assign(pauseCard.style, {
-    position: 'fixed', inset: 0, display: 'none', flexDirection: 'column', alignItems: 'center',
-    justifyContent: 'center', color: '#d8cf8a', background: 'rgba(0,0,0,0.6)', cursor: 'pointer', zIndex: 6,
-  });
-  document.body.appendChild(pauseCard);
-
+  let resumedAt = -1;
   function pause() {
     if (!game.playing) return;
     game.playing = false;
     game.paused = true;
-    pauseCard.style.display = 'flex';
-    events.emit('game:pause', {});
+    events.emit('game:pause', {});  // → the notebook opens at Settings, cursor free
   }
+  /** Call only from inside a real input event (click / keydown): it re-captures the pointer. */
   function resume() {
+    if (!game.paused) return;
     input.requestLock();            // capture first: requestFullscreen consumes the click
-    if (wantFullscreen) fs.enter();
-    pauseCard.style.display = 'none';
+    if (wantFullscreen()) fs.enter();
     game.paused = false;
     game.playing = true;
+    resumedAt = performance.now();
     events.emit('game:resume', {});
   }
-  pauseCard.addEventListener('mousedown', resume);
+  game.pause = pause;
+  game.resume = resume;
 
   title.addEventListener('mousedown', () => {
     synth.start();
     input.requestLock();            // capture first: requestFullscreen consumes the click
-    if (wantFullscreen) fs.enter();
+    if (wantFullscreen()) fs.enter();
     title.remove();
     game.playing = true;
     events.emit('game:start', {});
   });
 
   // Losing pointer lock while playing = the player pressed Esc (or alt-tabbed): pause.
+  // (Esc with the notebook open unpaused: the notebook closes, but the browser drops the lock too,
+  // so we land here and pause with the notebook at Settings, the only state with a usable cursor.)
   document.addEventListener('pointerlockchange', () => {
     if (!input.locked && input.mode === 'lock' && game.playing && !fsToggling) pause();
+  });
+  // The browser refuses to re-lock for ~1 s after the player left it with Esc. If "back to it"
+  // hit that window, go back to the paused notebook instead of running with a loose cursor.
+  document.addEventListener('pointerlockerror', () => {
+    if (game.playing && input.mode === 'lock' && performance.now() - resumedAt < 1500) pause();
   });
   document.addEventListener('fullscreenchange', () => {
     if (!fs.on && !fsToggling && game.playing) pause();
@@ -158,10 +162,12 @@ async function boot() {
     if (e.repeat) return;
     if (cfg.keys.fullscreen?.includes(e.code)) {
       e.preventDefault();
-      wantFullscreen = !fs.on;
-      if (fs.on) fs.exit(); else fs.enter();
+      const on = !fs.on;
+      game.settings?.set('fullscreen', on);
+      if (on) fs.enter(); else fs.exit();
     } else if (cfg.keys.pause?.includes(e.code) && game.playing && input.mode !== 'lock') {
       pause(); // click-drag fallback has no pointer lock to lose, so Esc pauses directly
+      // (with the notebook open unpaused, the notebook's key handler takes Esc first and closes it)
     }
   });
 
@@ -177,7 +183,9 @@ async function boot() {
   const fwd = new THREE.Vector3();
   function frame() {
     const dt = Math.min(clock.getDelta(), 0.05);
-    const time = (game.time = clock.elapsedTime);
+    const realTime = clock.elapsedTime;
+    if (!game.paused) game.time += dt; // play time: frozen while paused
+    const time = game.time;
     if (input.wasPressed('debug')) diag.toggle();
     if (game.playing) {
       if (input.wasPressed('flashlight')) game.flashlight.toggle();
@@ -194,8 +202,8 @@ async function boot() {
     game.focus = game.playing ? world.updateFocus(camera) : null;
     if (game.playing) updateGameplay(game, dt);
     updateDiegetic(game, dt);
-    highlightUniforms.uStrength.value = 0.32 + 0.12 * Math.sin(time * 4); // slow pulse
-    renderer.render(scene, camera, time);
+    highlightUniforms.uStrength.value = 0.32 + 0.12 * Math.sin(realTime * 4); // slow pulse
+    renderer.render(scene, camera, realTime); // grain keeps moving while paused
     renderDiegetic(game);
     const look = game.focus;
     diag.update(dt, { renderer, input, synth, player, extra: [

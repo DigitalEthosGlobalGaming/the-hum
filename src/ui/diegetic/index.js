@@ -34,6 +34,7 @@ export function installDiegetic(game) {
   const right = new RightArm(game);
   const watch = new Watch(game, left.arm.wristTop);
   const notebook = new Notebook(game);
+  const menu = notebook.menu;
   const pockets = new Pockets(game);
   vm.scene.add(left.root, right.root, notebook.group, notebook.sheet, pockets.group);
   const text = new TextLayer(game);
@@ -41,17 +42,19 @@ export function installDiegetic(game) {
   const vitals = new Vitals(game);
 
   S = {
-    game, gate, vm, flashlight, left, right, watch, notebook, pockets, text, map, vitals,
+    game, gate, vm, flashlight, left, right, watch, notebook, menu, pockets, text, map, vitals,
     w: { watch: 0, note: 0, pockets: 0, inspect: 0, reach: 0 },
-    notebookOpen: false, inspect: false, pocketsOpen: false, watchUp: false,
+    get notebookOpen() { return menu.open; },
+    inspect: false, pocketsOpen: false, watchUp: false,
     captions: [], surface: null, mapSeen: -1, inv: game.inventory ?? null,
     reading: false,
   };
 
   // Public read-only state other systems may check (see CONTRACTS.md, "game.diegetic").
   game.diegetic = {
-    map, notebook, vitals,
+    map, notebook, vitals, menu,
     get notebookOpen() { return S.notebookOpen; },
+    get section() { return menu.open ? menu.sectionId : null; },
     get pocketsOpen() { return S.pocketsOpen; },
     get inspecting() { return S.inspect; },
     get reading() { return S.notebookOpen || S.inspect; },
@@ -72,21 +75,43 @@ export function installDiegetic(game) {
     if (display === 'inspect') {
       notebook.inspect(p);
       S.inspect = true;
-      S.notebookOpen = false;
+      menu.close();
       game.synth?.play?.('paper_rustle', { volume: 0.7 });
     } else if (display === 'surface') {
       const text = p.text ?? p.title ?? '';
       S.surface = { text, until: game.time + Math.max(3, text.length * 0.07) };
     } else {
       const idx = notebook.addNote(p);
-      notebook.open(idx);
-      S.notebookOpen = true;
       S.inspect = false; // (M4 plays paper_rustle itself for notebook reads)
+      notebook.open(idx);
     }
   });
   ev.on('ui:caption', (p) => pushCaption(p?.text ?? '', p?.seconds ?? 3, false, p?.key));
   ev.on('ui:captionClear', (p) => dropCaption(p?.key));
   ev.on('game:resize', () => { vm.resize(); text.resize(); });
+  // the hub: Esc pauses → the notebook opens at Settings; resuming closes it
+  ev.on('game:pause', () => { S.inspect = false; menu.show('settings'); });
+  ev.on('game:resume', () => menu.close());
+  ev.on('settings:change', ({ key, value } = {}) => {
+    if (key === 'textGrit') setTextGrit(value);
+    if (key === 'textScale' || key === 'textGrit') text.dirty = true;
+  });
+  ev.on('secret:found', () => pushCaption('(something written in the back of the notebook)', 3, true));
+  menu.hooks.closeInspect = () => {
+    if (!S.inspect) return false;
+    S.inspect = false;
+    game.synth?.play?.('paper_rustle', { volume: 0.5 });
+    return true;
+  };
+  menu.hooks.onOpen = () => { S.inspect = false; };
+  // Menu keys + mouse run inside the DOM events (pointer lock / fullscreen need a real input event).
+  // Registered before main.js's own keydown handler, so a consumed key (Enter, Esc) stops there.
+  addEventListener('keydown', (e) => {
+    if (menu.onKeyDown(e)) { e.preventDefault(); e.stopImmediatePropagation(); }
+  });
+  addEventListener('mousedown', (e) => { if (menu.onMouse('down', e)) e.preventDefault(); });
+  addEventListener('mousemove', (e) => menu.onMouse('move', e));
+  addEventListener('mouseup', (e) => menu.onMouse('up', e));
 
   right.onInventoryChange();
   right.swap = 0.99; // first item appears from below
@@ -112,7 +137,7 @@ function pushCaption(text, seconds = 3, system = false, key = null) {
 
 export function updateDiegetic(game, dt) {
   if (!S) return;
-  const { gate, vm, flashlight, left, right, watch, notebook, pockets, map, vitals, w } = S;
+  const { gate, vm, flashlight, left, right, watch, notebook, menu, pockets, map, vitals, w } = S;
   const raw = gate.raw;
   const playing = game.playing;
   const ui = game.cfg.ui ?? {};
@@ -121,17 +146,7 @@ export function updateDiegetic(game, dt) {
   if (game.inventory !== S.inv) { S.inv = game.inventory; right.onInventoryChange(); }
   if (__DEV__) updateInventoryStub(game, raw);
 
-  // ── modes ──
-  if (playing && raw.wasPressed('notebook')) {
-    if (S.inspect) S.inspect = false;
-    else S.notebookOpen = !S.notebookOpen;
-    game.synth?.play?.('paper_rustle', { volume: 0.5 });
-  }
-  if (S.notebookOpen) {
-    if (raw.wasPressed('left')) notebook.flip(-1);
-    if (raw.wasPressed('right')) notebook.flip(1);
-    if (raw.wasPressed('pause')) S.notebookOpen = false;
-  }
+  // ── modes ── (notebook keys are handled by menu.onKeyDown, in the DOM event)
   if (S.inspect && notebook.inspecting && game.time - notebook.inspecting.at > 0.3) {
     const dismiss = ['interact', 'use', 'pause', ...MOVE].some((a) => raw.wasPressed(a));
     if (dismiss) S.inspect = false;
@@ -145,7 +160,8 @@ export function updateDiegetic(game, dt) {
   if (reading) for (const a of [...MOVE, 'interact', 'use', 'drop']) gate.blocked.add(a);
   if (S.pocketsOpen) for (const a of ['use', 'drop', 'left', 'right']) gate.blocked.add(a); // A/D move the pocket cursor
   if (vitals.exhausted) gate.blocked.add('sprint');
-  gate.blockLook = S.pocketsOpen;
+  gate.blockLook = S.pocketsOpen || menu.cursorFree; // a free cursor over the notebook is for the menu
+  game.input.captureSuspended = menu.cursorFree;   // clicks on the page mustn't re-capture the mouse
   if (game.gameplay) game.gameplay.inputBlocked = reading || S.pocketsOpen; // M4 ignores slot/E/use/drop
 
   // ── eased weights ──
@@ -206,9 +222,10 @@ export function renderDiegetic(game) {
 
   // notebook / inspected paper writing (projected onto the page in the view-model)
   if (w.note > 0.6 || w.inspect > 0.6) notebook.drawText(text, vm.camera, w.note, w.inspect);
-  if (S.notebookOpen && prompts && w.note > 0.9 && notebook.pages.length > 1) {
+  if (S.notebookOpen && prompts && w.note > 0.9) {
     const kl = (a, d) => keyLabel(game.cfg.keys?.[a]?.[0] ?? d);
-    text.tag(`${kl('left', 'KeyA')} ←  page  → ${kl('right', 'KeyD')}`, W / 2, H - M, { anchor: [0.5, 1], size: 0.8 });
+    const close = game.paused ? '' : `   ${kl('notebook', 'Tab')} · close`;
+    text.tag(`${kl('left', 'KeyA')} ←  page  → ${kl('right', 'KeyD')}${close}`, W / 2, H - M * 0.4, { anchor: [0.5, 1], size: 0.72 });
   }
 
   // pocket name tags
@@ -273,7 +290,7 @@ function mountGritSlider(game) {
   input.value = game.cfg.ui?.textGrit ?? 0.4;
   const out = document.createElement('span');
   const sync = () => { setTextGrit(input.value); out.textContent = Number(input.value).toFixed(2); };
-  input.addEventListener('input', sync);
+  input.addEventListener('input', () => { if (game.settings) game.settings.set('textGrit', Number(input.value)); sync(); });
   input.addEventListener('keydown', (e) => e.stopPropagation());
   box.append('text grit', input, out);
   document.body.appendChild(box);
