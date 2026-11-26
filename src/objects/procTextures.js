@@ -106,19 +106,50 @@ const painters = {
     return [16, 16];
   },
 
-  jacket(g, rng) {
-    g.fillStyle = '#34312b'; g.fillRect(0, 0, 32, 32);
-    speckle(g, 32, 32, rng, 0.14);
-    g.fillStyle = 'rgba(0,0,0,0.3)'; for (let x = 2; x < 32; x += 6) g.fillRect(x + rng.int(0, 1), 0, 1, 32);
+  // the pocket case (src/ui/diegetic/pocketCase.js): scuffed oxblood vinyl, worn green lining
+  leather(g, rng) {
+    g.fillStyle = '#4b2a1d'; g.fillRect(0, 0, 32, 32);
+    speckle(g, 32, 32, rng, 0.12);
+    for (let i = 0; i < 6; i++) {                                                    // scuffs
+      g.fillStyle = `rgba(160,110,80,${0.12 + rng.next() * 0.12})`;
+      g.fillRect(rng.int(0, 28), rng.int(0, 30), rng.int(2, 6), 1);
+    }
+    g.fillStyle = 'rgba(0,0,0,0.28)';                                                // creases
+    for (let i = 0; i < 4; i++) { const y = rng.int(2, 29); g.fillRect(rng.int(0, 10), y, rng.int(8, 20), 1); }
     return [32, 32];
   },
 
-  pocket(g, rng) {
-    g.fillStyle = '#1b1915'; g.fillRect(0, 0, 32, 16);
-    g.fillStyle = '#4a453b'; g.fillRect(0, 0, 32, 2);                               // stitched lip
-    g.fillStyle = '#8a8070'; for (let x = 1; x < 32; x += 3) g.fillRect(x, 3, 1, 1);  // stitches
-    speckle(g, 32, 16, rng, 0.1);
-    return [32, 16];
+  lining(g, rng) {
+    g.fillStyle = '#4a5a40'; g.fillRect(0, 0, 32, 32);
+    g.fillStyle = 'rgba(0,0,0,0.22)';                                                // diamond weave
+    for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) if ((x + y) % 8 === 0 || (x - y + 32) % 8 === 0) g.fillRect(x, y, 1, 1);
+    g.fillStyle = 'rgba(200,190,140,0.10)';
+    for (let y = 4; y < 32; y += 8) for (let x = 4; x < 32; x += 8) g.fillRect(x, y, 1, 1);
+    speckle(g, 32, 32, rng, 0.08);
+    g.fillStyle = 'rgba(60,40,20,0.22)'; g.fillRect(rng.int(4, 18), rng.int(4, 18), 9, 7); // old stain
+    return [32, 32];
+  },
+
+  brass(g, rng) {
+    g.fillStyle = '#8c6f2e'; g.fillRect(0, 0, 8, 8);
+    g.fillStyle = '#c8a95a'; g.fillRect(1, 1, 5, 1); g.fillRect(1, 2, 1, 3);
+    g.fillStyle = '#4d3a16'; g.fillRect(0, 7, 8, 1); g.fillRect(7, 0, 1, 8);
+    speckle(g, 8, 8, rng, 0.1);
+    return [8, 8];
+  },
+
+  elastic(g, rng) { // faded mustard webbing, ribbed
+    g.fillStyle = '#6e5c38'; g.fillRect(0, 0, 16, 8);
+    g.fillStyle = 'rgba(0,0,0,0.3)'; for (let x = 1; x < 16; x += 2) g.fillRect(x, 0, 1, 8);
+    g.fillStyle = 'rgba(0,0,0,0.4)'; g.fillRect(0, 0, 16, 1); g.fillRect(0, 7, 16, 1);
+    speckle(g, 16, 8, rng, 0.08);
+    return [16, 8];
+  },
+
+  stitch(g) { // cream dashes on transparent (decal)
+    g.fillStyle = '#b9a984';
+    for (let x = 1; x < 32; x += 4) g.fillRect(x, 1, 2, 2);
+    return [32, 4];
   },
 
   cover(g, rng) {

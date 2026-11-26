@@ -126,7 +126,7 @@ test('controls list from config.keys', () => {
   assert.equal(by.move, 'W A S D / arrows');
   assert.equal(by.sprint, 'Shift');
   assert.equal(by.use, 'left click / R');
-  assert.equal(by.pockets, 'Q (hold)');
+  assert.equal(by.pockets, 'Q');
   assert.equal(by.watch, 'Z (hold)');
   assert.equal(by.notebook, 'Tab / M');
   assert.equal(by.pause, 'Esc');

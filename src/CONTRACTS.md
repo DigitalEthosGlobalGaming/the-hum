@@ -84,8 +84,11 @@ The notebook is a two-page spread and the game's menu. Sections, in page order, 
 
 ## Input gating (M5)
 M5 wraps the `game.input` instance (not `core/input.js`): while the notebook / an inspected paper is
-up, `held()`/`wasPressed()` return false for movement, `interact`, `use`, `drop`; while the pockets view
-is open, mouse look reads 0 and `use`/`drop`/`left`/`right` drive the pocket cursor; when exhausted,
+up, `held()`/`wasPressed()` return false for movement, `interact`, `use`, `drop`; while the pocket case
+is open (Q toggles it; Esc, pausing or opening the notebook close it), mouse look reads 0 and all movement
+(WASD/arrows, sprint, crouch) plus `interact`/`use`/`drop`/`throw` read false: the case reads them raw
+(mouse / `left`/`right`/wheel move the pointer between the torch and the items, wrapping; `interact` takes
+the pointed item in hand; `use` combines the item in hand with it via `combineSlots`); when exhausted,
 `sprint` reads false. M5 also sets `game.gameplay.inputBlocked` in those modes.
 
 ## World (M3) — what other systems may call

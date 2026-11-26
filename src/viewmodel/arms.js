@@ -39,7 +39,7 @@ export class LeftArm {
     this.poses = {
       idle: P(-0.16, -0.15, -0.36, 0.04, -0.14, 0.08),
       watch: P(0.0, -0.07, -0.23, 0.22, -1.35, -1.2),
-      pockets: P(-0.2, -0.62, -0.34, 0.04, -0.14, 0.08), // drops out of view; the torch shows in the jacket instead
+      pockets: P(-0.2, -0.62, -0.34, 0.04, -0.14, 0.08), // drops out of view; the torch shows clipped in the case lid instead
     };
   }
 
@@ -65,7 +65,7 @@ export class RightArm {
     this.poses = {
       idle: P(0.17, -0.165, -0.38, 0.06, 0.16, -0.06),
       reach: P(0.13, -0.135, -0.47, 0.18, 0.06, -0.02),
-      point: P(0, 0, 0, 0.45, 0.2, 0.1),
+      point: P(0, 0, 0, 0.3, 0.25, 0.1), // pockets: index finger at the pocket case (pockets.js places the wrist)
     };
     this.shownKey = null;    // stack identity currently in the hand
     this.item = null;

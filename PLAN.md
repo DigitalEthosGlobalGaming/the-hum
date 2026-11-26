@@ -230,7 +230,7 @@ export default {
 - **4 slots.** Select with **1–4** or the **mouse wheel**. The selected item is **held in your right hand** (diegetic view model).
 - **Left-click = use** the held item (`use` component). **E = interact** with what you're looking at. If you're holding something and the target has a matching `combine` rule, E combines instead.
 - **G = drop** the held item, placed in the world and saved.
-- **Pocket check (diegetic):** hold **Q** to look down at your open jacket and see all four pocket items (rendered as small 3D models). Pockets are full when there's no room left. The hand shakes the item when you try to pick up a fifth.
+- **Pocket check (diegetic):** press **Q** (again, or Esc, to shut it) to open a small battered suitcase in front of you: the four pockets are compartments in its worn lining holding the items' real 3D models under elastic bands, the torch is clipped sideways inside the lid, and the hovered item's name is written on a luggage tag. Mouse or A/D (←/→) moves the pointing hand between them; E takes one in hand, click uses the held item with it. Pockets are full when there's no room left. The hand shakes the item when you try to pick up a fifth.
 - Items with `size: 2` take two slots (for example a crowbar).
 
 ### 5.2 Combining
