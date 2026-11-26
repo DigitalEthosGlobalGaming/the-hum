@@ -1,0 +1,20 @@
+{
+  "id": "fluoro_hum_unit",
+  "note": "One ceiling tube's hum (loop, positional): 120 Hz ballast tone with harmonics and a hiss. Several play at once from the nearest working fixtures; the per-play pitch roll makes them beat.",
+  "bus": "env",
+  "volume": 0.55,
+  "spatial": true,
+  "refDistance": 1.5,
+  "maxDistance": 18,
+  "rolloff": 1.3,
+  "reverb": 0.12,
+  "loop": true,
+  "vary": {"pitch": 0.14, "filter": 0.1},
+  "layers": [
+    {"note": "ballast fundamental", "osc": "sine", "freq": 120, "gain": 0.22, "env": {"a": 0.4, "d": 0, "s": 1, "r": 0.3}, "lfo": {"target": "gain", "wave": "noise", "rate": 0.15, "depth": 0.15}},
+    {"note": "2nd harmonic", "osc": "sine", "freq": 240, "gain": 0.07, "env": {"a": 0.4, "d": 0, "s": 1, "r": 0.3}},
+    {"note": "mains body", "osc": "saw", "freq": 60, "gain": 0.05, "filter": {"type": "lowpass", "freq": 420, "q": 0.9}, "env": {"a": 0.4, "d": 0, "s": 1, "r": 0.3}},
+    {"note": "buzz edge", "osc": "square", "freq": 120, "gain": 0.012, "filter": {"type": "bandpass", "freq": 1900, "q": 3}, "env": {"a": 0.4, "d": 0, "s": 1, "r": 0.3}, "lfo": {"target": "gain", "wave": "noise", "rate": 0.4, "depth": 0.6}},
+    {"note": "ballast hiss", "noise": "white", "gain": 0.008, "filter": {"type": "bandpass", "freq": 5200, "q": 1.2}, "env": {"a": 0.5, "d": 0, "s": 1, "r": 0.3}}
+  ]
+}

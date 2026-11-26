@@ -1,0 +1,17 @@
+{
+  "id": "far_step",
+  "note": "Distant event: one footstep a few rooms away (the director chains them; they stop when you stop).",
+  "bus": "env",
+  "volume": 1.5,
+  "spatial": true,
+  "refDistance": 5,
+  "maxDistance": 60,
+  "rolloff": 0.6,
+  "reverb": 0.6,
+  "vary": {"pitch": 2, "filter": 0.3, "gain": 3},
+  "layers": [
+    {"note": "heel", "noise": "brown", "rate": 0.7, "gain": 0.8, "filter": {"type": "lowpass", "freq": 300, "q": 0.8}, "env": {"a": 0.005, "d": 0.18}},
+    {"note": "weight", "osc": "sine", "freq": 75, "gain": 0.35, "pitchEnv": {"to": 0.7, "time": 0.1}, "env": {"a": 0.004, "d": 0.16}},
+    {"note": "scuff", "noise": "pink", "gain": 0.08, "start": 0.03, "filter": {"type": "bandpass", "freq": 1200, "q": 0.9}, "env": {"a": 0.01, "d": 0.08}, "vary": {"time": 0.03, "gain": 4}}
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "room_tone",
+  "note": "Room tone bed (loop, head-locked): building rumble, air handling far off and a ghost of mains. Sits under everything so silence is never digital zero.",
+  "bus": "env",
+  "volume": 0.5,
+  "loop": true,
+  "vary": {"filter": 0.1},
+  "layers": [
+    {"note": "structure rumble", "noise": "brown", "rate": 0.6, "gain": 0.32, "filter": {"type": "lowpass", "freq": 140, "q": 0.7}, "env": {"a": 3, "d": 0, "s": 1, "r": 2}, "lfo": {"target": "gain", "wave": "noise", "rate": 0.07, "depth": 0.35}},
+    {"note": "far air", "noise": "pink", "gain": 0.03, "filter": {"type": "bandpass", "freq": 520, "q": 0.6}, "env": {"a": 4, "d": 0, "s": 1, "r": 2}, "lfo": {"target": "filter", "wave": "noise", "rate": 0.05, "depth": 300}},
+    {"note": "mains ghost", "osc": "sine", "freq": 60, "gain": 0.012, "env": {"a": 4, "d": 0, "s": 1, "r": 2}, "lfo": {"target": "gain", "wave": "noise", "rate": 0.11, "depth": 0.5}}
+  ]
+}

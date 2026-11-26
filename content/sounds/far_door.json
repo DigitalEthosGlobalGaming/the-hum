@@ -1,0 +1,18 @@
+{
+  "id": "far_door",
+  "note": "Distant event: a door somewhere swings and shuts. Short hinge whine, latch, a dull slam.",
+  "bus": "env",
+  "volume": 1.3,
+  "spatial": true,
+  "refDistance": 6,
+  "maxDistance": 80,
+  "rolloff": 0.5,
+  "reverb": 0.75,
+  "vary": {"pitch": 1.5, "filter": 0.3, "gain": 2},
+  "layers": [
+    {"note": "hinge whine", "osc": "saw", "freq": 55, "gain": 0.5, "pitchEnv": {"to": 1.5, "time": 0.6, "curve": "lin"}, "filter": {"type": "bandpass", "freq": 700, "q": 7}, "env": {"a": 0.1, "d": 0.2, "s": 0.6, "sus": 0.25, "r": 0.15}, "lfo": {"target": "pitch", "wave": "noise", "rate": 8, "depth": 300}},
+    {"note": "slam", "noise": "brown", "gain": 0.8, "start": 0.75, "filter": {"type": "lowpass", "freq": 260, "q": 1}, "env": {"a": 0.002, "d": 0.5}},
+    {"note": "slam sub", "osc": "sine", "freq": 70, "gain": 0.5, "start": 0.75, "pitchEnv": {"to": 0.6, "time": 0.25}, "env": {"a": 0.002, "d": 0.45}},
+    {"note": "latch", "noise": "white", "gain": 0.12, "start": 0.76, "filter": {"type": "bandpass", "freq": 2200, "q": 3}, "env": {"a": 0.0005, "d": 0.03}}
+  ]
+}

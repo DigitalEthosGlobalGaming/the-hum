@@ -1,0 +1,18 @@
+{
+  "id": "far_phone",
+  "note": "Distant event: a desk phone rings twice somewhere far off, then stops. Bells dulled by walls.",
+  "bus": "env",
+  "volume": 0.9,
+  "spatial": true,
+  "refDistance": 5,
+  "maxDistance": 80,
+  "rolloff": 0.6,
+  "reverb": 0.7,
+  "repeat": {"count": 2, "interval": 3, "jitter": 0.05},
+  "vary": {"pitch": 0.3},
+  "layers": [
+    {"note": "bell A", "osc": "sine", "freq": 1174, "gain": 0.4, "env": {"a": 0.004, "d": 0.03, "s": 0.85, "sus": 0.36, "r": 0.15}, "lfo": {"target": "gain", "wave": "square", "rate": 19.5, "depth": 0.85}, "repeat": {"count": 2, "interval": 0.6}},
+    {"note": "bell B", "osc": "sine", "freq": 1229, "gain": 0.3, "env": {"a": 0.004, "d": 0.03, "s": 0.85, "sus": 0.36, "r": 0.18}, "lfo": {"target": "gain", "wave": "square", "rate": 19.5, "depth": 0.85}, "repeat": {"count": 2, "interval": 0.6}},
+    {"note": "hammer", "noise": "white", "gain": 0.06, "filter": {"type": "bandpass", "freq": 2400, "q": 3}, "env": {"a": 0.003, "d": 0.02, "s": 0.7, "sus": 0.36, "r": 0.04}, "lfo": {"target": "gain", "wave": "square", "rate": 19.5, "depth": 1}, "repeat": {"count": 2, "interval": 0.6}}
+  ]
+}

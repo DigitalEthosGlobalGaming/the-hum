@@ -3,7 +3,7 @@
   "note": "Grating or catwalk: dull impact plus the inharmonic ring of a metal plate.",
   "bus": "sfx",
   "volume": 0.55,
-  "reverb": 0.3,
+  "reverb": 0.2,
   "vary": {"pitch": 1, "filter": 0.2, "gain": 2},
   "layers": [
     {"note": "impact", "noise": "white", "gain": 0.25, "filter": {"type": "bandpass", "freq": 1900, "q": 1.5}, "env": {"a": 0.001, "d": 0.04}},

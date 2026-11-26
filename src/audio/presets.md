@@ -19,7 +19,7 @@ listen to.
 |---|---|---|
 | `id` | file name | must match the file name |
 | `note` | | free text, shown as a tooltip on the dev sound board |
-| `bus` | `"sfx"` | `ambience` \| `sfx` \| `tenant`, so the settings sliders apply to it |
+| `bus` | `"sfx"` | `ambience` \| `sfx` \| `tenant` \| `env`, so the settings sliders apply to it. `env` (environment: hum, room tone, drips, vents, distant events) feeds the ambience bus and is ducked / paused by src/ambience |
 | `volume` | `1` | preset gain (0–2), multiplied by `play(..., { volume })` |
 | `spatial` | `false` | if true and `play()` gets a `position`, the sound goes through a PannerNode (HRTF if available) |
 | `refDistance` / `maxDistance` / `rolloff` | `1` / `30` / `1` | inverse distance model, in metres |
@@ -96,12 +96,20 @@ warning) and by `tools/sound-check.mjs`.
 
 ## Engine notes
 
-- Voices are capped (24 by default). A new play steals the **oldest non-looping** voice with a 30 ms
+- Voices are capped (32 by default; `config.audio.maxVoices`). A new play steals the **oldest non-looping** voice with a 30 ms
   fade. Loops are never stolen. If only loops are playing, the new one-shot is dropped.
 - An unknown preset id logs one `console.warn` and returns a dead handle (`playing: false`, with
   no-op methods). So does `play()` before `synth.start()`.
-- Reverb is one ConvolverNode with a generated impulse (darkening decaying noise, about 1.7 s RT60).
-  Each bus has its own send gain that follows its slider, so muting a bus also mutes its tail.
+- Reverb: three ConvolverNodes with generated impulses (`ROOM_IMPULSES` in synth.js: small office
+  0.45 s with early reflections, big hall 2.9 s, corridor 1.5 s with a flutter echo), crossfaded by
+  `synth.setAcoustics(weights, sendScales, fade)` from the listener's surroundings (src/ambience).
+  Each bus has a send gain that follows its slider (muting a bus also mutes its tail) and a send
+  scale set by the acoustics, so footsteps are tight in small rooms and washy in halls.
+- Positioned spatial voices run `out → occlusion lowpass → occlusion gain → panner`; it starts
+  transparent and `voice.setOcclusion(cutoffHz, gain, tau)` muffles it. The reverb send is taken after
+  the lowpass, so an occluded sound fills the room dark. `play(id, { occlude: false })` skips it.
+- `synth.playHooks` (fn(voice, id, opts)) run after every play; src/ambience uses them to occlude new
+  voices at once and to duck the env bus under stings.
 - Master goes through a memoryless soft-clip WaveShaper. It is linear up to about -3 dBFS and
   rounds off above that. It is a safety net, not a mix tool, and it has no attack or release, so
   it can't pump. (Chrome's DynamicsCompressor dulled short clicks by 6-13 dB even well below its
