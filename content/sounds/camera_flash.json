@@ -1,0 +1,56 @@
+{
+  "id": "camera_flash",
+  "note": "Disposable camera: shutter clack, the flash pop, then the capacitor whine climbing as it recharges.",
+  "bus": "sfx",
+  "volume": 0.65,
+  "reverb": 0.15,
+  "layers": [
+    {
+      "note": "shutter",
+      "noise": "white",
+      "gain": 0.55,
+      "filter": {
+        "type": "bandpass",
+        "freq": 2600,
+        "q": 2
+      },
+      "env": {
+        "a": 0.0005,
+        "d": 0.025
+      }
+    },
+    {
+      "note": "pop",
+      "noise": "pink",
+      "gain": 0.4,
+      "start": 0.01,
+      "filter": {
+        "type": "lowpass",
+        "freq": 1800
+      },
+      "env": {
+        "a": 0.0005,
+        "d": 0.05
+      }
+    },
+    {
+      "note": "recharge whine",
+      "osc": "sine",
+      "freq": 2400,
+      "gain": 0.04,
+      "start": 0.15,
+      "pitchEnv": {
+        "to": 2.6,
+        "time": 1.6,
+        "curve": "lin"
+      },
+      "env": {
+        "a": 0.1,
+        "d": 0.1,
+        "s": 0.9,
+        "sus": 1.3,
+        "r": 0.2
+      }
+    }
+  ]
+}

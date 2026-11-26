@@ -1,0 +1,21 @@
+{
+  "id": "flash_camera",
+  "name": "Disposable camera",
+  "tags": [
+    "tool",
+    "light"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "flash_camera"
+  },
+  "components": {
+    "pickup": {},
+    "use": {
+      "script": "camera_flash",
+      "params": {
+        "shots": 12
+      }
+    }
+  }
+}

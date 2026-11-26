@@ -2,12 +2,19 @@
 // Page 1 is the auto-map; following pages are collected notes, paginated. The page *texture* holds
 // only paper, rules and the pencil map (it goes through the PS1 pass with the hands); the writing
 // is drawn crisp on the full-res text layer, mapped onto the page's projected corners.
+//
+// Page kinds: 'map' (page 1, the auto-map), 'note' (addNote), and through addPage():
+//   'photo'     { image: canvas, caption }        a flash-camera photo taped in, handwritten caption
+//   'wanderer'  { face, name, role, text }        an ID badge copied in (face drawn by story/wanderers)
+//   'mapReveal' { revealId, caption }             an evacuation map sketched from the wall
+// Images go into the page texture (so they get the PS1 treatment with the hands); captions are ink.
 import * as THREE from 'three';
 const _c = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
 import { makeVMMaterial, canvasTexture } from '../../viewmodel/vmMaterial.js';
 import { box, smooth } from '../../viewmodel/viewModel.js';
 import { makeCanvas, wrapText, HAND_FONT } from './text.js';
 import { hash, Rng } from '../../core/rng.js';
+import { drawFace } from '../../story/wanderers.js';
 
 const PW = 160, PH = 216;          // page texture size
 // page units (= texture px). Line height 1.4, ~28 characters per line max.
@@ -96,6 +103,22 @@ export class Notebook {
     return first;
   }
 
+  /**
+   * Add a picture page (photo / wanderer / mapReveal; see the header). Deduped by `page.id`.
+   * `page.caption` is wrapped into handwritten lines under the picture. Returns the page index.
+   */
+  addPage(page) {
+    const id = page.id ?? `${page.kind}:${this.pages.length}`;
+    const found = this.pages.findIndex((p) => p.id === id);
+    if (found >= 0) return found;
+    const top = PAGE_TOP[page.kind] ?? TEXT.top;
+    const max = Math.max(1, Math.floor((PH - top - TEXT.size - 12) / TEXT.lineH) + 1);
+    const lines = wrapText(this.g, page.caption ?? '', TEXT.width, FONT(TEXT.size)).slice(0, max);
+    this.pages.push({ ...page, id, title: page.title ?? '', lines, top });
+    this.drawnPage = -1;
+    return this.pages.length - 1;
+  }
+
   open(page = this.page) { this.page = Math.max(0, Math.min(this.pages.length - 1, page)); this.drawnPage = -1; }
 
   flip(dir) {
@@ -111,6 +134,9 @@ export class Notebook {
     const p = this.pages[i];
     paperBase(g, hash('page', i, p.id ?? 'map'), { margin: p.kind !== 'map' });
     if (p.kind === 'map') this.game.diegetic?.map?.draw(g, PW, PH, this.game.player, { top: 26, bottom: PH - 16 });
+    else if (p.kind === 'photo') drawPhoto(g, p, hash('photo', p.id));
+    else if (p.kind === 'wanderer') drawBadge(g, p);
+    else if (p.kind === 'mapReveal') this.game.diegetic?.map?.drawReveal?.(g, PW, PH, p.revealId, { top: 26, bottom: p.top - 6 });
     this.tex.needsUpdate = true;
     this.drawnPage = i;
   }
@@ -135,7 +161,7 @@ export class Notebook {
         layer.page(tl, tr, bl, PW, PH, alpha, (g) => writePage(layer, g, {
           title: p.kind === 'map' ? 'where I have been' : (p.cont ? '(cont.) ' : '') + p.title,
           red: p.kind !== 'map',
-          lines: p.lines, label: `${this.page + 1}/${this.pages.length}`, seed: hash(p.id ?? 'map', this.page),
+          lines: p.lines, label: `${this.page + 1}/${this.pages.length}`, seed: hash(p.id ?? 'map', this.page), top: p.top,
         }));
       }
     }
@@ -160,7 +186,8 @@ export class Notebook {
     }
     if (wBook > 0.01) {
       this.mapTimer -= dt;
-      const isMap = this.pages[this.page]?.kind === 'map';
+      const kind = this.pages[this.page]?.kind;
+      const isMap = kind === 'map' || kind === 'mapReveal'; // reveal pages grow "?" as you learn more
       if (this.drawnPage !== this.page || (isMap && this.mapTimer <= 0 && mapVersionChanged())) {
         this.drawPage(this.page);
         this.mapTimer = 0.25;
@@ -182,10 +209,47 @@ function corners(mesh, hw, hh, camera, W, H) {
 }
 
 // Writing goes through layer.ink so the textGrit dial (jitter, bleed, ink colour) applies here too.
-function writePage(layer, g, { title, lines, label, seed, red = true }) {
+function writePage(layer, g, { title, lines, label, seed, red = true, top = TEXT.top }) {
   if (title) layer.ink([title], TEXT.x, 20, 11, 13, hash(seed, 't'), red ? layer.red : undefined, g);
-  if (lines?.length) layer.ink(lines, TEXT.x, TEXT.top + TEXT.size, TEXT.size, TEXT.lineH, seed, undefined, g);
+  if (lines?.length) layer.ink(lines, TEXT.x, top + TEXT.size, TEXT.size, TEXT.lineH, seed, undefined, g);
   if (label) layer.ink([label], PW - 34, PH - 8, 8, 10, hash(seed, 'n'), '#4a4438', g);
+}
+
+// Where the handwriting starts on picture pages (page units).
+const PAGE_TOP = { photo: 140, wanderer: 128, mapReveal: 150 };
+
+/** A photo taped in at a slight angle, white border, two strips of yellowed tape. */
+function drawPhoto(g, p, seed) {
+  const r = new Rng(seed);
+  const img = p.image;
+  const w = 124, h = img ? Math.round((124 * img.height) / img.width) : 93;
+  g.save();
+  g.translate(PW / 2, 30 + h / 2 + 4);
+  g.rotate((r.next() - 0.5) * 0.08);
+  g.fillStyle = 'rgba(0,0,0,0.18)'; g.fillRect(-w / 2 - 3, -h / 2 - 2, w + 8, h + 8);   // shadow
+  g.fillStyle = '#ece8dc'; g.fillRect(-w / 2 - 4, -h / 2 - 4, w + 8, h + 8);             // border
+  if (img) { g.imageSmoothingEnabled = false; g.drawImage(img, -w / 2, -h / 2, w, h); }
+  else { g.fillStyle = '#111'; g.fillRect(-w / 2, -h / 2, w, h); }
+  g.fillStyle = 'rgba(214,200,140,0.6)';
+  g.save(); g.translate(-w / 2 + 6, -h / 2 - 3); g.rotate(-0.5); g.fillRect(-10, -3, 22, 7); g.restore();
+  g.save(); g.translate(w / 2 - 6, h / 2 + 3); g.rotate(-0.5); g.fillRect(-10, -3, 22, 7); g.restore();
+  g.restore();
+}
+
+/** The badge card: photo, number strip, clip hole. Name and role are written as ink. */
+function drawBadge(g, p) {
+  const x = 44, y = 28, w = 72, h = 92;
+  g.fillStyle = 'rgba(0,0,0,0.18)'; g.fillRect(x + 3, y + 3, w, h);
+  g.fillStyle = '#f1efe6'; g.fillRect(x, y, w, h);
+  g.fillStyle = '#3d5a7a'; g.fillRect(x, y, w, 12);                       // header band
+  g.fillStyle = '#e8e2c8'; g.fillRect(x + 4, y + 3, 26, 3); g.fillRect(x + 4, y + 7, 16, 2);
+  g.fillStyle = '#d8d4c8'; g.fillRect(x + w / 2 - 7, y + 2, 14, 4);      // clip slot
+  g.fillStyle = '#2a2a2a'; g.fillRect(x + w / 2 - 5, y + 3, 10, 2);
+  if (p.face) drawFace(g, x + 14, y + 16, 44, 50, p.face);
+  g.fillStyle = '#333'; g.fillRect(x + 8, y + 72, w - 16, 2); g.fillRect(x + 8, y + 77, w - 30, 2);
+  g.fillStyle = '#b02a20'; g.fillRect(x + w - 18, y + 76, 10, 10);       // clearance square
+  g.fillStyle = '#111';                                                   // barcode
+  for (let i = 0; i < 22; i++) if ((p.number?.charCodeAt(i % 4) ?? 3) * (i + 3) % 3) g.fillRect(x + 8 + i * 2, y + 82, 1, 6);
 }
 
 function pose(g, vm, w, z) {

@@ -1,0 +1,40 @@
+{
+  "id": "string_snap",
+  "note": "Cotton string bitten through or pulled taut: a dull twang.",
+  "bus": "sfx",
+  "volume": 0.5,
+  "reverb": 0.1,
+  "vary": {
+    "pitch": 2
+  },
+  "layers": [
+    {
+      "note": "twang",
+      "osc": "triangle",
+      "freq": 520,
+      "gain": 0.25,
+      "pitchEnv": {
+        "to": 0.85,
+        "time": 0.15
+      },
+      "env": {
+        "a": 0.001,
+        "d": 0.22
+      }
+    },
+    {
+      "note": "fibre",
+      "noise": "white",
+      "gain": 0.2,
+      "filter": {
+        "type": "bandpass",
+        "freq": 2800,
+        "q": 2
+      },
+      "env": {
+        "a": 0.001,
+        "d": 0.04
+      }
+    }
+  ]
+}

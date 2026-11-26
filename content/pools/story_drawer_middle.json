@@ -1,0 +1,34 @@
+{
+  "id": "story_drawer_middle",
+  "note": "Filing cabinet middle drawer: supplies.",
+  "entries": [
+    {
+      "def": "coin",
+      "w": 24
+    },
+    {
+      "def": "battery",
+      "w": 18
+    },
+    {
+      "def": "chalk",
+      "w": 10
+    },
+    {
+      "def": "red_string",
+      "w": 6
+    },
+    {
+      "def": "fuse",
+      "w": 5
+    },
+    {
+      "def": "id_badge",
+      "w": 8
+    },
+    {
+      "def": null,
+      "w": 29
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "id": "typewriter_clack",
+  "note": "One typewriter key: typebar strike on the platen, a woody body knock.",
+  "bus": "sfx",
+  "volume": 0.55,
+  "spatial": true,
+  "refDistance": 1,
+  "maxDistance": 18,
+  "reverb": 0.15,
+  "vary": {
+    "pitch": 2,
+    "filter": 0.3,
+    "gain": 2
+  },
+  "layers": [
+    {
+      "note": "strike",
+      "noise": "white",
+      "gain": 0.6,
+      "filter": {
+        "type": "highpass",
+        "freq": 2200
+      },
+      "env": {
+        "a": 0.0005,
+        "d": 0.018
+      }
+    },
+    {
+      "note": "platen",
+      "noise": "pink",
+      "gain": 0.4,
+      "filter": {
+        "type": "bandpass",
+        "freq": 1100,
+        "q": 2
+      },
+      "env": {
+        "a": 0.0005,
+        "d": 0.04
+      }
+    },
+    {
+      "note": "body",
+      "osc": "triangle",
+      "freq": 260,
+      "gain": 0.2,
+      "pitchEnv": {
+        "to": 0.8,
+        "time": 0.03
+      },
+      "env": {
+        "a": 0.001,
+        "d": 0.05
+      }
+    },
+    {
+      "note": "key return",
+      "noise": "white",
+      "gain": 0.12,
+      "start": 0.05,
+      "filter": {
+        "type": "bandpass",
+        "freq": 3000,
+        "q": 3
+      },
+      "env": {
+        "a": 0.001,
+        "d": 0.015
+      }
+    }
+  ]
+}

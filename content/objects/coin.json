@@ -1,0 +1,14 @@
+{
+  "id": "coin",
+  "name": "Coin",
+  "tags": [
+    "currency"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "coin"
+  },
+  "components": {
+    "pickup": {}
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "id": "walkie_voice",
+  "note": "Another wanderer keys in: a narrow, broken voice-shaped buzz under static. No words.",
+  "bus": "sfx",
+  "volume": 0.6,
+  "reverb": 0,
+  "vary": {
+    "pitch": 2,
+    "filter": 0.2
+  },
+  "layers": [
+    {
+      "note": "voice buzz",
+      "osc": "saw",
+      "freq": 150,
+      "gain": 0.35,
+      "filter": {
+        "type": "bandpass",
+        "freq": 900,
+        "q": 3
+      },
+      "env": {
+        "a": 0.05,
+        "d": 0.1,
+        "s": 0.9,
+        "sus": 2.2,
+        "r": 0.2
+      },
+      "lfo": [
+        {
+          "target": "filter",
+          "wave": "noise",
+          "rate": 7,
+          "depth": 900
+        },
+        {
+          "target": "gain",
+          "wave": "noise",
+          "rate": 6,
+          "depth": 0.8
+        }
+      ]
+    },
+    {
+      "note": "pitch drift",
+      "osc": "saw",
+      "freq": 152,
+      "gain": 0.12,
+      "filter": {
+        "type": "bandpass",
+        "freq": 2100,
+        "q": 4
+      },
+      "env": {
+        "a": 0.05,
+        "d": 0.1,
+        "s": 0.9,
+        "sus": 2.2,
+        "r": 0.2
+      },
+      "lfo": {
+        "target": "gain",
+        "wave": "noise",
+        "rate": 9,
+        "depth": 0.9
+      }
+    },
+    {
+      "note": "static bed",
+      "noise": "white",
+      "gain": 0.2,
+      "filter": {
+        "type": "bandpass",
+        "freq": 2500,
+        "q": 0.8
+      },
+      "env": {
+        "a": 0.02,
+        "d": 0.1,
+        "s": 0.8,
+        "sus": 2.4,
+        "r": 0.2
+      }
+    },
+    {
+      "note": "squelch tail",
+      "noise": "white",
+      "gain": 0.3,
+      "start": 2.5,
+      "filter": {
+        "type": "highpass",
+        "freq": 1500
+      },
+      "env": {
+        "a": 0.001,
+        "d": 0.12
+      }
+    }
+  ]
+}

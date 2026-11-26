@@ -11,7 +11,7 @@ export const WALL_H = 3;
 export const BLOCK = 8;       // cells per slot block
 export const TILE_KINDS = { wall: true, pillar: true, floor: false, door: false, light: false, void: true }; // kind → solid
 export const MESH_TYPES = ['box', 'plane', 'sprite', 'prefab'];
-export const COMPONENT_TYPES = ['collider', 'readable', 'sound', 'light', 'interact', 'pickup', 'use', 'combine', 'door', 'hide', 'anomaly'];
+export const COMPONENT_TYPES = ['collider', 'readable', 'sound', 'light', 'interact', 'pickup', 'use', 'combine', 'door', 'hide', 'anomaly', 'container'];
 const MATERIAL_KEYS = ['wall', 'pillar', 'floor', 'ceiling', 'ceilingLight'];
 const READABLE_DISPLAYS = ['notebook', 'inspect', 'surface'];
 const SOUND_TRIGGERS = ['ambient', 'proximity', 'interact', 'script'];
@@ -203,6 +203,27 @@ export function validateContent(content, { textures, scripts, sources = {} } = {
         case 'door':
           if (c?.keyItem && !objects[c.keyItem]) err(`${cw}.keyItem`, `unknown object ${q(c.keyItem)}`);
           break;
+        case 'container': {
+          // src/containers: compartments that each roll a pool once per run, or a vending machine
+          if (!c || typeof c !== 'object') { err(cw, 'must be an object'); break; }
+          if (c.vend) {
+            if (c.vend.pool == null) err(`${cw}.vend`, 'needs a "pool"');
+            else checkPool(c.vend.pool, `${cw}.vend.pool`);
+            if (c.vend.wrongPool != null) checkPool(c.vend.wrongPool, `${cw}.vend.wrongPool`);
+            for (const f of ['eatChance', 'wrongChance']) if (c.vend[f] != null && !(isNum(c.vend[f]) && c.vend[f] >= 0 && c.vend[f] <= 1)) err(`${cw}.vend.${f}`, 'must be a number 0..1');
+            if (c.tray != null && !isVec(c.tray, 3)) err(`${cw}.tray`, 'must be [x, y, z] (local metres)');
+            if (!(o.components.combine ?? []).some((r) => r?.script === 'vend_coin')) warn(cw, 'vending container has no combine rule with script "vend_coin"; coins will do nothing');
+          } else {
+            if (!Array.isArray(c.compartments) || !c.compartments.length) err(`${cw}.compartments`, 'needs a non-empty array of { pool, name? }');
+            else c.compartments.forEach((k, i) => {
+              if (k?.pool == null) err(`${cw}.compartments[${i}]`, 'needs a "pool"');
+              else checkPool(k.pool, `${cw}.compartments[${i}].pool`);
+            });
+            if (c.stuckChance != null && !(isNum(c.stuckChance) && c.stuckChance >= 0 && c.stuckChance <= 1)) err(`${cw}.stuckChance`, 'must be a number 0..1');
+          }
+          if (o.components.interact?.script !== 'container_open') warn(cw, 'container without an interact component running "container_open" can\'t be opened');
+          break;
+        }
       }
     }
   }
@@ -351,6 +372,20 @@ export function validateContent(content, { textures, scripts, sources = {} } = {
   if (spineNums.size) {
     const max = Math.max(...spineNums.keys());
     for (let i = 1; i <= max; i++) if (!spineNums.has(i)) warn('content/notes', `spine order has a gap: no note with spine ${i}`);
+  }
+
+  // ---------- lines ----------
+  // content/lines/*.json: { id, note?, lines: string[] } — typed, spoken or captioned text pools
+  // (typewriter story, walkie-talkie hints, wanderer names). Read by scripts via ctx.content.lines.
+  for (const [id, l] of Object.entries(content.lines ?? {})) {
+    const w = (f) => where('lines', id, f);
+    idMatchesFile('lines', id, l);
+    if (!l || typeof l !== 'object') { err(w(), 'must be a JSON object'); continue; }
+    if (!Array.isArray(l.lines) || !l.lines.length) { err(w('lines'), 'needs a non-empty array of strings'); continue; }
+    l.lines.forEach((t, i) => {
+      if (typeof t !== 'string' || !t.trim()) err(w(`lines[${i}]`), 'must be a non-empty string');
+      else if (t.length > 200) warn(w(`lines[${i}]`), `is ${t.length} chars; keep lines short`);
+    });
   }
 
   // ---------- cross-cutting ----------

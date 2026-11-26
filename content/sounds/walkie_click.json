@@ -1,0 +1,37 @@
+{
+  "id": "walkie_click",
+  "note": "Push-to-talk click and a short squelch burst.",
+  "bus": "sfx",
+  "volume": 0.5,
+  "reverb": 0,
+  "layers": [
+    {
+      "note": "click",
+      "noise": "white",
+      "gain": 0.5,
+      "filter": {
+        "type": "highpass",
+        "freq": 3000
+      },
+      "env": {
+        "a": 0.0005,
+        "d": 0.012
+      }
+    },
+    {
+      "note": "squelch",
+      "noise": "white",
+      "gain": 0.3,
+      "start": 0.02,
+      "filter": {
+        "type": "bandpass",
+        "freq": 2200,
+        "q": 1
+      },
+      "env": {
+        "a": 0.005,
+        "d": 0.18
+      }
+    }
+  ]
+}

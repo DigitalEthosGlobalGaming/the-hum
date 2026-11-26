@@ -1,0 +1,17 @@
+{
+  "id": "red_string_end",
+  "name": "End of the red string",
+  "tags": [
+    "navigation"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "red_string_end"
+  },
+  "components": {
+    "interact": {
+      "verb": "tie it back on",
+      "script": "string_end_take"
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "id": "drawer_stuck",
+  "note": "A jammed drawer yanked: the lock bar rattles against the frame, papers shift inside.",
+  "bus": "sfx",
+  "volume": 0.75,
+  "spatial": true,
+  "refDistance": 1.5,
+  "maxDistance": 24,
+  "reverb": 0.25,
+  "vary": {
+    "pitch": 1.5
+  },
+  "layers": [
+    {
+      "note": "rattle",
+      "noise": "white",
+      "gain": 0.5,
+      "filter": {
+        "type": "bandpass",
+        "freq": 1500,
+        "q": 3
+      },
+      "env": {
+        "a": 0.001,
+        "d": 0.05
+      },
+      "repeat": {
+        "count": 6,
+        "interval": 0.07,
+        "jitter": 0.02
+      },
+      "vary": {
+        "gain": 4,
+        "filter": 0.3
+      }
+    },
+    {
+      "note": "frame knock",
+      "osc": "triangle",
+      "freq": 190,
+      "gain": 0.35,
+      "pitchEnv": {
+        "to": 0.7,
+        "time": 0.05
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.09
+      },
+      "repeat": {
+        "count": 3,
+        "interval": 0.14,
+        "jitter": 0.03
+      }
+    },
+    {
+      "note": "paper slump",
+      "noise": "pink",
+      "gain": 0.12,
+      "start": 0.3,
+      "filter": {
+        "type": "lowpass",
+        "freq": 1400
+      },
+      "env": {
+        "a": 0.05,
+        "d": 0.25
+      }
+    }
+  ]
+}

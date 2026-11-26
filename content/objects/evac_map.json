@@ -1,0 +1,24 @@
+{
+  "id": "evac_map",
+  "name": "Evacuation plan",
+  "tags": [
+    "story",
+    "wall",
+    "map"
+  ],
+  "mesh": {
+    "type": "plane",
+    "size": [
+      0.6,
+      0.45
+    ],
+    "texture": "proc:evac_map"
+  },
+  "components": {
+    "interact": {
+      "verb": "study the plan",
+      "script": "evac_map_read",
+      "cooldown": 0.5
+    }
+  }
+}

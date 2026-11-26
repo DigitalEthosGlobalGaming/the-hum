@@ -1,0 +1,93 @@
+{
+  "id": "drawer_slide",
+  "note": "Steel filing drawer on worn ball runners: a gritty roll, then the stop thunks.",
+  "bus": "sfx",
+  "volume": 0.7,
+  "spatial": true,
+  "refDistance": 1.5,
+  "maxDistance": 20,
+  "reverb": 0.2,
+  "vary": {
+    "pitch": 1,
+    "filter": 0.2
+  },
+  "layers": [
+    {
+      "note": "runner roll",
+      "noise": "brown",
+      "gain": 0.9,
+      "filter": {
+        "type": "bandpass",
+        "freq": 520,
+        "q": 1.6
+      },
+      "env": {
+        "a": 0.04,
+        "d": 0.05,
+        "s": 0.8,
+        "sus": 0.32,
+        "r": 0.06,
+        "curve": "lin"
+      },
+      "lfo": {
+        "target": "gain",
+        "wave": "noise",
+        "rate": 38,
+        "depth": 0.6
+      }
+    },
+    {
+      "note": "ball bearings",
+      "noise": "white",
+      "gain": 0.12,
+      "filter": {
+        "type": "bandpass",
+        "freq": 3400,
+        "q": 3
+      },
+      "env": {
+        "a": 0.03,
+        "d": 0.05,
+        "s": 0.7,
+        "sus": 0.3,
+        "r": 0.05
+      },
+      "lfo": {
+        "target": "gain",
+        "wave": "square",
+        "rate": 27,
+        "depth": 0.8
+      }
+    },
+    {
+      "note": "stop thunk",
+      "osc": "sine",
+      "freq": 140,
+      "gain": 0.5,
+      "start": 0.4,
+      "pitchEnv": {
+        "to": 0.6,
+        "time": 0.08
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.14
+      }
+    },
+    {
+      "note": "stop clank",
+      "noise": "white",
+      "gain": 0.25,
+      "start": 0.4,
+      "filter": {
+        "type": "bandpass",
+        "freq": 1800,
+        "q": 4
+      },
+      "env": {
+        "a": 0.001,
+        "d": 0.06
+      }
+    }
+  ]
+}

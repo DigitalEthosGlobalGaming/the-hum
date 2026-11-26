@@ -1,0 +1,81 @@
+{
+  "id": "vend_hum",
+  "note": "Vending machine compressor (loop): mains hum, a fan, a fluorescent tube behind the glass.",
+  "bus": "ambience",
+  "volume": 0.45,
+  "spatial": true,
+  "refDistance": 1.5,
+  "maxDistance": 14,
+  "reverb": 0.1,
+  "loop": true,
+  "layers": [
+    {
+      "note": "mains",
+      "osc": "saw",
+      "freq": 60,
+      "gain": 0.16,
+      "filter": {
+        "type": "lowpass",
+        "freq": 240,
+        "q": 1
+      },
+      "env": {
+        "a": 1.5,
+        "d": 0,
+        "s": 1,
+        "r": 1
+      }
+    },
+    {
+      "note": "compressor",
+      "osc": "sine",
+      "freq": 121,
+      "gain": 0.06,
+      "env": {
+        "a": 2,
+        "d": 0,
+        "s": 1,
+        "r": 1
+      },
+      "lfo": {
+        "target": "gain",
+        "wave": "noise",
+        "rate": 0.3,
+        "depth": 0.5
+      }
+    },
+    {
+      "note": "fan air",
+      "noise": "pink",
+      "gain": 0.06,
+      "filter": {
+        "type": "bandpass",
+        "freq": 700,
+        "q": 0.8
+      },
+      "env": {
+        "a": 2,
+        "d": 0,
+        "s": 1,
+        "r": 1
+      }
+    },
+    {
+      "note": "tube buzz",
+      "osc": "square",
+      "freq": 120,
+      "gain": 0.012,
+      "filter": {
+        "type": "bandpass",
+        "freq": 2400,
+        "q": 4
+      },
+      "env": {
+        "a": 1,
+        "d": 0,
+        "s": 1,
+        "r": 1
+      }
+    }
+  ]
+}

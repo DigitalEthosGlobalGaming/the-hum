@@ -47,6 +47,12 @@ export function makeCtx(gp, { self = null, other = null, params = {}, scriptId =
     other,                   // the partner in a combine
     params: params ?? {},
     get time() { return game.time; },
+    /** Run seed (u32), for seeding per-object rolls with a stable key. */
+    get seed() { return game.seed >>> 0; },
+    /** Read-only content (objects, pools, notes, lines…). */
+    get content() { return game.content; },
+    /** Emit a game event (see CONTRACTS.md "Events"). */
+    emit: (name, payload) => game.events?.emit(name, payload),
 
     player: {
       get pos() { const p = game.player.pos; return { x: p.x, y: p.y, z: p.z }; },
@@ -66,6 +72,8 @@ export function makeCtx(gp, { self = null, other = null, params = {}, scriptId =
       has: (id) => !!gp.inventory.find(id),
       select: (i) => gp.inventory.select(i),
       changed: () => gp.inventory.changed(),
+      /** Slot an item would go into (preferring `prefer`), or -1 when the pockets are full. */
+      freeIndexFor: (id, prefer) => gp.inventory.freeIndexFor(id, prefer),
     },
 
     world: {
@@ -82,6 +90,12 @@ export function makeCtx(gp, { self = null, other = null, params = {}, scriptId =
       isSolidAt: (x, z) => game.world.isSolidAt(x, z),
       roomAt: (x, z) => game.world.roomAt(x, z),
       yawFacing,
+      /** Stable per-run key of a world inst (survives room streaming), or null. */
+      keyOf: (inst) => gp.stableKey(inst),
+      /** A sound others (the Tenant) can hear: loudness ≈ hearing radius in metres. */
+      noise: (pos, loudness, source = ctx.scriptId) => game.world.noise?.(pos, loudness, source) ?? null,
+      /** Layout depth (blocks from the origin) at a point, for depth-gated pools. */
+      depthAt: (x, z) => game.world.roomAt?.(x, z)?.depth ?? 0,
     },
 
     sound: {

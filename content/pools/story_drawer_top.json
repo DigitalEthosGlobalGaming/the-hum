@@ -1,0 +1,30 @@
+{
+  "id": "story_drawer_top",
+  "note": "Filing cabinet top drawer: paperwork.",
+  "entries": [
+    {
+      "def": "note_random",
+      "w": 30
+    },
+    {
+      "def": "id_badge",
+      "w": 14
+    },
+    {
+      "def": "coin",
+      "w": 18
+    },
+    {
+      "pool": "spine_notes",
+      "w": 8
+    },
+    {
+      "def": "blank_tape",
+      "w": 6
+    },
+    {
+      "def": null,
+      "w": 24
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "id": "camera_wind",
+  "note": "Thumbwheel film advance: a short run of plastic ratchet clicks.",
+  "bus": "sfx",
+  "volume": 0.5,
+  "reverb": 0.05,
+  "layers": [
+    {
+      "note": "ratchet",
+      "noise": "white",
+      "gain": 0.35,
+      "filter": {
+        "type": "bandpass",
+        "freq": 3200,
+        "q": 3
+      },
+      "env": {
+        "a": 0.0005,
+        "d": 0.012
+      },
+      "repeat": {
+        "count": 7,
+        "interval": 0.055,
+        "jitter": 0.01
+      },
+      "vary": {
+        "gain": 3
+      }
+    },
+    {
+      "note": "stop",
+      "osc": "triangle",
+      "freq": 900,
+      "gain": 0.08,
+      "start": 0.42,
+      "env": {
+        "a": 0.001,
+        "d": 0.03
+      }
+    }
+  ]
+}

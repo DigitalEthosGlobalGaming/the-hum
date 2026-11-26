@@ -1,0 +1,18 @@
+{
+  "id": "id_badge",
+  "name": "ID badge",
+  "tags": [
+    "story",
+    "key"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "id_badge"
+  },
+  "components": {
+    "pickup": {},
+    "use": {
+      "script": "badge_read"
+    }
+  }
+}
