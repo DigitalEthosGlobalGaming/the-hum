@@ -39,7 +39,7 @@ export class LeftArm {
     this.poses = {
       idle: P(-0.16, -0.15, -0.36, 0.04, -0.14, 0.08),
       watch: P(0.0, -0.07, -0.23, 0.22, -1.35, -1.2),
-      pockets: P(-0.25, -0.11, -0.34, 0.45, -0.3, 0.25), // torch offered up beside the jacket
+      pockets: P(-0.2, -0.62, -0.34, 0.04, -0.14, 0.08), // drops out of view; the torch shows in the jacket instead
     };
   }
 

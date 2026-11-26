@@ -8,6 +8,7 @@ import { toViewModel } from '../../viewmodel/vmMaterial.js';
 import { fitInto } from '../../viewmodel/arms.js';
 
 const SLOT_X = [-0.235, -0.085, 0.085, 0.235];
+const TORCH_X = -0.16, TORCH_Y = 0.02; // breast-strap loop above the left pockets while the jacket is open
 const SLOT_Y = -0.035, SLOT_Z = -0.43;
 const _v = new THREE.Vector3();
 
@@ -49,9 +50,36 @@ export class Pockets {
       this.group.add(g);
       return { g, holder, key: null, lift: 0, wob: 0, i };
     });
+    // torch slot (hover -1): a strap loop on the left panel holding a copy of the torch
+    const tg = new THREE.Group();
+    tg.position.set(TORCH_X, TORCH_Y, SLOT_Z + Math.abs(TORCH_X) * 0.25);
+    tg.rotation.y = 0.28;
+    const loop = box(0.04, 0.012, 0.012, null, { tint: 0x5a4a36 }); // thin leather strap round the torch
+    loop.position.set(0, -0.005, 0.016);
+    tg.add(loop);
+    const th = new THREE.Group();
+    tg.add(th);
+    this.group.add(tg);
+    this.torchSlot = { g: tg, holder: th, lift: 0 };
     this.hoverF = 0;
     this.hover = 0;
     this.wasOpen = false;
+  }
+
+  /** Copy the left-hand torch (LED state as of opening) into the strap loop. */
+  syncTorch(torch) {
+    const h = this.torchSlot.holder;
+    h.clear();
+    if (!torch) return;
+    const copy = torch.clone(true);
+    copy.position.set(0, 0, 0);
+    copy.rotation.set(0, 0, 0);
+    copy.traverse((m) => { if (m.isMesh) m.frustumCulled = false; });
+    fitInto(copy, 0.12);
+    const w = new THREE.Group();
+    w.add(copy);
+    w.rotation.set(-1.45, 0, 0.12); // standing upright in the loop between the left pockets, lens up
+    h.add(w);
   }
 
   syncSlot(slot, stack) {
@@ -80,6 +108,8 @@ export class Pockets {
     const inv = this.game.inventory;
     this.group.visible = w > 0.01;
     const open = w > 0.5;
+    if (w > 0.01 && !this.torchSynced) { this.syncTorch(torch); this.torchSynced = true; }
+    if (w <= 0.01) this.torchSynced = false;
     if (open && !this.wasOpen) this.hoverF = this.hover = inv?.selected ?? 0;
     this.wasOpen = open;
     const e = smooth(w);
@@ -103,9 +133,12 @@ export class Pockets {
       s.holder.position.set(Math.sin(s.wob * 60) * 0.008 * (s.wob / 0.4), 0.008 + s.lift, 0); // half tucked behind the pocket front
       s.holder.rotation.x = s.i === inv.selected ? -0.35 : 0;
     }
-    if (this.hover < 0 && torch) {
-      torch.getWorldPosition(_v); // vm scene space (camera sits at the origin)
-      return _v.set(_v.x + 0.1, _v.y - 0.05, _v.z + 0.12);
+    const ts = this.torchSlot;
+    ts.lift = damp(ts.lift, this.hover < 0 && open ? 0.03 : 0, 14, dt);
+    ts.holder.position.y = 0.01 + ts.lift;
+    if (this.hover < 0) {
+      const tp = ts.g.position;
+      return _v.set(tp.x + 0.035, tp.y - 0.075, tp.z + 0.14);
     }
     const hp = this.slots[Math.max(0, this.hover)].g.position;
     return _v.set(hp.x + 0.035, hp.y - 0.075, hp.z + 0.14);
@@ -131,10 +164,14 @@ export class Pockets {
     _v.set(SLOT_X[0], SLOT_Y, SLOT_Z).project(vmCamera); const a = toScreen();
     _v.set(SLOT_X[1], SLOT_Y, SLOT_Z).project(vmCamera); const b = toScreen();
     const maxW = Math.max(90, Math.abs(b.x - a.x) * 0.92);
-    if (this.hover < 0 && torch) {
-      torch.getWorldPosition(_v).project(vmCamera);
+    {
+      _v.set(0, -0.065, 0.02);
+      this.torchSlot.g.localToWorld(_v).project(vmCamera);
       const t = toScreen();
-      layer.tag('torch', t.x, t.y - layer.px * 1.5, { anchor: [0.5, 1], size: 0.85, opacity });
+      layer.tag(null, t.x, t.y, {
+        m: layer.measure('torch', { size: 0.95, maxW }), anchor: [0.5, 0], opacity,
+        color: this.hover < 0 ? '#e9e0c9' : '#cfc6ae',
+      });
     }
     for (const s of this.slots) {
       const stack = inv.slots?.[s.i];

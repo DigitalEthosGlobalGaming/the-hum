@@ -4,6 +4,7 @@
 // the watch_beep sound. Holding the watch up for 3 s reveals the hidden seed screen.
 import * as THREE from 'three';
 import { makeVMMaterial, canvasTexture } from '../../viewmodel/vmMaterial.js';
+import { makeDecal } from '../../render/ps1.js';
 import { box } from '../../viewmodel/viewModel.js';
 import { makeCanvas, pixelText, pixelWidth, segDigit, SEGMENTS } from './text.js';
 
@@ -25,9 +26,10 @@ export class Watch {
     const g = new THREE.Group();
     const caseMesh = box(0.05, 0.012, 0.042, null, { tint: 0x2a2a2a });
     g.add(caseMesh);
-    this.faceMat = makeVMMaterial(this.tex, { emissive: 0.35, affine: 0 });
+    this.faceMat = makeDecal(makeVMMaterial(this.tex, { emissive: 0.35, affine: 0 })); // LCD sits on the case: depth-biased
     const face = new THREE.Mesh(new THREE.PlaneGeometry(0.042, 0.028).rotateX(-Math.PI / 2).rotateY(Math.PI / 2), this.faceMat);
-    face.position.y = 0.0062;
+    face.position.y = 0.0068;
+    face.renderOrder = 1;
     face.frustumCulled = false;
     g.add(face);
     const strap = box(0.03, 0.006, 0.084, game.textures.get('proc:strap'));
