@@ -3,12 +3,16 @@
 //
 // Graph per voice (one play() call):
 //   layer instance: source → [tremolo] → [filter] → env gain ─┐
-//   layer instance: ...                                         ├→ voice.out → [panner] → bus
+//   layer instance: ...                                         ├→ voice.out → [occ lowpass → occ gain → panner] → bus
 //                                                               └→ voice.send ──────────→ reverb send (per bus)
+// The occlusion pair only exists on positioned spatial voices; it starts transparent (22 kHz, ×1)
+// and is driven by voice.setOcclusion() (src/ambience occlusion). play(..., { occlude: false }) skips it.
 
 export const WAVES = { sine: 'sine', square: 'square', saw: 'sawtooth', triangle: 'triangle' };
 export const NOISES = ['white', 'pink', 'brown'];
-export const BUSES = ['ambience', 'sfx', 'tenant'];
+// `env` (environment: hum, room tone, drips, vents, distant events) feeds the ambience bus, so the
+// ambience slider applies; its own gain is the environment level / duck / pause fade.
+export const BUSES = ['ambience', 'sfx', 'tenant', 'env'];
 export const FILTER_TYPES = ['lowpass', 'highpass', 'bandpass', 'notch', 'peaking', 'lowshelf', 'highshelf', 'allpass'];
 export const LFO_TARGETS = ['gain', 'pitch', 'filter'];
 export const LFO_WAVES = ['sine', 'square', 'saw', 'triangle', 'noise'];
@@ -20,6 +24,7 @@ export const PRESET_DEFAULTS = {
 };
 export const ENV_DEFAULTS = { a: 0.005, d: 0.2, s: 0, sus: 0, r: 0.05, curve: 'exp' };
 const SILENT = 0.0001; // exponential ramps can't reach 0
+export const OCC_OPEN_HZ = 22000; // occlusion lowpass when nothing is in the way
 const MIN_ATTACK = 0.001; // avoid clicks from instant onsets
 
 export const envOf = (layer) => ({ ...ENV_DEFAULTS, ...(layer.env || {}) });
@@ -195,7 +200,10 @@ export function makeNoiseBuffers(ctx, seconds = 4, rand = Math.random) {
 }
 
 // Reverb impulse: stereo decaying noise whose tail gets darker over time (air + soft surfaces).
-export function makeImpulse(ctx, { seconds = 2.2, rt60 = 1.7, predelay = 0.012 } = {}, rand = Math.random) {
+// Optional (all backwards-compatible): `bright`/`dark` = one-pole coefficient at the start/end of the
+// tail (0..1, higher = brighter), `early` = [[seconds, gain], ...] discrete early reflections,
+// `flutter` = { period, gain, decay } a train of parallel-wall slap echoes (corridors).
+export function makeImpulse(ctx, { seconds = 2.2, rt60 = 1.7, predelay = 0.012, bright = 0.85, dark = 0.1, early = null, flutter = null } = {}, rand = Math.random) {
   const sr = ctx.sampleRate;
   const len = Math.floor(sr * seconds);
   const buf = ctx.createBuffer(2, len, sr);
@@ -206,9 +214,26 @@ export function makeImpulse(ctx, { seconds = 2.2, rt60 = 1.7, predelay = 0.012 }
     for (let i = pre; i < len; i++) {
       const t = (i - pre) / sr;
       const env = Math.exp((-6.9 * t) / rt60);
-      const k = 0.85 - 0.75 * Math.min(1, t / seconds); // one-pole lowpass closing over time
+      const k = bright - (bright - dark) * Math.min(1, t / seconds); // one-pole lowpass closing over time
       y += ((rand() * 2 - 1) - y) * k;
       d[i] = y * env;
+    }
+    // discrete reflections, slightly offset per channel so they image wide
+    for (const [et, eg] of early || []) {
+      const j = pre + Math.floor(sr * (et * (c ? 1.07 : 1)));
+      if (j < len) d[j] += eg * (rand() < 0.5 ? -1 : 1);
+    }
+    if (flutter) {
+      const per = Math.max(0.002, flutter.period) * (c ? 1.04 : 1);
+      const fd = flutter.decay ?? rt60 * 0.5;
+      for (let n = 1; ; n++) {
+        const t = n * per;
+        const j = pre + Math.floor(sr * t);
+        if (j >= len || t > fd * 1.5) break;
+        const g = (flutter.gain ?? 0.4) * Math.exp((-6.9 * t) / fd);
+        d[j] += g * (n % 2 ? 1 : -1);
+        if (j + 1 < len) d[j + 1] += g * 0.5 * (n % 2 ? 1 : -1); // a little width so it isn't a click
+      }
     }
   }
   return buf;
@@ -263,7 +288,17 @@ export class Voice {
       pn.refDistance = preset.refDistance ?? PRESET_DEFAULTS.refDistance;
       pn.maxDistance = preset.maxDistance ?? PRESET_DEFAULTS.maxDistance;
       pn.rolloffFactor = preset.rolloff ?? PRESET_DEFAULTS.rolloff;
-      out.connect(pn).connect(bus);
+      if (opts.occlude !== false) {
+        // occlusion: transparent until setOcclusion() is called
+        const lp = (this.occFilter = ctx.createBiquadFilter());
+        lp.type = 'lowpass';
+        lp.frequency.value = OCC_OPEN_HZ;
+        lp.Q.value = webQ('lowpass', 0.707);
+        this.occGain = ctx.createGain();
+        out.connect(lp).connect(this.occGain).connect(pn).connect(bus);
+      } else {
+        out.connect(pn).connect(bus);
+      }
       this.setPosition(opts.position);
     } else {
       out.connect(bus);
@@ -271,7 +306,8 @@ export class Voice {
     const sendBus = engine.sends?.[preset.bus || 'sfx'];
     if (preset.reverb > 0 && sendBus) {
       this.send = ctx.createGain();
-      out.connect(this.send).connect(sendBus);
+      // after the occlusion lowpass (if any): a sound behind walls fills the room dark, not bright
+      (this.occFilter ?? out).connect(this.send).connect(sendBus);
       this._updateSend();
     }
 
@@ -486,6 +522,24 @@ export class Voice {
     this._updateSend();
   }
 
+  // Muffle a spatial voice: lowpass `cutoff` Hz and `gain` (linear, 0..1), smoothed with time
+  // constant `tau` seconds (0 = jump, for a voice that just started). No-op without the nodes.
+  setOcclusion(cutoff, gain, tau = 0.1) {
+    if (!this.occFilter || this.disposed) return;
+    const now = this.ctx.currentTime;
+    const f = Math.min(OCC_OPEN_HZ, Math.max(40, cutoff));
+    const g = Math.min(1, Math.max(0, gain));
+    this.occ = { cutoff: f, gain: g };
+    const fp = this.occFilter.frequency, gp = this.occGain.gain;
+    if (tau <= 0) {
+      fp.cancelScheduledValues(now); gp.cancelScheduledValues(now);
+      fp.setValueAtTime(f, now); gp.setValueAtTime(g, now);
+    } else {
+      fp.setTargetAtTime(f, now, tau);
+      gp.setTargetAtTime(g, now, tau);
+    }
+  }
+
   // Reverb send falls off more gently than the direct sound, so distant sources sound farther.
   _updateSend() {
     if (!this.send) return;
@@ -506,6 +560,8 @@ export class Voice {
     for (const inst of this.insts) for (const s of inst.srcs) { try { s.stop(); } catch { /* */ } }
     this.out.disconnect();
     this.panner?.disconnect();
+    this.occFilter?.disconnect();
+    this.occGain?.disconnect();
     this.send?.disconnect();
     this.insts.length = 0;
     this.streams.length = 0;
@@ -514,5 +570,5 @@ export class Voice {
 
 // What play() returns when nothing will sound (unknown preset, audio not started, cap reached).
 export const DEAD_HANDLE = Object.freeze({
-  id: null, playing: false, stop() {}, setPosition() {}, setVolume() {},
+  id: null, playing: false, stop() {}, setPosition() {}, setVolume() {}, setOcclusion() {},
 });

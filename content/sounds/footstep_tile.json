@@ -3,7 +3,7 @@
   "note": "Hard shoe on tile: bright tick, short body knock, toe follows heel, room ring.",
   "bus": "sfx",
   "volume": 0.6,
-  "reverb": 0.25,
+  "reverb": 0.2,
   "vary": {"pitch": 1.2, "filter": 0.2, "gain": 2},
   "layers": [
     {"note": "tick", "noise": "white", "gain": 0.35, "filter": {"type": "bandpass", "freq": 3400, "q": 1.4}, "env": {"a": 0.001, "d": 0.035}},

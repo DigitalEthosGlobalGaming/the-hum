@@ -1,0 +1,17 @@
+{
+  "id": "far_thud",
+  "note": "Distant event: something heavy drops several rooms away. Mostly sub and room; played far off and occluded.",
+  "bus": "env",
+  "volume": 1.1,
+  "spatial": true,
+  "refDistance": 6,
+  "maxDistance": 80,
+  "rolloff": 0.5,
+  "reverb": 0.8,
+  "vary": {"pitch": 2, "filter": 0.3, "gain": 2},
+  "layers": [
+    {"note": "sub", "osc": "sine", "freq": 52, "gain": 0.7, "pitchEnv": {"to": 0.6, "time": 0.45}, "env": {"a": 0.006, "d": 1.1}},
+    {"note": "body", "noise": "brown", "gain": 0.6, "filter": {"type": "lowpass", "freq": 180, "q": 0.9, "env": {"to": 70, "time": 0.6}}, "env": {"a": 0.004, "d": 0.9}},
+    {"note": "second bounce", "noise": "brown", "gain": 0.25, "start": 0.22, "filter": {"type": "lowpass", "freq": 150, "q": 0.8}, "env": {"a": 0.004, "d": 0.4}, "vary": {"time": 0.08, "gain": 4}}
+  ]
+}

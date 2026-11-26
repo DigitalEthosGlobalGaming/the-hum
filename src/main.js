@@ -41,7 +41,7 @@ async function boot() {
 
   const events = new Events();
   const input = new Input(canvas, cfg.keys);
-  const synth = new Synth();
+  const synth = new Synth({ hum: false }); // the hum is positional now: src/ambience (one emitter per nearby tube)
   synth.loadPresets(content.sounds);
   const world = new World({ content, textures, scene, audio: synth, seed, events });
   const spawn = world.start();

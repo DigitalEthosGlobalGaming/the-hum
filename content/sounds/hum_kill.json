@@ -1,0 +1,18 @@
+{
+  "id": "hum_kill",
+  "note": "Power cut in a room: relay clunk, then the ballasts sag and die out with a falling whine.",
+  "bus": "env",
+  "volume": 0.8,
+  "spatial": true,
+  "refDistance": 2,
+  "maxDistance": 30,
+  "rolloff": 1,
+  "reverb": 0.35,
+  "vary": {"pitch": 0.5, "gain": 2},
+  "layers": [
+    {"note": "relay clunk", "osc": "sine", "freq": 95, "gain": 0.4, "pitchEnv": {"to": 0.5, "time": 0.08}, "env": {"a": 0.001, "d": 0.12}},
+    {"note": "clunk click", "noise": "white", "gain": 0.12, "filter": {"type": "bandpass", "freq": 1800, "q": 2}, "env": {"a": 0.0005, "d": 0.02}},
+    {"note": "ballast sag", "osc": "saw", "freq": 120, "gain": 0.12, "pitchEnv": {"to": 0.45, "time": 0.9}, "filter": {"type": "lowpass", "freq": 1400, "q": 1.2, "env": {"to": 150, "time": 0.9}}, "env": {"a": 0.005, "d": 0.9}},
+    {"note": "sag fundamental", "osc": "sine", "freq": 120, "gain": 0.2, "pitchEnv": {"to": 0.5, "time": 0.8}, "env": {"a": 0.005, "d": 1}}
+  ]
+}

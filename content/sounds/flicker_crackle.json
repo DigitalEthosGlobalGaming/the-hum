@@ -1,0 +1,17 @@
+{
+  "id": "flicker_crackle",
+  "note": "A failing tube arcs as it drops out or catches: crackle ticks over a short ballast snarl. Played in sync with the visual flicker.",
+  "bus": "env",
+  "volume": 0.5,
+  "spatial": true,
+  "refDistance": 1,
+  "maxDistance": 16,
+  "rolloff": 1.2,
+  "reverb": 0.15,
+  "vary": {"pitch": 1, "gain": 3, "filter": 0.3},
+  "layers": [
+    {"note": "arc ticks", "noise": "white", "gain": 0.3, "filter": {"type": "highpass", "freq": 2600, "q": 0.7}, "env": {"a": 0.0005, "d": 0.006}, "repeat": {"count": 5, "interval": 0.018, "jitter": 0.009}, "vary": {"gain": 8, "filter": 0.5}},
+    {"note": "ballast snarl", "osc": "square", "freq": 120, "gain": 0.12, "filter": {"type": "lowpass", "freq": 1600, "q": 1.5}, "env": {"a": 0.002, "d": 0.05}, "vary": {"gain": 4}},
+    {"note": "click body", "osc": "sine", "freq": 180, "gain": 0.12, "pitchEnv": {"to": 0.5, "time": 0.03}, "env": {"a": 0.001, "d": 0.04}}
+  ]
+}

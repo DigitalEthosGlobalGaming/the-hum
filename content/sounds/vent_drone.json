@@ -1,7 +1,7 @@
 {
   "id": "vent_drone",
   "note": "HVAC vent (loop): rumbling air, a tired fan motor and turbulence that never quite settles.",
-  "bus": "ambience",
+  "bus": "env",
   "volume": 0.6,
   "spatial": true,
   "refDistance": 2,

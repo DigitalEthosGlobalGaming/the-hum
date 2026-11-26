@@ -1,0 +1,18 @@
+{
+  "id": "hum_surge",
+  "note": "Power comes back to a room: relay thunk, starter ticks and the ballast hum swelling up to pitch.",
+  "bus": "env",
+  "volume": 0.8,
+  "spatial": true,
+  "refDistance": 2,
+  "maxDistance": 30,
+  "rolloff": 1,
+  "reverb": 0.35,
+  "vary": {"pitch": 0.5, "gain": 2},
+  "layers": [
+    {"note": "relay thunk", "osc": "sine", "freq": 80, "gain": 0.4, "pitchEnv": {"to": 0.6, "time": 0.08}, "env": {"a": 0.001, "d": 0.14}},
+    {"note": "starter ticks", "noise": "white", "gain": 0.15, "start": 0.08, "filter": {"type": "highpass", "freq": 3000, "q": 0.7}, "env": {"a": 0.0005, "d": 0.008}, "repeat": {"count": 6, "interval": 0.09, "jitter": 0.04}},
+    {"note": "ballast swell", "osc": "saw", "freq": 120, "gain": 0.1, "start": 0.1, "pitchEnv": {"from": 0.6, "to": 1, "time": 0.6}, "filter": {"type": "lowpass", "freq": 1600, "q": 1.2, "env": {"from": 200, "to": 1600, "time": 0.6}}, "env": {"a": 0.5, "d": 0.6, "curve": "lin"}},
+    {"note": "fundamental swell", "osc": "sine", "freq": 120, "gain": 0.2, "start": 0.1, "pitchEnv": {"from": 0.6, "to": 1, "time": 0.6}, "env": {"a": 0.5, "d": 0.7, "curve": "lin"}}
+  ]
+}

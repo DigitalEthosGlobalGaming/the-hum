@@ -180,5 +180,53 @@
     "impactNoiseSpeed": 1.2,
     "rollNoiseEvery": 0.7,
     "maxRollLoops": 3
+  },
+  "audio": {
+    "maxVoices": 32,
+    "env": 1,
+    "roomTone": 0.6,
+    "hum": 0.8,
+    "humEmitters": 6,
+    "humRange": 16,
+    "crackle": 0.55,
+    "vents": 0.55,
+    "ventEmitters": 2,
+    "ventRange": 14,
+    "ventsPerRoom": [
+      0,
+      2
+    ],
+    "drips": 0.7,
+    "dripEmitters": 4,
+    "dripRange": 14,
+    "distant": 1,
+    "distantMinGap": 25,
+    "distantMaxGap": 110,
+    "distantFirst": 45,
+    "distantDistance": [
+      20,
+      32
+    ],
+    "intensity": 0,
+    "acousticsRadius": 12,
+    "acousticsInterval": 0.25,
+    "acousticsFade": 1,
+    "occlusion": {
+      "perWallDb": -6,
+      "maxDb": -20,
+      "minCutoff": 280,
+      "maxWalls": 6,
+      "perFrame": 4,
+      "smooth": 0.12,
+      "detourPerWall": 6
+    },
+    "duckDb": -10,
+    "duckAttack": 0.25,
+    "duckRelease": 0.9,
+    "duckPresets": [
+      "sting_low"
+    ],
+    "pausedLevel": 0.15,
+    "pauseFade": 0.5
   }
 }

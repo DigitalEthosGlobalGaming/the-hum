@@ -1,0 +1,17 @@
+{
+  "id": "far_chair",
+  "note": "Distant event: an office chair rolls a metre or two in an empty room and bumps into something.",
+  "bus": "env",
+  "volume": 1.4,
+  "spatial": true,
+  "refDistance": 5,
+  "maxDistance": 60,
+  "rolloff": 0.6,
+  "reverb": 0.6,
+  "vary": {"pitch": 1.5, "filter": 0.25, "gain": 2, "time": 0.1},
+  "layers": [
+    {"note": "caster rumble", "noise": "brown", "gain": 0.6, "filter": {"type": "lowpass", "freq": 320, "q": 0.9}, "env": {"a": 0.25, "d": 0.3, "s": 0.8, "sus": 0.9, "r": 0.5, "curve": "lin"}, "lfo": {"target": "gain", "wave": "noise", "rate": 12, "depth": 0.5}},
+    {"note": "wheel rattle", "noise": "pink", "gain": 0.08, "filter": {"type": "bandpass", "freq": 1200, "q": 2.5}, "env": {"a": 0.25, "d": 0.3, "s": 0.8, "sus": 0.9, "r": 0.4, "curve": "lin"}, "lfo": {"target": "gain", "wave": "noise", "rate": 30, "depth": 0.85}},
+    {"note": "bump", "noise": "brown", "gain": 0.5, "start": 1.85, "filter": {"type": "lowpass", "freq": 240, "q": 1}, "env": {"a": 0.003, "d": 0.3}, "vary": {"time": 0.3}}
+  ]
+}

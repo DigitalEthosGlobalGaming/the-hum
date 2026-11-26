@@ -12,7 +12,9 @@ so **change it only deliberately** and note the change in your commit.
 | `textures` | TextureBank | main | `get(name)`, supports `proc:*` |
 | `input` | Input | main | `held(action)`, `wasPressed(action)`, `lookDX/DY`, `locked`, `mode` |
 | `events` | Events | main | `on(name, fn) → unsubscribe`, `emit(name, payload)` |
-| `synth` | Synth | audio | `play(presetId, {position, volume, loop}) → handle`, `has(id)` |
+| `synth` | Synth | audio | `play(presetId, {position, volume, loop, delay, occlude}) → handle`, `has(id)`; see "Ambience" for the env bus, acoustics and occlusion |
+| `ambience` | AmbienceSystem | ambience | environmental audio (bound on the first gameplay frame); `debugLines()` |
+| `audioDirector` | AudioDirector | ambience | distant-event pacing: `intensity` 0..1 (the Tenant director raises it), `trigger(kind?)`, `next`, `last` |
 | `world` | World | world (M3) | see below |
 | `player` | Player | player | `pos` (feet, Vector3), `yaw`, `pitch`, `eye`, `speedNow`; camera follows it |
 | `playing` | bool | main | false on title / pause |
@@ -197,3 +199,36 @@ Registered from `src/story/register.js` (one line in `src/extensions.js`).
   `ctx.world.depthAt(x, z)`.
 - **Content kind `lines`**: `content/lines/<id>.json` = `{ id, note?, lines: string[] }` (typewriter story,
   walkie hints, wanderer names/roles, photo writing), read as `ctx.content.lines[id].lines`. Validated.
+
+## Ambience: environmental + spatial audio (src/ambience)
+Registered from `src/ambience/register.js` (one line in `src/extensions.js`); binds on the first gameplay
+frame like the story runtime and runs as a `world.addSystem` system. Tunables: `config.audio`.
+- **Env bus.** `BUSES` gained `env` (presets may use `"bus": "env"`). It feeds the ambience bus, so the
+  ambience slider covers it; its own gain is `config.audio.env` × duck × pause, set with
+  `synth.setBusGain('env', gain, tau)`. Ducked by `duckDb` while `diegetic.reading`/`notebookOpen` or while a
+  preset in `duckPresets` (default `sting_low`) plays; faded to `pausedLevel` while `game.paused` / not playing.
+- **Hum.** The old global `synth.startHum()` is off (`new Synth({ hum: false })` in main). `humEmitters` looping
+  `fluoro_hum_unit` voices are pooled and re-assigned (≈5×/s) to the nearest fixtures that are not dead and whose
+  circuit is powered and on; each follows its fixture's `out` every frame, so flicker, stutter, fuses and
+  switches are heard in sync. Failing/stuttering tubes play `flicker_crackle` on dropout edges. `power:switch`
+  plays `hum_kill`/`hum_surge`, `power:fuse` plays `hum_surge` at the room's nearest fixture. A head-locked
+  `room_tone` loop is always under it.
+- **Acoustics.** When the listener enters a new cell (≤ 4×/s) a flood fill of walkable cells within
+  `acousticsRadius` m estimates size / elongation / width → weights for three generated impulses
+  (`ROOM_IMPULSES` in `src/audio/synth.js`: small, hall, corridor) and per-bus send scales:
+  `synth.setAcoustics(weights, { sfx, env, tenant, ambience }, fadeSec)`. Idle impulses are disconnected.
+- **Occlusion.** Positioned spatial voices now run `out → lowpass → gain → panner` (`play(..., { occlude: false })`
+  opts out); `voice.setOcclusion(cutoffHz, gain, tau)`. The ambience system sets every new voice at once (via
+  `synth.playHooks`) and then `occlusion.perFrame` voices a frame round-robin: solid cells crossed on the
+  straight line (unbuilt space counts), softened when the flood fill shows a short detour.
+- **Emitters.** `onRoomPlaced` adds pooled records for fixtures, leaks (`decor_leak`, `decor_ceiling_stain`,
+  `decor_water_stain`: `drip` at irregular seeded intervals, nearest `dripEmitters`) and vents (rooms with a
+  `*vent*` ceiling texture, else a seeded `ventsPerRoom` few: nearest `ventEmitters` play `vent_drone`);
+  `onRoomDropped` releases them.
+- **Distant events** (`game.audioDirector`): seeded, rare (`distantMaxGap` s apart at intensity 0, `distantMinGap`
+  at 1), never the same twice running: `far_thud`, `far_door`, `far_phone`, `far_chair`, and footsteps
+  (`far_step`) that take a few steps, then answer the player's `player:step`s and stop when they stop. Placed
+  `distantDistance` m away, preferring unloaded space and directions with walls between; occluded like any voice.
+  They are not `world.noise` (the Tenant doesn't hear them).
+- **Debug.** Dev builds: F7 toggles an overlay (emitters, acoustics, occlusion per voice, env gain, peak into
+  the soft-clipper from `synth.meterPeak()`).
