@@ -154,6 +154,7 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 | `prop:carry` | `{ inst }` | physics |
 | `prop:topple` | `{ inst, dir }` | physics |
 | `prop:shatter` | `{ id, x, z }` | physics (the inst is gone; its `shatter.into` decal is spawned) |
+| `camera:flash` | `{ pos: {x,y,z}, dir: {x,y,z} }` | flash camera (src/story/camera.js), for the Tenant |
 | `flashlight:change` | `{ on, battery }` | M5 (on toggle, recharge, and when an LED goes out at 66/33/5 %) |
 | `power:fuse` | `{ roomKey, rooms: [roomKey], revived }` | power (a fuse went in; `rooms` = the room + neighbours) |
 | `power:switch` | `{ roomKey, on }` | power (wall switch flipped) |
@@ -169,3 +170,30 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 `run` returns `ctx.ok({ consume? })` or `ctx.fail(message)` (shows the message as a caption).
 `ctx` gives scripts a safe API (player, inventory, world spawn/remove, sound, ui via events, stats,
 flashlight, rng, state, timer, self, params) — see `src/scripts/api.js`.
+
+## Containers + story props (src/containers, src/story)
+Registered from `src/story/register.js` (one line in `src/extensions.js`).
+- **Binding.** Extension modules can't see `game` at import time, so register.js wraps
+  `Gameplay.prototype.update` to call `bindStory(gp)` on the first gameplay frame. After that the story
+  runtime (`src/story/runtime.js`) runs as a `world.addSystem` system: `onReady(fn(game))`,
+  `onUpdate(fn(dt, game, ctx))`, `onInstance(id, fn(inst, game))` (once per spawned/streamed instance).
+- **`container` component** (`src/containers/component.js`, rules in `logic.js`), added to the engine's
+  component table at load. `{ compartments: [{ pool, name? }], stuckChance?, drawers? }` or
+  `{ vend: { pool, wrongPool?, eatChance?, wrongChance? }, tray?: [x,y,z] }`. Each compartment rolls its pool
+  once per run, seeded `hash(seed, 'container', stableKey, i)`; state (`opened`, `rolled`, `rattles`, `coins`)
+  lives in `gameplay.stateOf(inst)` so it persists per run. Opened with the `container_open` interact script;
+  vending with a `{ with: "coin", script: "vend_coin", consume: "other" }` combine rule.
+- **`game.dangerLevel`** 0..1 (default 0, set at bind). The Tenant should set it; the walkie static reads it.
+- **Run state** (`world.run.scriptState` = `ctx.state.run`) keys: `badges: Set<badgeId>` +
+  `badgeInfo[badgeId] = { name, role, clearance }` (for keycard doors), `threads: [{ id, pts: [[x,z]], len, open }]`
+  (red string), `photos` (count), `typewriterLine`, `walkieHint`, `threadSeq`.
+- **Notebook** (`game.diegetic.notebook`): `addPage({ kind: 'photo'|'wanderer'|'mapReveal', id, title, caption, ... })`
+  → page index (deduped by id). Open a page with `readable:open { display: 'notebook', noteId: <page id> }`.
+- **Auto-map** (`game.diegetic.map`): `reveal(cells [[cx,cz,v]], { id, cx, cz, lie })`, `contradictions()`,
+  `drawReveal(...)`, `revealsJSON()` (saves; `toJSON()` is unchanged).
+- **Post pass**: `renderer.postUniforms.uFlash` 0..1 white pop.
+- **Script ctx additions** (`src/scripts/api.js`): `ctx.seed`, `ctx.content`, `ctx.emit(name, payload)`,
+  `ctx.inventory.freeIndexFor(id, prefer)`, `ctx.world.keyOf(inst)`, `ctx.world.noise(pos, loudness, source)`,
+  `ctx.world.depthAt(x, z)`.
+- **Content kind `lines`**: `content/lines/<id>.json` = `{ id, note?, lines: string[] }` (typewriter story,
+  walkie hints, wanderer names/roles, photo writing), read as `ctx.content.lines[id].lines`. Validated.

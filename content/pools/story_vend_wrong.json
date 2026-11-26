@@ -1,0 +1,30 @@
+{
+  "id": "story_vend_wrong",
+  "note": "When the vending machine drops the wrong thing.",
+  "entries": [
+    {
+      "def": "id_badge",
+      "w": 20
+    },
+    {
+      "def": "note_random",
+      "w": 30
+    },
+    {
+      "def": "chalk",
+      "w": 15
+    },
+    {
+      "def": "red_string",
+      "w": 10
+    },
+    {
+      "def": "walkie_talkie",
+      "w": 5
+    },
+    {
+      "def": "coin",
+      "w": 20
+    }
+  ]
+}

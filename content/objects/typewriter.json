@@ -1,0 +1,27 @@
+{
+  "id": "typewriter",
+  "name": "Typewriter",
+  "tags": [
+    "story",
+    "desk"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "typewriter"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": false
+    },
+    "interact": {
+      "verb": "type",
+      "script": "typewriter_type",
+      "params": {
+        "lines": "typewriter_story",
+        "liveChance": 0.2
+      },
+      "cooldown": 0.3
+    }
+  }
+}

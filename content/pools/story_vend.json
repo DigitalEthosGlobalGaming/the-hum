@@ -1,0 +1,31 @@
+{
+  "id": "story_vend",
+  "note": "What a vending machine drops for a coin when it works.",
+  "entries": [
+    {
+      "def": "almond_water",
+      "w": 45
+    },
+    {
+      "def": "battery",
+      "w": 30
+    },
+    {
+      "def": "blank_tape",
+      "w": 6
+    },
+    {
+      "def": "flash_camera",
+      "w": 3,
+      "minDepth": 2
+    },
+    {
+      "def": "fuse",
+      "w": 6
+    },
+    {
+      "def": "coin",
+      "w": 5
+    }
+  ]
+}

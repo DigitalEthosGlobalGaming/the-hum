@@ -1,0 +1,18 @@
+{
+  "id": "story_floor",
+  "note": "Floor-standing story props (level design places these against walls).",
+  "entries": [
+    {
+      "def": "filing_cabinet",
+      "w": 50
+    },
+    {
+      "def": "vending_machine",
+      "w": 12
+    },
+    {
+      "def": null,
+      "w": 38
+    }
+  ]
+}

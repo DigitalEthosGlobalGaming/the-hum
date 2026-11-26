@@ -1,0 +1,89 @@
+{
+  "id": "tape_lure",
+  "note": "A recorder left playing (loop): tape hiss, wow and flutter, muffled steps and breathing from the recording.",
+  "bus": "sfx",
+  "volume": 0.7,
+  "spatial": true,
+  "refDistance": 1.5,
+  "maxDistance": 22,
+  "reverb": 0.35,
+  "loop": true,
+  "layers": [
+    {
+      "note": "hiss",
+      "noise": "pink",
+      "gain": 0.12,
+      "filter": {
+        "type": "highpass",
+        "freq": 2500
+      },
+      "env": {
+        "a": 0.1,
+        "d": 0,
+        "s": 1,
+        "r": 0.3
+      }
+    },
+    {
+      "note": "muffled voice",
+      "osc": "saw",
+      "freq": 140,
+      "gain": 0.18,
+      "filter": {
+        "type": "bandpass",
+        "freq": 700,
+        "q": 2.5
+      },
+      "env": {
+        "a": 0.2,
+        "d": 0,
+        "s": 1,
+        "r": 0.3
+      },
+      "lfo": [
+        {
+          "target": "gain",
+          "wave": "noise",
+          "rate": 4,
+          "depth": 0.85
+        },
+        {
+          "target": "pitch",
+          "wave": "sine",
+          "rate": 0.7,
+          "depth": 25
+        }
+      ]
+    },
+    {
+      "note": "steps on tape",
+      "noise": "brown",
+      "gain": 0.4,
+      "filter": {
+        "type": "lowpass",
+        "freq": 400
+      },
+      "env": {
+        "a": 0.005,
+        "d": 0.12
+      },
+      "repeat": {
+        "count": 4,
+        "interval": 0.55,
+        "jitter": 0.08
+      }
+    },
+    {
+      "note": "motor",
+      "osc": "sine",
+      "freq": 55,
+      "gain": 0.04,
+      "env": {
+        "a": 0.2,
+        "d": 0,
+        "s": 1,
+        "r": 0.3
+      }
+    }
+  ]
+}

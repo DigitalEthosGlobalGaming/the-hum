@@ -1,0 +1,71 @@
+{
+  "id": "walkie_static",
+  "note": "Walkie-talkie squelch open (loop): band-limited hiss that breathes and crackles.",
+  "bus": "sfx",
+  "volume": 0.35,
+  "reverb": 0,
+  "loop": true,
+  "layers": [
+    {
+      "note": "hiss",
+      "noise": "white",
+      "gain": 0.45,
+      "filter": {
+        "type": "bandpass",
+        "freq": 2000,
+        "q": 0.9
+      },
+      "env": {
+        "a": 0.05,
+        "d": 0,
+        "s": 1,
+        "r": 0.15
+      },
+      "lfo": {
+        "target": "gain",
+        "wave": "noise",
+        "rate": 3,
+        "depth": 0.4
+      }
+    },
+    {
+      "note": "crackle",
+      "noise": "white",
+      "gain": 0.3,
+      "filter": {
+        "type": "highpass",
+        "freq": 3500
+      },
+      "env": {
+        "a": 0.05,
+        "d": 0,
+        "s": 1,
+        "r": 0.1
+      },
+      "lfo": {
+        "target": "gain",
+        "wave": "noise",
+        "rate": 22,
+        "depth": 0.9
+      }
+    },
+    {
+      "note": "carrier whine",
+      "osc": "sine",
+      "freq": 1210,
+      "gain": 0.012,
+      "env": {
+        "a": 0.2,
+        "d": 0,
+        "s": 1,
+        "r": 0.1
+      },
+      "lfo": {
+        "target": "pitch",
+        "wave": "noise",
+        "rate": 0.4,
+        "depth": 40
+      }
+    }
+  ]
+}

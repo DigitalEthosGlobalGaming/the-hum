@@ -1,0 +1,18 @@
+{
+  "id": "walkie_talkie",
+  "name": "Walkie-talkie",
+  "tags": [
+    "tool",
+    "audio"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "walkie_talkie"
+  },
+  "components": {
+    "pickup": {},
+    "use": {
+      "script": "walkie_use"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": "red_string",
+  "name": "Ball of red string",
+  "tags": [
+    "tool",
+    "navigation"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "red_string"
+  },
+  "components": {
+    "pickup": {},
+    "use": {
+      "script": "string_use"
+    }
+  }
+}

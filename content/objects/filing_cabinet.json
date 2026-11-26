@@ -1,0 +1,41 @@
+{
+  "id": "filing_cabinet",
+  "name": "Filing cabinet",
+  "tags": [
+    "container",
+    "furniture"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "filing_cabinet",
+    "tint": "#6b6e66"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    },
+    "interact": {
+      "verb": "open drawer",
+      "script": "container_open",
+      "cooldown": 0.4
+    },
+    "container": {
+      "compartments": [
+        {
+          "pool": "story_drawer_top",
+          "name": "top drawer"
+        },
+        {
+          "pool": "story_drawer_middle",
+          "name": "middle drawer"
+        },
+        {
+          "pool": "story_drawer_bottom",
+          "name": "bottom drawer"
+        }
+      ],
+      "stuckChance": 0.5
+    }
+  }
+}

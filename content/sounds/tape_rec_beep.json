@@ -1,0 +1,43 @@
+{
+  "id": "tape_rec_beep",
+  "vary": {"pitch": 0.5, "gain": 1.5},
+  "note": "Cassette recorder REC engaged: a soft beep and the motor starting.",
+  "bus": "sfx",
+  "volume": 0.45,
+  "reverb": 0,
+  "layers": [
+    {
+      "note": "beep",
+      "osc": "sine",
+      "freq": 1020,
+      "gain": 0.25,
+      "env": {
+        "a": 0.005,
+        "d": 0.02,
+        "s": 0.8,
+        "sus": 0.12,
+        "r": 0.03
+      }
+    },
+    {
+      "note": "motor",
+      "osc": "saw",
+      "freq": 70,
+      "gain": 0.06,
+      "start": 0.1,
+      "filter": {
+        "type": "lowpass",
+        "freq": 300
+      },
+      "pitchEnv": {
+        "from": 0.6,
+        "to": 1,
+        "time": 0.25
+      },
+      "env": {
+        "a": 0.05,
+        "d": 0.4
+      }
+    }
+  ]
+}

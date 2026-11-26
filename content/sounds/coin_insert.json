@@ -1,0 +1,69 @@
+{
+  "id": "coin_insert",
+  "note": "A coin dropped into a vending slot: a bright tink, then it rattles down the chute.",
+  "bus": "sfx",
+  "volume": 0.6,
+  "spatial": true,
+  "refDistance": 1,
+  "maxDistance": 18,
+  "reverb": 0.2,
+  "vary": {
+    "pitch": 0.8
+  },
+  "layers": [
+    {
+      "note": "tink",
+      "osc": "sine",
+      "freq": 3150,
+      "gain": 0.35,
+      "env": {
+        "a": 0.001,
+        "d": 0.18
+      }
+    },
+    {
+      "note": "partial",
+      "osc": "sine",
+      "freq": 4870,
+      "gain": 0.15,
+      "env": {
+        "a": 0.001,
+        "d": 0.1
+      }
+    },
+    {
+      "note": "chute rattle",
+      "noise": "white",
+      "gain": 0.2,
+      "start": 0.12,
+      "filter": {
+        "type": "bandpass",
+        "freq": 2600,
+        "q": 5
+      },
+      "env": {
+        "a": 0.001,
+        "d": 0.03
+      },
+      "repeat": {
+        "count": 7,
+        "interval": 0.06,
+        "jitter": 0.02
+      },
+      "vary": {
+        "gain": 5
+      }
+    },
+    {
+      "note": "lands",
+      "osc": "triangle",
+      "freq": 620,
+      "gain": 0.12,
+      "start": 0.55,
+      "env": {
+        "a": 0.001,
+        "d": 0.08
+      }
+    }
+  ]
+}

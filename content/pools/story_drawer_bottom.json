@@ -1,0 +1,34 @@
+{
+  "id": "story_drawer_bottom",
+  "note": "Filing cabinet bottom drawer: the heavy stuff, sometimes nothing at all.",
+  "entries": [
+    {
+      "def": "flash_camera",
+      "w": 7
+    },
+    {
+      "def": "walkie_talkie",
+      "w": 7
+    },
+    {
+      "def": "tape_recorder",
+      "w": 6
+    },
+    {
+      "def": "almond_water",
+      "w": 14
+    },
+    {
+      "def": "coin",
+      "w": 14
+    },
+    {
+      "def": "blank_tape",
+      "w": 6
+    },
+    {
+      "def": null,
+      "w": 46
+    }
+  ]
+}

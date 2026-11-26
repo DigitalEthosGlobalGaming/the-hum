@@ -1,0 +1,62 @@
+{
+  "id": "typewriter_bell",
+  "note": "The end-of-line bell, then the carriage return ratchet.",
+  "bus": "sfx",
+  "volume": 0.55,
+  "spatial": true,
+  "refDistance": 1,
+  "maxDistance": 24,
+  "reverb": 0.35,
+  "layers": [
+    {
+      "note": "bell",
+      "osc": "sine",
+      "freq": 2480,
+      "gain": 0.35,
+      "env": {
+        "a": 0.001,
+        "d": 0.9
+      }
+    },
+    {
+      "note": "bell partial",
+      "osc": "sine",
+      "freq": 6150,
+      "gain": 0.08,
+      "env": {
+        "a": 0.001,
+        "d": 0.4
+      }
+    },
+    {
+      "note": "ratchet",
+      "noise": "white",
+      "gain": 0.25,
+      "start": 0.35,
+      "filter": {
+        "type": "bandpass",
+        "freq": 2400,
+        "q": 4
+      },
+      "env": {
+        "a": 0.001,
+        "d": 0.02
+      },
+      "repeat": {
+        "count": 8,
+        "interval": 0.035
+      }
+    },
+    {
+      "note": "carriage slam",
+      "osc": "triangle",
+      "freq": 180,
+      "gain": 0.3,
+      "start": 0.66,
+      "env": {
+        "a": 0.001,
+        "d": 0.1
+      }
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "id": "story_desk",
+  "note": "Desk-top spots for story props (level design places these).",
+  "entries": [
+    {
+      "def": "typewriter",
+      "w": 18
+    },
+    {
+      "def": "id_badge",
+      "w": 14
+    },
+    {
+      "def": "walkie_talkie",
+      "w": 6
+    },
+    {
+      "def": "flash_camera",
+      "w": 5
+    },
+    {
+      "def": "coin",
+      "w": 14
+    },
+    {
+      "def": "blank_tape",
+      "w": 6
+    },
+    {
+      "def": "red_string",
+      "w": 4
+    },
+    {
+      "def": null,
+      "w": 33
+    }
+  ]
+}

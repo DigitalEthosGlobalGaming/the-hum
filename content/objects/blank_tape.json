@@ -1,0 +1,21 @@
+{
+  "id": "blank_tape",
+  "name": "Blank cassette",
+  "tags": [
+    "audio"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "blank_tape"
+  },
+  "components": {
+    "pickup": {},
+    "combine": [
+      {
+        "with": "tape_recorder",
+        "script": "tape_load_blank",
+        "consume": "self"
+      }
+    ]
+  }
+}

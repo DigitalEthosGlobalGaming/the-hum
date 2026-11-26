@@ -219,6 +219,7 @@ uniform vec2 uRes;
 uniform float uTime;
 uniform float uGrain;
 uniform float uDistort;   // 0..1 low-sanity VHS wobble + chroma split (meta UI, M5 vitals)
+uniform float uFlash;     // 0..1 white pop (flash camera, src/story/camera.js)
 varying vec2 vUv;
 float bayer2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
 float bayer4(vec2 a) { return bayer2(0.5 * a) * 0.25 + bayer2(a); }
@@ -238,6 +239,7 @@ void main() {
     c.r = texture2D(tScene, (px + vec2(off, 0.0) + 0.5) / uRes).r;
     c.b = texture2D(tScene, (px - vec2(off, 0.0) + 0.5) / uRes).b;
   }
+  c = mix(c, vec3(1.0, 0.98, 0.94), uFlash);
   c += (hash(px + fract(uTime) * 91.7) - 0.5) * uGrain;
   c += (bayer4(px) - 0.5) / 31.0;
   c = floor(clamp(c, 0.0, 1.0) * 31.0 + 0.5) / 31.0;
@@ -262,6 +264,7 @@ export class PS1Renderer {
           uTime: { value: 0 },
           uGrain: { value: 0.035 },
           uDistort: { value: 0 },
+          uFlash: { value: 0 },
         },
         vertexShader: postVert,
         fragmentShader: postFrag,

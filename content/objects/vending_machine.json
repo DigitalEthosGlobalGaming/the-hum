@@ -1,0 +1,57 @@
+{
+  "id": "vending_machine",
+  "name": "Vending machine",
+  "tags": [
+    "container",
+    "furniture",
+    "light"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "vending_machine"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    },
+    "light": {
+      "color": "#9fc4d8",
+      "intensity": 0.35,
+      "range": 3.5,
+      "flicker": 0.02
+    },
+    "sound": {
+      "preset": "vend_hum",
+      "trigger": "proximity",
+      "radius": 8,
+      "loop": true,
+      "volume": 0.8
+    },
+    "interact": {
+      "verb": "knock on the glass",
+      "script": "container_open",
+      "cooldown": 0.6
+    },
+    "combine": [
+      {
+        "with": "coin",
+        "script": "vend_coin",
+        "consume": "other"
+      }
+    ],
+    "container": {
+      "vend": {
+        "pool": "story_vend",
+        "wrongPool": "story_vend_wrong",
+        "eatChance": 0.15,
+        "wrongChance": 0.15
+      },
+      "tray": [
+        -0.1,
+        0.2,
+        -0.52
+      ]
+    }
+  }
+}

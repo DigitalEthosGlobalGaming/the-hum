@@ -5,3 +5,4 @@
 import './decor/register.js';
 import './physics/register.js';
 import './power/register.js';
+import './story/register.js';

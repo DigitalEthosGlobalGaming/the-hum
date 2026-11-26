@@ -1,0 +1,81 @@
+{
+  "id": "vend_clunk",
+  "note": "Something heavy drops into the vending tray: coil whirr, fall, plastic flap slap.",
+  "bus": "sfx",
+  "volume": 0.8,
+  "spatial": true,
+  "refDistance": 1.5,
+  "maxDistance": 28,
+  "reverb": 0.3,
+  "vary": {
+    "pitch": 1
+  },
+  "layers": [
+    {
+      "note": "coil motor",
+      "osc": "saw",
+      "freq": 95,
+      "gain": 0.12,
+      "filter": {
+        "type": "lowpass",
+        "freq": 600
+      },
+      "env": {
+        "a": 0.05,
+        "d": 0.05,
+        "s": 0.9,
+        "sus": 0.45,
+        "r": 0.05
+      }
+    },
+    {
+      "note": "thud",
+      "osc": "sine",
+      "freq": 90,
+      "gain": 0.8,
+      "start": 0.6,
+      "pitchEnv": {
+        "to": 0.5,
+        "time": 0.1
+      },
+      "env": {
+        "a": 0.002,
+        "d": 0.22
+      }
+    },
+    {
+      "note": "flap slap",
+      "noise": "pink",
+      "gain": 0.45,
+      "start": 0.6,
+      "filter": {
+        "type": "bandpass",
+        "freq": 900,
+        "q": 1.2
+      },
+      "env": {
+        "a": 0.001,
+        "d": 0.1
+      }
+    },
+    {
+      "note": "flap swing",
+      "noise": "white",
+      "gain": 0.08,
+      "start": 0.72,
+      "filter": {
+        "type": "bandpass",
+        "freq": 2000,
+        "q": 3
+      },
+      "env": {
+        "a": 0.001,
+        "d": 0.04
+      },
+      "repeat": {
+        "count": 2,
+        "interval": 0.12
+      }
+    }
+  ]
+}
