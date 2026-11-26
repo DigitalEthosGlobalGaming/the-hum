@@ -74,6 +74,60 @@ const painters = {
     }
     return [64, 32];
   },
+  // ── M5 view-model (hands, torch, jacket, notebook) ──
+  skin(g, rng) {
+    g.fillStyle = '#b48a6c'; g.fillRect(0, 0, 16, 16);
+    speckle(g, 16, 16, rng, 0.07);
+    g.fillStyle = 'rgba(90,50,40,0.25)'; g.fillRect(0, 5, 16, 1); g.fillRect(0, 11, 16, 1); // knuckle creases
+    return [16, 16];
+  },
+
+  sleeve(g, rng) {
+    g.fillStyle = '#545b66'; g.fillRect(0, 0, 32, 32);
+    speckle(g, 32, 32, rng, 0.12);
+    g.fillStyle = 'rgba(0,0,0,0.35)';
+    for (let y = 3; y < 32; y += 7) g.fillRect(0, y + rng.int(0, 1), 32, 1);      // fabric folds
+    g.fillStyle = '#3a3f47'; g.fillRect(0, 28, 32, 4);                              // cuff
+    return [32, 32];
+  },
+
+  torch(g, rng) {
+    g.fillStyle = '#3a3c3e'; g.fillRect(0, 0, 16, 32);
+    for (let y = 2; y < 30; y += 2) { g.fillStyle = y % 4 ? '#2a2b2d' : '#46484a'; g.fillRect(0, y, 16, 1); } // knurling
+    g.fillStyle = '#6a6c6e'; g.fillRect(0, 0, 16, 2);
+    speckle(g, 16, 32, rng, 0.08);
+    return [16, 32];
+  },
+
+  strap(g, rng) {
+    g.fillStyle = '#151515'; g.fillRect(0, 0, 16, 16);
+    g.fillStyle = '#262626'; for (let y = 1; y < 16; y += 3) g.fillRect(1, y, 14, 1);
+    speckle(g, 16, 16, rng, 0.06);
+    return [16, 16];
+  },
+
+  jacket(g, rng) {
+    g.fillStyle = '#34312b'; g.fillRect(0, 0, 32, 32);
+    speckle(g, 32, 32, rng, 0.14);
+    g.fillStyle = 'rgba(0,0,0,0.3)'; for (let x = 2; x < 32; x += 6) g.fillRect(x + rng.int(0, 1), 0, 1, 32);
+    return [32, 32];
+  },
+
+  pocket(g, rng) {
+    g.fillStyle = '#1b1915'; g.fillRect(0, 0, 32, 16);
+    g.fillStyle = '#4a453b'; g.fillRect(0, 0, 32, 2);                               // stitched lip
+    g.fillStyle = '#8a8070'; for (let x = 1; x < 32; x += 3) g.fillRect(x, 3, 1, 1);  // stitches
+    speckle(g, 32, 16, rng, 0.1);
+    return [32, 16];
+  },
+
+  cover(g, rng) {
+    g.fillStyle = '#4b2f22'; g.fillRect(0, 0, 32, 32);
+    speckle(g, 32, 32, rng, 0.12);
+    g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(0, 0, 3, 32);                      // spine
+    g.fillStyle = 'rgba(255,230,190,0.12)'; g.fillRect(5, 5, 22, 1); g.fillRect(5, 26, 22, 1);
+    return [32, 32];
+  },
 };
 
 export function makeProcTexture(name) {

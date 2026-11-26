@@ -95,9 +95,25 @@
     "sanityDarkDrain": 0.004,
     "sanityLightRegen": 0.002,
     "staminaDrain": 0.18,
-    "staminaRegen": 0.12
+    "staminaRegen": 0.12,
+    "lightThreshold": 0.18,
+    "staminaRecover": 0.3,
+    "batterySeconds": 360
   },
   "inventory": {
     "slots": 4
+  },
+  "ui": {
+    "textPrompts": true,
+    "captions": true,
+    "reduceFlashing": false,
+    "textScale": 1,
+    "vmFov": 55,
+    "heldSize": 0.075,
+    "clockScale": 1,
+    "pocketLookDown": 0.6,
+    "grainBase": 0.035,
+    "grainLowSanity": 0.11,
+    "vhsStrength": 1
   }
 }

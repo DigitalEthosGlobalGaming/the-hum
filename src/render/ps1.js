@@ -192,13 +192,26 @@ uniform sampler2D tScene;
 uniform vec2 uRes;
 uniform float uTime;
 uniform float uGrain;
+uniform float uDistort;   // 0..1 low-sanity VHS wobble + chroma split (meta UI, M5 vitals)
 varying vec2 vUv;
 float bayer2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
 float bayer4(vec2 a) { return bayer2(0.5 * a) * 0.25 + bayer2(a); }
 float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 void main() {
-  vec2 px = floor(vUv * uRes);
+  vec2 uv = vUv;
+  if (uDistort > 0.001) {
+    // slow VHS line wobble plus a soft tracking band rolling down the screen (smooth, no strobe)
+    float band = 1.0 - smoothstep(0.0, 0.06, abs(fract(uv.y * 0.6 + uTime * 0.05) - 0.5));
+    uv.x += uDistort * (sin(uv.y * 38.0 + uTime * 2.1) * 0.0025 + sin(uv.y * 5.0 - uTime * 0.9) * 0.004
+          + band * 0.012 * sin(uTime * 3.0 + uv.y * 90.0));
+  }
+  vec2 px = floor(uv * uRes);
   vec3 c = texture2D(tScene, (px + 0.5) / uRes).rgb;
+  if (uDistort > 0.001) {
+    float off = floor(uDistort * 2.0 + 0.5);   // 0..2 low-res pixels of chroma split
+    c.r = texture2D(tScene, (px + vec2(off, 0.0) + 0.5) / uRes).r;
+    c.b = texture2D(tScene, (px - vec2(off, 0.0) + 0.5) / uRes).b;
+  }
   c += (hash(px + fract(uTime) * 91.7) - 0.5) * uGrain;
   c += (bayer4(px) - 0.5) / 31.0;
   c = floor(clamp(c, 0.0, 1.0) * 31.0 + 0.5) / 31.0;
@@ -222,6 +235,7 @@ export class PS1Renderer {
           uRes: { value: new THREE.Vector2() },
           uTime: { value: 0 },
           uGrain: { value: 0.035 },
+          uDistort: { value: 0 },
         },
         vertexShader: postVert,
         fragmentShader: postFrag,
@@ -233,8 +247,22 @@ export class PS1Renderer {
     this.postScene = new THREE.Scene();
     this.postScene.add(this.post);
     this.postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    // Overlay passes (M5 view-model, paper tags): drawn into the same low-res target after the
+    // world, each with a fresh depth buffer so they never clip into walls, then dithered with it.
+    this.overlays = [];
+    this.postUniforms = this.post.material.uniforms; // uGrain, uDistort… for meta effects
     this.resize();
   }
+
+  /** Register an overlay `{ scene, camera, visible? }` drawn on top of the world each render. Returns a remover. */
+  addOverlay(scene, camera) {
+    const o = { scene, camera, visible: true };
+    this.overlays.push(o);
+    return Object.assign(o, { remove: () => { const i = this.overlays.indexOf(o); if (i >= 0) this.overlays.splice(i, 1); } });
+  }
+
+  /** Low-res target size in pixels (overlay cameras that work in screen pixels use this). */
+  get lowRes() { return this.post.material.uniforms.uRes.value; }
 
   resize() {
     const w = this.canvas.clientWidth || window.innerWidth;
@@ -248,10 +276,22 @@ export class PS1Renderer {
     this.aspect = w / h;
   }
 
-  render(scene, camera, time) {
+  // overlays: optional extra list for this call; registered overlays (addOverlay) always draw.
+  render(scene, camera, time, overlays = null) {
     this.post.material.uniforms.uTime.value = time;
     this.renderer.setRenderTarget(this.target);
     this.renderer.render(scene, camera);
+    const list = overlays ? this.overlays.concat(overlays) : this.overlays;
+    if (list.length) {
+      const r = this.renderer;
+      r.autoClear = false;
+      for (const o of list) {
+        if (o.visible === false) continue;
+        r.clearDepth();
+        r.render(o.scene, o.camera);
+      }
+      r.autoClear = true;
+    }
     this.renderer.setRenderTarget(null);
     this.renderer.render(this.postScene, this.postCam);
   }
