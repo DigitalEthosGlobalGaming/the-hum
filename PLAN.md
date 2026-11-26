@@ -230,12 +230,12 @@ export default {
 - **4 slots.** Select with **1–4** or the **mouse wheel**. The selected item is **held in your right hand** (diegetic view model).
 - **Left-click = use** the held item (`use` component). **E = interact** with what you're looking at. If you're holding something and the target has a matching `combine` rule, E combines instead.
 - **G = drop** the held item, placed in the world and saved.
-- **Pocket check (diegetic):** hold **I** to look down at your open jacket and see all four pocket items (rendered as small 3D models). Pockets are full when there's no room left. The hand shakes the item when you try to pick up a fifth.
+- **Pocket check (diegetic):** hold **Q** to look down at your open jacket and see all four pocket items (rendered as small 3D models). Pockets are full when there's no room left. The hand shakes the item when you try to pick up a fifth.
 - Items with `size: 2` take two slots (for example a crowbar).
 
 ### 5.2 Combining
 - **Item + world object:** hold the item and press E on the object. For example, *battery + flashlight* or *fuse + fuse box*.
-- **Item + item:** hold item A, open pockets (I), then click item B. For example, *tape + torn note → readable note*.
+- **Item + item:** hold item A, open pockets (Q), then click item B. For example, *tape + torn note → readable note*.
 - Rules live on either object's `combine` list. The engine checks both directions. Results: run a script, consume one or both, and/or spawn a `result` object into your hand.
 
 ### 5.3 Example starter content
@@ -276,7 +276,7 @@ Walk, sprint (stamina), crouch, interact, inventory, watch, notebook. **Sanity**
 | Tenant near | Lights die, hum cuts out, watch scrambles | Three channels |
 | Time / distance | Watch clock + pedometer | (none needed) |
 | Map / notes | Notebook (auto pencil sketch, collected pages) | (none needed) |
-| Inventory | Held item in hand; look down at pockets (I) | Item shape plus name written on the tag |
+| Inventory | Held item in hand; look down at pockets (Q) | Item shape plus name written on the tag |
 | Interact | Hand reaches toward the target; verb written on a tag | Optional text prompt |
 | Caught | VHS tracking glitch (meta) | Audio sting |
 | Saved | Watch beeps, shows `SAVED` | Beep plus text |
@@ -388,4 +388,4 @@ the-hum/
 | Autosave | On entering a new room and on pick-up/drop, at most once per 10 s. Watch beeps |
 | SharePoint | User uploads the M1 smoke test and reports back on rendering, pointer lock and audio |
 | Version control | git, one commit per milestone |
-| Seed UI | Written on the **VHS tape label**. Changed via a "rewrite label" notebook page. Shown on the watch's hidden screen (hold Q 3 s) |
+| Seed UI | Written on the **VHS tape label**. Changed via a "rewrite label" notebook page. Shown on the watch's hidden screen (hold Z 3 s) |

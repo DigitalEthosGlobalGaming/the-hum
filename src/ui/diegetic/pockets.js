@@ -1,4 +1,4 @@
-// Pocket check (hold I): the view tips down to an open jacket with four pockets, each holding a
+// Pocket check (hold Q): the view tips down to an open jacket with four pockets, each holding a
 // small model of its item, a handwritten name tag under it, the selected one raised. While held,
 // mouse X moves the pointing hand between pockets; clicking a second pocket combines it with the
 // selected one via game.gameplay.combineSlots(a, b).

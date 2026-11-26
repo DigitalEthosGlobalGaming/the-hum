@@ -22,6 +22,7 @@ so **change it only deliberately** and note the change in your commit.
 | `flashlight` | `{ on, battery 0..1, toggle(), recharge(amount) }` | M5 (replaces main's minimal one, same fields) | main feeds `on`/`battery` into the shader |
 | `inventory` | Inventory | M4 | see below |
 | `gameplay` | Gameplay | M4 | see "Gameplay (M4)" below |
+| `fullscreen` | `{ on, enter(), exit(), error? }` | main | enter() only works inside a real input event |
 | `paused` | bool | M5 sets while the notebook settings page is open (M6) | |
 | `diegetic` | read-only state | M5 | `notebookOpen`, `pocketsOpen`, `inspecting`, `reading`, `bpm`, `map` (SeenMap: `toJSON()/fromJSON()` for saves), `notebook`, `vitals` |
 
@@ -87,7 +88,7 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 ## Events
 | name | payload | emitted by |
 |---|---|---|
-| `game:start`, `game:resize` | `{}` | main |
+| `game:start`, `game:resize`, `game:pause`, `game:resume` | `{}` | main |
 | `player:step` | `{ intensity }` | main |
 | `inventory:change` | `{ slots, selected }` | M4 |
 | `inventory:full` | `{ id }` | M4 (M5 shakes the hand) |

@@ -79,12 +79,82 @@ async function boot() {
     justifyContent: 'center', color: '#d8cf8a', background: 'rgba(0,0,0,0.82)', cursor: 'pointer', zIndex: 5,
   });
   document.body.appendChild(title);
+
+  // ---- fullscreen + pause/resume -------------------------------------------------------------
+  // Esc makes the browser drop pointer lock (and fullscreen). We pause and show a resume card;
+  // clicking it restores both. Fullscreen must be requested inside a real input event handler.
+  let wantFullscreen = cfg.ui?.fullscreenOnStart !== false;
+  let fsToggling = false; // true while *we* change fullscreen, so it doesn't count as "Esc"
+  const fs = {
+    get on() { return !!document.fullscreenElement; },
+    enter() {
+      const el = document.documentElement;
+      if (!el.requestFullscreen || fs.on) return;
+      fsToggling = true;
+      el.requestFullscreen({ navigationUI: 'hide' })
+        .catch((e) => { fs.error = e?.name || String(e); }) // e.g. an iframe without allow="fullscreen"
+        .finally(() => setTimeout(() => { fsToggling = false; }, 300));
+    },
+    exit() {
+      if (!fs.on) return;
+      fsToggling = true;
+      document.exitFullscreen().catch(() => {}).finally(() => setTimeout(() => { fsToggling = false; }, 300));
+    },
+  };
+  game.fullscreen = fs;
+
+  const pauseCard = document.createElement('div');
+  pauseCard.innerHTML = '<div style="font:bold 28px monospace;letter-spacing:10px">PAUSED</div>'
+    + '<div style="font:15px monospace;margin-top:14px">click to return</div>'
+    + '<div style="font:12px monospace;margin-top:22px;opacity:.6">Enter · fullscreen on/off&nbsp;&nbsp;&nbsp;Esc · pause</div>';
+  Object.assign(pauseCard.style, {
+    position: 'fixed', inset: 0, display: 'none', flexDirection: 'column', alignItems: 'center',
+    justifyContent: 'center', color: '#d8cf8a', background: 'rgba(0,0,0,0.6)', cursor: 'pointer', zIndex: 6,
+  });
+  document.body.appendChild(pauseCard);
+
+  function pause() {
+    if (!game.playing) return;
+    game.playing = false;
+    game.paused = true;
+    pauseCard.style.display = 'flex';
+    events.emit('game:pause', {});
+  }
+  function resume() {
+    if (wantFullscreen) fs.enter();
+    input.requestLock();
+    pauseCard.style.display = 'none';
+    game.paused = false;
+    game.playing = true;
+    events.emit('game:resume', {});
+  }
+  pauseCard.addEventListener('mousedown', resume);
+
   title.addEventListener('mousedown', () => {
     synth.start();
+    if (wantFullscreen) fs.enter();
     input.requestLock();
     title.remove();
     game.playing = true;
     events.emit('game:start', {});
+  });
+
+  // Losing pointer lock while playing = the player pressed Esc (or alt-tabbed): pause.
+  document.addEventListener('pointerlockchange', () => {
+    if (!input.locked && input.mode === 'lock' && game.playing && !fsToggling) pause();
+  });
+  document.addEventListener('fullscreenchange', () => {
+    if (!fs.on && !fsToggling && game.playing) pause();
+  });
+  addEventListener('keydown', (e) => {
+    if (e.repeat) return;
+    if (cfg.keys.fullscreen?.includes(e.code)) {
+      e.preventDefault();
+      wantFullscreen = !fs.on;
+      if (fs.on) fs.exit(); else fs.enter();
+    } else if (cfg.keys.pause?.includes(e.code) && game.playing && input.mode !== 'lock') {
+      pause(); // click-drag fallback has no pointer lock to lose, so Esc pauses directly
+    }
   });
 
   addEventListener('resize', () => {
@@ -122,6 +192,7 @@ async function boot() {
     const look = game.focus;
     diag.update(dt, { renderer, input, synth, player, extra: [
       `seed       ${seed}`,
+      `fullscreen ${fs.on ? 'on' : 'off'}${fs.error ? ' (' + fs.error + ')' : ''}${game.paused ? ' · PAUSED' : ''}`,
       ...world.debugLines(player.pos),
       `looking at ${look ? look.inst.name + (look.inst.readable?.text ? ' — "' + look.inst.readable.text + '"' : '') : '-'}`,
     ] });
