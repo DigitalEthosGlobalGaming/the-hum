@@ -218,4 +218,12 @@ export function makeProcTexture(name) {
   return tex;
 }
 
-export const procTextureNames = Object.keys(painters);
+export const procTextureNames = () => Object.keys(painters);
+
+/** Extension point: feature modules add painters for their own `proc:<name>` textures. */
+export function registerPainters(map) {
+  for (const [name, fn] of Object.entries(map)) {
+    if (painters[name]) console.warn(`[procTextures] "${name}" registered twice; last one wins`);
+    painters[name] = fn;
+  }
+}

@@ -57,6 +57,11 @@ is open, mouse look reads 0 and `use`/`drop`/`left`/`right` drive the pocket cur
     - `objState: Map<stableKey, state>`: per-run state of world objects that scripts touched (fuse box powered, phone answered). `game.gameplay.stateOf(inst)` rehydrates it lazily; keys are `placedKey`, `"<spotKey>:<id>"` or `"<roomKey>#<i>"`.
     - `scriptState: {}`: per-run scratch shared by scripts (`ctx.state.run`).
 
+### World extension points (feature systems)
+- `world.addSystem({ update?(dt, ctx, world), onRoomPlaced?(placed, world), onRoomDropped?(placed, world) })` — per-frame hook + room streaming hooks. `placed = { key, entry, json, built, origin, depth, objects }`.
+- `world.noise(pos, loudness, source)` — a sound others can hear; `loudness` ≈ hearing radius in metres (footstep 3–8, clatter 10, bell 18, boombox 25). Emits `world:noise` `{x,y,z,loudness,source,t}`; recent ones in `world.noises`. Footsteps already report.
+- `registerPrefabs(map)` (`src/objects/prefabs.js`) and `registerPainters(map)` (`src/objects/procTextures.js`) — add prefabs / `proc:` textures from your own module, imported for side effects in `src/extensions.js`.
+
 ## Object instance (`inst`)
 `{ uid, id, def, name, root (THREE.Group), meta {roomKey, spotKey?}, state {}, interactive, center, radius, readable? }`
 
@@ -99,6 +104,7 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 | `ui:caption` | `{ text, seconds, key? }` (same `key` replaces the previous caption) | anyone (M5 shows sound captions/prompts when accessibility allows) |
 | `ui:captionClear` | `{ key }` | anyone (removes a keyed caption) |
 | `ui:watchBeep` | `{ text? }` | anyone (M5 watch) |
+| `world:noise` | `{ x, y, z, loudness, source, t }` | world.noise() |
 | `flashlight:change` | `{ on, battery }` | M5 (on toggle, recharge, and when an LED goes out at 66/33/5 %) |
 
 ## Item scripts (M4)

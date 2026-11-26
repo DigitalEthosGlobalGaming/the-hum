@@ -1,6 +1,7 @@
 // THE HUM · boot + main loop.
 // Systems share one `game` object (see src/CONTRACTS.md). M4 gameplay and M5 diegetic UI plug in
 // through their install/update hooks so this file stays small.
+import './extensions.js'; // feature modules register prefabs/textures first
 import * as THREE from 'three';
 import content from 'virtual:content';
 import { PS1Renderer, shared, highlightUniforms } from './render/ps1.js';
@@ -42,7 +43,7 @@ async function boot() {
   const input = new Input(canvas, cfg.keys);
   const synth = new Synth();
   synth.loadPresets(content.sounds);
-  const world = new World({ content, textures, scene, audio: synth, seed });
+  const world = new World({ content, textures, scene, audio: synth, seed, events });
   const spawn = world.start();
   const player = new Player(cfg.player, camera);
   player.pos.copy(spawn.pos);
@@ -61,7 +62,12 @@ async function boot() {
       recharge(amount = 1) { this.battery = Math.min(1, this.battery + amount); },
     },
   };
-  player.onStep = (k) => { game.stats.steps++; synth.footstep(k); events.emit('player:step', { intensity: k }); };
+  player.onStep = (k) => {
+    game.stats.steps++;
+    synth.footstep(k);
+    events.emit('player:step', { intensity: k });
+    world.noise(player.pos, 2 + 3 * k, 'footstep'); // crouch-walk ~3 m, sprint ~8 m
+  };
 
   installGameplay(game);
   installDiegetic(game);

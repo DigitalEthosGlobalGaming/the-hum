@@ -37,3 +37,11 @@ export const prefabs = {
     { size: [0.07, 0.02, 0.07], pos: [0, 0.3, -0.08], tint: '#fff3c0', emissive: 1 }, // bulb
   ],
 };
+
+/** Extension point: feature modules add their own prefabs (see src/extensions.js). */
+export function registerPrefabs(map) {
+  for (const [name, parts] of Object.entries(map)) {
+    if (prefabs[name]) console.warn(`[prefabs] "${name}" registered twice; last one wins`);
+    prefabs[name] = parts;
+  }
+}

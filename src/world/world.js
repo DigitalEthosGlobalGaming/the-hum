@@ -14,7 +14,10 @@ import { hash } from '../core/rng.js';
 const CEILING_COLOR = new THREE.Color(1.0, 0.92, 0.62);
 
 export class World {
-  constructor({ content, textures, scene, audio, seed }) {
+  constructor({ content, textures, scene, audio, seed, events = null }) {
+    this.events = events;
+    this.systems = [];             // feature systems: { update?(dt, ctx, world), onRoomPlaced?(placed, world), onRoomDropped?(placed, world) }
+    this.noises = [];              // recent noise events (see noise())
     this.content = content;
     this.textures = textures;
     this.scene = scene;
@@ -128,6 +131,7 @@ export class World {
       if (inst) { inst.state = e.state; placed.objects.push(inst); }
     }
     this.rooms.set(key, placed);
+    for (const sys of this.systems) sys.onRoomPlaced?.(placed, this);
     for (const sk of entry.bigRoom?.slots ?? [entry.slotKey]) this.bySlot.set(sk, placed);
     this.stats.built++;
     this.stats.buildMs = performance.now() - t0;
@@ -137,6 +141,7 @@ export class World {
   dropRoom(key) {
     const placed = this.rooms.get(key);
     if (!placed) return;
+    for (const sys of this.systems) sys.onRoomDropped?.(placed, this);
     this.scene.remove(placed.built.group);
     placed.built.group.traverse((o) => o.geometry?.dispose());
     // everything that belongs to this room, including things gameplay dropped/placed here
@@ -194,8 +199,28 @@ export class World {
 
   // ---------------------------------------------------------------- per frame
 
+  /** Register a feature system. Rooms already built are reported through onRoomPlaced. */
+  addSystem(sys) {
+    this.systems.push(sys);
+    for (const placed of this.rooms.values()) sys.onRoomPlaced?.(placed, this);
+    return sys;
+  }
+
+  /**
+   * Something made a sound the Tenant (and other listeners) could hear.
+   * loudness ≈ hearing radius in metres (footstep 4, clatter 10, bell 18, boombox 25).
+   */
+  noise(pos, loudness, source = 'unknown') {
+    const n = { x: pos.x, y: pos.y ?? 0, z: pos.z, loudness, source, t: performance.now() / 1000 };
+    this.noises.push(n);
+    if (this.noises.length > 32) this.noises.shift();
+    this.events?.emit('world:noise', n);
+    return n;
+  }
+
   update(dt, ctx) {
     if (ctx.player) this.stream(ctx.player.pos);
+    for (const sys of this.systems) sys.update?.(dt, ctx, this);
     this.objects.update(dt, ctx);
     this.updateLights(ctx.camera, ctx.time);
   }
