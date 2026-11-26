@@ -134,6 +134,19 @@ void main() {
  * (0 = dark, 1 = fully lit): the texture blends offMap → texture and emissive scales with it,
  * so every fixture in a room shares one material and one draw call (src/power owns aLit).
  */
+/**
+ * Decals (stains on the floor, labels/screens/clock faces on props, writing on walls) sit a few mm
+ * off another surface. PS1 vertex snapping moves the two surfaces' vertices differently, so plain
+ * offsets z-fight; a depth bias + drawing after the surface keeps them on top.
+ */
+export const DECAL_BIAS = { factor: -2, units: -8 };
+export function makeDecal(material) {
+  material.polygonOffset = true;
+  material.polygonOffsetFactor = DECAL_BIAS.factor;
+  material.polygonOffsetUnits = DECAL_BIAS.units;
+  return material;
+}
+
 export function makePS1Material(texture, { tint = 0xffffff, emissive = 0, offMap = null } = {}) {
   const uniforms = {
     ...shared,

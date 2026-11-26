@@ -89,6 +89,11 @@ export function toViewModel(root) {
       vm = makeVMMaterial(u.map?.value, {
         tint: u.uTint?.value ?? 0xffffff, emissive: u.uEmissive?.value ?? 0, side: src.side,
       });
+      if (src.polygonOffset) { // keep decal depth bias (screens, labels, clock faces) in the hand too
+        vm.polygonOffset = true;
+        vm.polygonOffsetFactor = src.polygonOffsetFactor;
+        vm.polygonOffsetUnits = src.polygonOffsetUnits;
+      }
       swapCache.set(src, vm);
     }
     m.material = vm;

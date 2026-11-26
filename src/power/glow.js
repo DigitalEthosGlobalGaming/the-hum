@@ -1,7 +1,7 @@
 // Glow-in-the-dark writing: a canvas texture per message, drawn at PS1 size, shown with an
 // emissive PS1 material (one material per message, shared by every decal that says it).
 import * as THREE from 'three';
-import { makePS1Material } from '../render/ps1.js';
+import { makePS1Material, makeDecal } from '../render/ps1.js';
 import { Rng } from '../core/rng.js';
 
 export const DEFAULT_MESSAGES = [
@@ -29,7 +29,7 @@ export function glowMaterial(textures, message) {
   if (cache.has(message)) return cache.get(message);
   if (typeof document === 'undefined') return null;
   const tex = glowTexture(message);
-  const mat = makePS1Material(tex, { emissive: 1, tint: 0xffffff });
+  const mat = makeDecal(makePS1Material(tex, { emissive: 1, tint: 0xffffff }));
   mat.side = THREE.DoubleSide;
   cache.set(message, mat);
   return mat;

@@ -1,7 +1,7 @@
 // Object definitions (content/objects/*.json) → live instances in the world.
 // An object = mesh + components. The engine only knows component *types*; content picks them.
 import * as THREE from 'three';
-import { makePS1Material, makeHighlightMaterial, makeOutlineMaterial } from '../render/ps1.js';
+import { makePS1Material, makeHighlightMaterial, makeOutlineMaterial, makeDecal } from '../render/ps1.js';
 import { prefabs } from './prefabs.js';
 import { components } from './components/index.js';
 
@@ -30,12 +30,13 @@ export class ObjectSystem {
     this._nextId = 1;
   }
 
-  material(texture = 'proc:white', tint = '#ffffff', emissive = 0, doubleSided = false) {
-    const key = `${texture}|${tint}|${emissive}|${doubleSided}`;
+  material(texture = 'proc:white', tint = '#ffffff', emissive = 0, doubleSided = false, decal = false) {
+    const key = `${texture}|${tint}|${emissive}|${doubleSided}|${decal}`;
     let m = this.matCache.get(key);
     if (!m) {
       m = makePS1Material(this.textures.get(texture), { tint: new THREE.Color(tint), emissive });
       if (doubleSided) m.side = THREE.DoubleSide;
+      if (decal) makeDecal(m);
       this.matCache.set(key, m);
     }
     return m;
@@ -54,9 +55,12 @@ export class ObjectSystem {
       case 'plane': {
         const [w, h] = m.size;
         const geo = new THREE.PlaneGeometry(w, h);
-        if (m.flat) geo.rotateX(-Math.PI / 2).translate(0, 0.005, 0); // lies on the surface
-        else geo.rotateY(Math.PI).translate(0, h / 2, 0);              // faces -z at rot 0
-        root.add(new THREE.Mesh(geo, this.material(m.texture, m.tint, 0, m.doubleSided)));
+        if (m.flat) geo.rotateX(-Math.PI / 2).translate(0, 0.01, 0); // lies on the surface
+        else geo.rotateY(Math.PI).translate(0, h / 2, 0);             // faces -z at rot 0
+        // planes are decals on a floor/wall/prop: depth-biased and drawn after what they sit on
+        const mesh = new THREE.Mesh(geo, this.material(m.texture, m.tint, 0, m.doubleSided, m.decal !== false));
+        mesh.renderOrder = 1;
+        root.add(mesh);
         break;
       }
       case 'sprite': {
@@ -72,7 +76,10 @@ export class ObjectSystem {
         if (!parts) throw new Error(`Object "${def.id}": unknown prefab "${m.name}"`);
         for (const p of parts) {
           const geo = new THREE.BoxGeometry(...p.size);
-          const mesh = new THREE.Mesh(geo, this.material(p.texture, m.tint ?? p.tint, p.emissive ?? 0));
+          // very thin parts are labels/screens/faces laid on another part: treat as decals
+          const decal = p.decal ?? Math.min(...p.size) <= 0.02;
+          const mesh = new THREE.Mesh(geo, this.material(p.texture, m.tint ?? p.tint, p.emissive ?? 0, false, decal));
+          if (decal) mesh.renderOrder = 1;
           mesh.position.set(...p.pos);
           if (p.rot) mesh.rotation.set(p.rot[0] * DEG, p.rot[1] * DEG, p.rot[2] * DEG);
           root.add(mesh);
@@ -136,11 +143,18 @@ export class ObjectSystem {
     for (const m of meshes) {
       // 1) additive glow on the surface itself
       const tex = m.material.uniforms?.map?.value;
-      let mat = this.highlightCache.get(tex);
-      if (!mat) this.highlightCache.set(tex, (mat = makeHighlightMaterial(tex)));
+      const decal = !!m.material.polygonOffset; // match the decal's depth bias or the glow won't pass the depth test
+      const hk = (tex?.uuid ?? 'none') + (decal ? '|decal' : '');
+      let mat = this.highlightCache.get(hk);
+      if (!mat) {
+        mat = makeHighlightMaterial(tex);
+        if (decal) makeDecal(mat);
+        this.highlightCache.set(hk, mat);
+      }
       const glow = new THREE.Mesh(m.geometry, mat);
       glow.userData.overlay = true;
       glow.renderOrder = 10;
+      if (decal) { /* thin decals: no outline shell, the glow is enough */ m.add(glow); inst.overlays.push(glow); continue; }
       m.add(glow);
       inst.overlays.push(glow);
       // 2) outline shell: scaled about the part's own centre by ~2.5 cm (skip flat planes)
