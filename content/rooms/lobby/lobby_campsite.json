@@ -35,7 +35,7 @@
   "materials": {
     "wall": "wall_yellow_pattern",
     "pillar": "wall_yellow",
-    "floor": "carpet_green",
+    "floor": "carpet_red",
     "ceiling": "ceiling_large",
     "ceilingLight": "ceiling_large_light_on"
   },
