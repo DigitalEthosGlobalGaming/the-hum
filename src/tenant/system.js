@@ -78,6 +78,7 @@ class Tenant {
     ev.on('power:fuse', () => { this.run.fuses++; repoll(); });
     ev.on('camera:flash', (p) => { repoll(); if (p?.pos && p?.dir) this.ai.flash(p.pos, p.dir); });
     ev.on('world:noise', (n) => this.ai.hear(n));
+    ev.on('settings:change', (p) => { if (p?.key === 'calm') this.poll(); }); // Calm is read live
 
     game.tenant = this.api();
     world.addSystem({ update: (dt, ctx) => this.update(dt, ctx) });
@@ -110,6 +111,8 @@ class Tenant {
     this.stage = r.stage;
     this.game.world.storyStage = r.storyStage; // spawner ctx.stage: minStage pool entries
     for (const u of r.unlocks) this.unlock(u);
+    // Calm switched on (or a dev stage drop) mid-encounter: it backs off at once
+    if (this.stage < 2 && (this.ai.state === ST.STALK || this.ai.state === ST.HUNT)) this.ai.queue(ST.LOSE, 'calm', true);
     if (r.changed && !first) {
       this.game.events.emit('tenant:stage', { stage: r.stage, storyStage: r.storyStage, threat: r.threat, prev });
       if (r.stage > prev) this.game.audioDirector?.trigger?.('steps');
@@ -119,7 +122,7 @@ class Tenant {
   unlock(u) {
     const nb = this.game.diegetic?.notebook;
     if (nb?.addPage) {
-      nb.addPage({ kind: 'tenant', id: u.id, title: u.title, caption: u.caption });
+      nb.addPage({ kind: 'learned', id: u.id, text: u.caption }); // Notes → "what I've learned"
       this.game.synth?.play?.('paper_rustle', { volume: 0.4 });
       this.gp.caption('(you write something about it in the notebook)', 3.5, 'tenant:unlock');
     } else this.gp.caption(u.caption, 5, 'tenant:unlock');
@@ -129,9 +132,15 @@ class Tenant {
 
   update(dt, ctx) {
     const game = this.game;
-    if (this.seq) this.updateSequence(dt);
     if (this.debug) this.debug.update(dt);
-    if (!game.playing || game.paused || this.ended) { this.applyDistort(dt); return; }
+    if (game.paused || this.ended) return; // pause freezes everything, the caught sequence included
+    if (this.seq) {
+      this.updateSequence(dt);
+      if (this.seq && this.seq.t < 2.7) game.player.pos.set(this.seq.pos.x, this.seq.pos.y, this.seq.pos.z); // held in place (then at the wake spot)
+      this.applyDistort(dt);
+      return;
+    }
+    if (!game.playing) { this.applyDistort(dt); return; }
     this.pollT -= dt;
     if (this.pollT <= 0) { this.pollT = 1; this.poll(); }
 
@@ -282,8 +291,7 @@ class Tenant {
 
   startCaught() {
     const game = this.game, pl = game.player;
-    this.seq = { t: 0, applied: false, distort: 1, pos: { x: pl.pos.x, y: pl.pos.y, z: pl.pos.z }, yaw: pl.yaw, wasPlaying: game.playing };
-    game.playing = false; // freeze the player (main runs player.update with idle input)
+    this.seq = { t: 0, applied: false, distort: 1, pos: { x: pl.pos.x, y: pl.pos.y, z: pl.pos.z }, yaw: pl.yaw }; // (the player is held at pos until the teleport)
     game.synth?.play?.('sting_low', { volume: 1 });
     game.synth?.play?.('vhs_tear', { volume: 0.9 });
     game.events.emit('tenant:caught', { pos: this.seq.pos, stage: this.stage });
@@ -323,7 +331,6 @@ class Tenant {
     } else {
       this.fade(0);
       this.seq = null;
-      this.game.playing = true;
       this.pulse = 0.3;
       this.caption('[you wake somewhere else. Your pockets feel lighter.]', 4, 'tenant:wake');
       this.director.quiet();
@@ -343,6 +350,7 @@ class Tenant {
     if (res.ended) return res;
     const spot = this.wakeSpot(q.pos);
     game.player.pos.set(spot.x, 0, spot.z);
+    q.pos = { x: spot.x, y: 0, z: spot.z };
     game.player.yaw = this.rng.next() * Math.PI * 2;
     world.stream(game.player.pos, { sync: true });
     game.events.emit('tenant:wake', { pos: { x: spot.x, z: spot.z }, ...res });

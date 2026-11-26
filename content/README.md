@@ -54,8 +54,16 @@ Item scripts live in `src/scripts/items/` (list each in `index.js`); the `ctx` A
 | door, hide, anomaly | (later) |
 
 ## pools/*.json
-`{ id, rolls?: 1, entries: [ { def: id|null, w: >0, minDepth?, maxDepth?, zones?, unique? } | { pool: id, w } ] }`
+`{ id, rolls?: 1, entries: [ { def: id|null, w: >0, minDepth?, maxDepth?, zones?, unique?, minStage? } | { pool: id, w } ] }`
 Chance of an entry = `w / sum(w of eligible entries)`. `null` def = nothing spawns. Check odds with `node tools/pool-sim.mjs <pool_id>`.
+
+`minStage` (0..3) gates an entry on the Tenant's **story stage** (PLAN §6.1: 0 Rumour, 1 Noticed, 2 Followed,
+3 Hunted), like `minDepth` gates on depth. The stage is read when a room is built, so rooms already built keep
+their rolls. To make something *more common* from a stage, add a second entry for the same `def` with
+`minStage` (stage-0 odds stay exactly as they were); to make it *appear* from a stage, put `minStage` on its only
+entry. Used now: stage 1 adds `soda_can` / `glass_bottle` / `blank_tape` (sound lures) to room pools; stage 2 raises
+`music_box` / `glow_stick` / `spare_tube` (light) and brings `flash_camera` into room pools. Only the world
+spawner passes the stage today: container, vending, spill and power-loot rolls treat every entry as stage 0.
 
 ## notes/*.json
 `{ id, title, text, spine?: n }`. Notes with `spine` (1..12, no gaps) are the story, always read in order

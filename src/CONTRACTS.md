@@ -228,7 +228,7 @@ Registered from `src/story/register.js` (one line in `src/extensions.js`).
   once per run, seeded `hash(seed, 'container', stableKey, i)`; state (`opened`, `rolled`, `rattles`, `coins`)
   lives in `gameplay.stateOf(inst)` so it persists per run. Opened with the `container_open` interact script;
   vending with a `{ with: "coin", script: "vend_coin", consume: "other" }` combine rule.
-- **`game.dangerLevel`** 0..1 (default 0, set at bind). The Tenant should set it; the walkie static reads it.
+- **`game.dangerLevel`** 0..1 (default 0, set at bind). The Tenant director sets it every frame (its smoothed tension); the walkie static reads it.
 - **Run state** (`world.run.scriptState` = `ctx.state.run`) keys: `badges: Set<badgeId>` +
   `badgeInfo[badgeId] = { name, role, clearance }` (for keycard doors), `threads: [{ id, pts: [[x,z]], len, open }]`
   (red string), `photos` (count), `typewriterLine`, `walkieHint`, `threadSeq`.
@@ -275,3 +275,27 @@ frame like the story runtime and runs as a `world.addSystem` system. Tunables: `
   They are not `world.noise` (the Tenant doesn't hear them).
 - **Debug.** Dev builds: F7 toggles an overlay (emitters, acoustics, occlusion per voice, env gain, peak into
   the soft-clipper from `synth.meterPeak()`).
+
+## The Tenant (`src/tenant/`)
+Registered from `src/tenant/register.js` (one line in `src/extensions.js`); binds on the first gameplay frame
+like the story runtime and runs as a `world.addSystem` system. Tunables: `config.tenant` (PLAN §6.1).
+- **`game.tenant`**: `stage` (behaviour stage 0..3, Calm caps it at 1), `storyStage` (uncapped, drives pools +
+  notebook lines), `threat`, `state` (`Dormant|Glimpse|Stalk|Hunt|Lose`), `tension`, `distort`, `calm`, `ai`,
+  `director`, `debugLines()`. Dev: `setStage(n|null)`, `spawnGlimpse()`, `stalk()`, `forceHunt()`, `catchMe()`,
+  `hold` (glimpses don't vanish, for screenshots). Same object at `window.__hum.tenant` in dev builds.
+- **Threat** = spine notes collected + `min(bumpCap, badges·0.25 + fuses·0.35 + evac maps·0.25 + photos·0.15)`
+  (from `notesCollected`, `runState.badges`, `power:fuse`, `diegetic.map.reveals`, `runState.photos`).
+  Stages at threat 3 / 6 / 9 (`tenant.stages`). It only rises. **Calm** = `config.tenant.calm || game.settings.calm`
+  (read live; turning it on mid-hunt sends it away).
+- **Run state**: `runState.tenant = { unlocked: { [stage]: true }, fuses, caught }`. `world.storyStage` is the story
+  stage for the spawner (`ctx.stage`, pool entries' `minStage`).
+- **Notebook**: each stage writes `addPage({ kind: 'learned', id: 'tenant:sound'|'tenant:light'|'tenant:flash'|'tenant:hunt', text })`.
+- **Reads**: `world:noise` (hearing radius = loudness; noise > 3 m from the player = a lure), `camera:flash`,
+  `world.isSolidAt` / `wallBetween` / `lightAt` / `auraAt`. **Writes**: `game.dangerLevel`,
+  `audioDirector.intensity` (max of `config.audio.intensity` and tension; `trigger('steps')` on a stage rise),
+  fixture `stutterFrom/stutterUntil` near it, `stats.sanity` (drain while in view; −0.35 when caught).
+  `vitals` takes `max(own uDistort, game.tenant.distort)`.
+- **Events**: `tenant:stage { stage, storyStage, threat, prev }`, `tenant:caught { pos, stage }`,
+  `tenant:wake { pos, ended, sanityBefore, sanityAfter, dropped, forgotten }`, `run:end { reason: 'caught' }`
+  (sanity was < 0.1: placeholder "the tape ejects" card, click = new seed; the CRT title replaces it later).
+- **Debug**: dev builds, F8 (`keys.tenantDebug`) toggles the overlay.
