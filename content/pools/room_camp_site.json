@@ -1,0 +1,22 @@
+{
+  "id": "room_camp_site",
+  "note": "Whether a camp spot holds a camp at all (later: music box, glow sticks around it).",
+  "entries": [
+    {
+      "def": "decor_camp",
+      "w": 30
+    },
+    {
+      "def": "decor_blanket_heap",
+      "w": 15
+    },
+    {
+      "def": "decor_sleeping_bag",
+      "w": 10
+    },
+    {
+      "def": null,
+      "w": 45
+    }
+  ]
+}

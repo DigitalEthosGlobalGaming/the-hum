@@ -1,0 +1,30 @@
+{
+  "id": "room_meeting_table",
+  "note": "On a conference table: papers left mid-meeting, sometimes a phone or a note.",
+  "entries": [
+    {
+      "def": "decor_paper_scatter",
+      "w": 24
+    },
+    {
+      "def": "note_random",
+      "w": 7
+    },
+    {
+      "pool": "spine_notes",
+      "w": 5
+    },
+    {
+      "def": "old_phone",
+      "w": 4
+    },
+    {
+      "def": "tape_recorder",
+      "w": 3
+    },
+    {
+      "def": null,
+      "w": 57
+    }
+  ]
+}

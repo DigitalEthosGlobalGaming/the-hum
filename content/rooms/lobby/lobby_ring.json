@@ -1,5 +1,6 @@
 {
   "id": "lobby_ring",
+  "note": "A loop around a solid core. Wrongness: a desk set against the core in the corridor, as if the office was moved out here. Fuse/switch spot on the far face of the core.",
   "zones": {
     "lobby": 5
   },
@@ -36,24 +37,18 @@
     "ceilingLight": "ceiling_large_light_on"
   },
   "objects": [
-    {
-      "def": "wall_scrawl",
-      "pos": [16, 1.5, 5.98],
-      "rot": 0
-    }
+    { "def": "wall_scrawl", "pos": [16, 1.5, 5.98], "rot": 0 },
+    { "def": "office_desk", "pos": [9.62, 0, 8], "rot": 90 },
+    { "def": "office_chair", "pos": [8.6, 0, 8], "rot": 290 },
+    { "def": "decor_extension_cord", "pos": [7.4, 0, 10.6], "rot": 80 }
   ],
   "spots": [
-    {
-      "id": "behind",
-      "pos": [17, 0, 11],
-      "rot": 180,
-      "pool": "lobby_floor_loot"
-    },
-    {
-      "id": "corner",
-      "pos": [29, 0, 3],
-      "rot": 0,
-      "pool": "lobby_clutter"
-    }
+    { "id": "corridor_desk_fixture", "pos": [9.77, 0.76, 8.45], "rot": 90, "pool": "room_desk_fixture" },
+    { "id": "corridor_desk_top", "pos": [9.54, 0.76, 7.88], "pool": "room_desk_top" },
+    { "id": "corridor_desk_beside_chair", "pos": [8.7, 0, 7.38], "pool": "room_beside_chair" },
+    { "id": "core_wall_panel", "pos": [22.13, 0, 8], "rot": 270, "pool": "room_wall_panel" },
+    { "id": "loop_floor", "pos": [26, 0, 12.5], "pool": "room_floor_litter" },
+    { "id": "far_corner", "pos": [29, 0, 3], "pool": "room_corner_loot" },
+    { "id": "ring_ceiling", "pos": [16, 0, 12], "pool": "room_ceiling" }
   ]
 }

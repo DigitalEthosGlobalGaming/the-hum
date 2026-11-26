@@ -1,0 +1,30 @@
+{
+  "id": "room_beside_chair",
+  "note": "On the floor where someone sat: a dropped note, a tape, a bottle. Usually nothing.",
+  "entries": [
+    {
+      "def": "note_random",
+      "w": 8
+    },
+    {
+      "pool": "spine_notes",
+      "w": 6
+    },
+    {
+      "def": "tape_recorder",
+      "w": 5
+    },
+    {
+      "def": "almond_water",
+      "w": 6
+    },
+    {
+      "def": "decor_paper_scatter",
+      "w": 5
+    },
+    {
+      "def": null,
+      "w": 70
+    }
+  ]
+}

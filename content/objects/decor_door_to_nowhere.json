@@ -1,0 +1,22 @@
+{
+  "id": "decor_door_to_nowhere",
+  "name": "Door",
+  "tags": [
+    "decor",
+    "wrong"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_door_to_nowhere"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    },
+    "readable": {
+      "text": "The handle turns all the way round. When you knock, it sounds like more wall.",
+      "display": "inspect"
+    }
+  }
+}

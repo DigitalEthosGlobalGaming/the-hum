@@ -1,0 +1,17 @@
+{
+  "id": "decor_dead_plant",
+  "name": "Dead office plant",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_dead_plant"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    }
+  }
+}

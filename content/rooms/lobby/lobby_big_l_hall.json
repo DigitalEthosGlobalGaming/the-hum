@@ -1,5 +1,6 @@
 {
   "id": "lobby_big_l_hall",
+  "note": "A conference table in the middle of the big hall, chairs around it, one pushed back: a meeting abandoned where no meeting should be. Down the long arm, one chair faces a pillar.",
   "zones": {
     "lobby": 5
   },
@@ -46,24 +47,24 @@
     "ceilingLight": "ceiling_large_light_on"
   },
   "objects": [
-    {
-      "def": "office_chair",
-      "pos": [7, 0, 30],
-      "rot": 90
-    }
+    { "def": "decor_conference_table", "pos": [16, 0, 8], "rot": 0 },
+    { "def": "office_chair", "pos": [15.2, 0, 6.85], "rot": 180 },
+    { "def": "office_chair", "pos": [16.8, 0, 6.8], "rot": 170 },
+    { "def": "office_chair", "pos": [15.2, 0, 9.15], "rot": 0 },
+    { "def": "office_chair", "pos": [17.5, 0, 9.7], "rot": 35 },
+    { "def": "office_chair", "pos": [14.05, 0, 8], "rot": 270 },
+    { "def": "decor_stacking_chair", "pos": [7, 0, 28.45], "rot": 0 }
   ],
   "spots": [
-    {
-      "id": "far_end",
-      "pos": [3, 0, 43],
-      "rot": 0,
-      "pool": "lobby_floor_loot"
-    },
-    {
-      "id": "hall",
-      "pos": [27, 0, 3],
-      "rot": 0,
-      "pool": "lobby_clutter"
-    }
+    { "id": "table_a", "pos": [15.2, 0.76, 7.7], "pool": "room_meeting_table" },
+    { "id": "table_b", "pos": [16, 0.76, 8.25], "pool": "room_meeting_table" },
+    { "id": "table_c", "pos": [16.8, 0.76, 7.8], "pool": "room_meeting_table" },
+    { "id": "pushed_chair_beside", "pos": [18.3, 0, 9.4], "pool": "room_beside_chair" },
+    { "id": "corner_wall_hang", "pos": [13.87, 0, 32], "rot": 90, "pool": "room_wall_hang" },
+    { "id": "hall_leak", "pos": [23, 0, 7], "pool": "room_leak" },
+    { "id": "arm_floor", "pos": [5, 0, 40], "pool": "room_floor_litter" },
+    { "id": "far_end", "pos": [3, 0, 45], "pool": "room_corner_loot" },
+    { "id": "arm_camp", "pos": [7, 0, 42.5], "rot": 0, "pool": "room_camp_site" },
+    { "id": "hall_ceiling", "pos": [7, 0, 35], "pool": "room_ceiling" }
   ]
 }

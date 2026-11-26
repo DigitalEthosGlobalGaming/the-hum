@@ -1,5 +1,6 @@
 {
   "id": "lobby_long_corridor",
+  "note": "A long corridor with one stacking chair in it, facing the wall. Someone sat there. Fuse/switch spot on the south wall.",
   "zones": {
     "lobby": 6
   },
@@ -35,19 +36,14 @@
     "ceiling": "ceiling_large",
     "ceilingLight": "ceiling_large_light_on"
   },
-  "objects": [],
+  "objects": [
+    { "def": "decor_stacking_chair", "pos": [13, 0, 6.45], "rot": 0 }
+  ],
   "spots": [
-    {
-      "id": "nook",
-      "pos": [23, 0, 3],
-      "rot": 0,
-      "pool": "lobby_floor_loot"
-    },
-    {
-      "id": "branch",
-      "pos": [7, 0, 13],
-      "rot": 90,
-      "pool": "lobby_clutter"
-    }
+    { "id": "wall_chair_beside", "pos": [13.7, 0, 7.2], "pool": "room_beside_chair" },
+    { "id": "corridor_wall_panel", "pos": [22, 0, 9.87], "rot": 0, "pool": "room_wall_panel" },
+    { "id": "nook", "pos": [25, 0, 2.8], "pool": "room_corner_loot" },
+    { "id": "branch_floor", "pos": [8, 0, 12], "pool": "room_floor_litter" },
+    { "id": "long_ceiling", "pos": [18, 0, 8], "pool": "room_ceiling" }
   ]
 }

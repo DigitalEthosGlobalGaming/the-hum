@@ -1,0 +1,12 @@
+{
+  "id": "decor_extension_cord",
+  "name": "Extension cord",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_extension_cord"
+  },
+  "components": {}
+}

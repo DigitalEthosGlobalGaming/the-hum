@@ -1,0 +1,34 @@
+{
+  "id": "room_camp",
+  "note": "Around a camp: what a wanderer kept. The most generous pool in the lobby.",
+  "entries": [
+    {
+      "def": "almond_water",
+      "w": 22
+    },
+    {
+      "def": "note_random",
+      "w": 14
+    },
+    {
+      "pool": "spine_notes",
+      "w": 14
+    },
+    {
+      "def": "tape_recorder",
+      "w": 9
+    },
+    {
+      "def": "battery",
+      "w": 9
+    },
+    {
+      "def": "chalk",
+      "w": 4
+    },
+    {
+      "def": null,
+      "w": 28
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import {
   rollFixture, fixtureOutput, resolveRoom, toggleCircuits, powerCircuits, circuitOf, darkness, DEFAULTS, roomRecord,
 } from './lightModel.js';
 import { TimedEffects } from './timed.js';
+import '../extensions.js'; // register feature prefabs/painters (decor, physics, power) like main.js does
 import { World } from '../world/world.js';
 import './register.js'; // prefabs (as src/extensions.js does in the game)
 

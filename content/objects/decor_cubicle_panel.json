@@ -1,0 +1,17 @@
+{
+  "id": "decor_cubicle_panel",
+  "name": "Cubicle partition",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_cubicle_panel"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    }
+  }
+}

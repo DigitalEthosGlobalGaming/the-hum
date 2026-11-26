@@ -1,0 +1,18 @@
+{
+  "id": "room_storage_floor",
+  "note": "Floor of a storage room: boxes, some stacked.",
+  "entries": [
+    {
+      "def": "cardboard_box",
+      "w": 24
+    },
+    {
+      "def": "decor_box_stack",
+      "w": 14
+    },
+    {
+      "def": null,
+      "w": 62
+    }
+  ]
+}

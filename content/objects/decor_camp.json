@@ -1,0 +1,18 @@
+{
+  "id": "decor_camp",
+  "name": "Someone camped here",
+  "tags": [
+    "decor",
+    "camp"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_camp"
+  },
+  "components": {
+    "readable": {
+      "text": "A flattened box for a floor, a sleeping bag, empty bottles lined up neatly. The tally sheet stops at day nineteen.",
+      "display": "inspect"
+    }
+  }
+}

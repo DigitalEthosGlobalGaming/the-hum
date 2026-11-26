@@ -1,24 +1,25 @@
 {
   "id": "lobby_storage",
+  "note": "Storage: shelving along the north wall (gaps at the possible doors), two back-to-back shelf islands, a tall box stack in the corner, a wet-floor sign by a stain. Supplies roll on the empty shelves.",
   "zones": {
     "lobby": 5
   },
-  "tags": ["lobby", "room", "clutter"],
+  "tags": ["lobby", "room", "storage"],
   "slots": [2, 1],
   "edges": {
-    "n": ["*", "*"],
+    "n": ["wall|door", "wall|door"],
     "s": ["*", "*"],
     "e": ["*"],
-    "w": ["*"]
+    "w": ["wall|door"]
   },
   "layout": [
     "################",
     "#..............#",
-    "#..##..........#",
-    "#..##...PP.....#",
-    "#.......PP..##.#",
-    "#...........##.#",
-    "#.......L......#",
+    "#.....L........#",
+    "#..............#",
+    "#..............#",
+    "#..........L...#",
+    "#..............#",
     "################"
   ],
   "legend": {
@@ -36,39 +37,36 @@
     "ceilingLight": "ceiling_large_light_on"
   },
   "objects": [
-    {
-      "def": "cardboard_box",
-      "pos": [12, 0, 3],
-      "rot": 5
-    },
-    {
-      "def": "cardboard_box",
-      "pos": [13.1, 0, 3.4],
-      "rot": -20
-    },
-    {
-      "def": "cardboard_box",
-      "pos": [26, 0, 13],
-      "rot": 40
-    },
-    {
-      "def": "wet_floor_sign",
-      "pos": [20, 0, 11],
-      "rot": 30
-    }
+    { "def": "decor_metal_shelf_stocked", "pos": [2.75, 0, 2.255], "rot": 180 },
+    { "def": "decor_metal_shelf", "pos": [10.75, 0, 2.255], "rot": 180 },
+    { "def": "decor_metal_shelf_stocked", "pos": [12, 0, 2.255], "rot": 180 },
+    { "def": "decor_metal_shelf_stocked", "pos": [15.4, 0, 2.255], "rot": 180 },
+    { "def": "decor_metal_shelf", "pos": [16.65, 0, 2.255], "rot": 180 },
+    { "def": "decor_metal_shelf_stocked", "pos": [19.4, 0, 2.255], "rot": 180 },
+    { "def": "decor_metal_shelf", "pos": [20.65, 0, 2.255], "rot": 180 },
+    { "def": "decor_box_stack_tall", "pos": [4.45, 0, 2.3], "rot": 180 },
+    { "def": "decor_metal_shelf_stocked", "pos": [8.4, 0, 7.76], "rot": 0 },
+    { "def": "decor_metal_shelf", "pos": [8.4, 0, 8.24], "rot": 180 },
+    { "def": "decor_metal_shelf", "pos": [9.65, 0, 7.76], "rot": 0 },
+    { "def": "decor_metal_shelf_stocked", "pos": [9.65, 0, 8.24], "rot": 180 },
+    { "def": "decor_metal_shelf", "pos": [17, 0, 7.76], "rot": 0 },
+    { "def": "decor_metal_shelf_stocked", "pos": [17, 0, 8.24], "rot": 180 },
+    { "def": "decor_metal_shelf_stocked", "pos": [18.25, 0, 7.76], "rot": 0 },
+    { "def": "decor_metal_shelf", "pos": [18.25, 0, 8.24], "rot": 180 },
+    { "def": "decor_water_stain", "pos": [16, 0, 12.2], "rot": 30 },
+    { "def": "wet_floor_sign", "pos": [17.4, 0, 11.5], "rot": 30 }
   ],
   "spots": [
-    {
-      "id": "corner_clutter",
-      "pos": [5, 0, 13],
-      "rot": 0,
-      "pool": "lobby_clutter"
-    },
-    {
-      "id": "shelf_loot",
-      "pos": [29, 0, 3],
-      "rot": 0,
-      "pool": "lobby_floor_loot"
-    }
+    { "id": "shelf_a", "pos": [10.75, 1.02, 2.25], "pool": "room_storage_shelf" },
+    { "id": "shelf_b", "pos": [16.65, 0.57, 2.25], "pool": "room_storage_shelf" },
+    { "id": "shelf_c", "pos": [20.65, 1.47, 2.25], "pool": "room_storage_shelf" },
+    { "id": "shelf_d", "pos": [9.65, 0.57, 7.76], "pool": "room_storage_shelf" },
+    { "id": "shelf_e", "pos": [17, 1.02, 7.76], "pool": "room_storage_shelf" },
+    { "id": "storage_floor_a", "pos": [14.6, 0, 3.3], "rot": 10, "pool": "room_storage_floor" },
+    { "id": "storage_floor_b", "pos": [22.6, 0, 7], "rot": 80, "pool": "room_storage_floor" },
+    { "id": "west_wall_panel", "pos": [2.13, 0, 5], "rot": 270, "pool": "room_wall_panel" },
+    { "id": "storage_corner", "pos": [25, 0, 12.8], "pool": "room_corner_loot" },
+    { "id": "aisle_floor", "pos": [13, 0, 8], "pool": "room_floor_litter" },
+    { "id": "storage_ceiling", "pos": [12, 0, 10], "pool": "room_ceiling" }
   ]
 }

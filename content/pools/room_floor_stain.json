@@ -1,0 +1,14 @@
+{
+  "id": "room_floor_stain",
+  "note": "A damp patch on the carpet.",
+  "entries": [
+    {
+      "def": "decor_water_stain",
+      "w": 30
+    },
+    {
+      "def": null,
+      "w": 70
+    }
+  ]
+}

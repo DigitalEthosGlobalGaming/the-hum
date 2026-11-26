@@ -1,0 +1,18 @@
+{
+  "id": "room_chair_facing_wall",
+  "note": "One chair, turned to face a wall. Rare; the spot rot points the chair at the wall.",
+  "entries": [
+    {
+      "def": "decor_stacking_chair",
+      "w": 7
+    },
+    {
+      "def": "office_chair",
+      "w": 4
+    },
+    {
+      "def": null,
+      "w": 89
+    }
+  ]
+}

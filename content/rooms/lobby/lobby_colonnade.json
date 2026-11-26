@@ -1,5 +1,6 @@
 {
   "id": "lobby_colonnade",
+  "note": "A colonnade corridor. Only the two wall stubs between the pillar rows hold anything.",
   "zones": {
     "lobby": 7
   },
@@ -37,11 +38,10 @@
   },
   "objects": [],
   "spots": [
-    {
-      "id": "between",
-      "pos": [17, 0, 7],
-      "rot": 0,
-      "pool": "lobby_floor_loot"
-    }
+    { "id": "north_wall_base", "pos": [16, 0, 2.33], "rot": 180, "pool": "room_wall_base" },
+    { "id": "south_wall_panel", "pos": [16, 0, 13.87], "rot": 0, "pool": "room_wall_panel" },
+    { "id": "colonnade_floor", "pos": [11, 0, 7.4], "pool": "room_floor_litter" },
+    { "id": "colonnade_stain", "pos": [22, 0, 9], "pool": "room_floor_stain" },
+    { "id": "colonnade_ceiling", "pos": [20, 0, 7], "pool": "room_ceiling" }
   ]
 }

@@ -1,0 +1,18 @@
+{
+  "id": "decor_wall_clock",
+  "name": "Wall clock",
+  "tags": [
+    "decor",
+    "wrong"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_wall_clock"
+  },
+  "components": {
+    "readable": {
+      "text": "Thirteen marks around the face. The hands point straight up and straight down, and do not move.",
+      "display": "inspect"
+    }
+  }
+}

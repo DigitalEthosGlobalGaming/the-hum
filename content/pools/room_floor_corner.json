@@ -1,0 +1,30 @@
+{
+  "id": "room_floor_corner",
+  "note": "Solid clutter tucked into a corner (later: filing cabinet). Only on spots clear of every opening.",
+  "entries": [
+    {
+      "def": "cardboard_box",
+      "w": 10
+    },
+    {
+      "def": "decor_box_stack",
+      "w": 7
+    },
+    {
+      "def": "decor_trash_bin",
+      "w": 7
+    },
+    {
+      "def": "decor_dead_plant",
+      "w": 6
+    },
+    {
+      "def": "wet_floor_sign",
+      "w": 2
+    },
+    {
+      "def": null,
+      "w": 68
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "decor_leak",
+  "name": "Damp patch",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_leak"
+  },
+  "components": {}
+}

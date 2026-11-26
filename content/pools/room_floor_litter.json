@@ -1,0 +1,34 @@
+{
+  "id": "room_floor_litter",
+  "note": "Small floor litter in the open. Mostly nothing.",
+  "entries": [
+    {
+      "def": "decor_paper_scatter",
+      "w": 8
+    },
+    {
+      "def": "almond_water",
+      "w": 7
+    },
+    {
+      "def": "battery",
+      "w": 5
+    },
+    {
+      "def": "chalk",
+      "w": 3
+    },
+    {
+      "def": "note_random",
+      "w": 3
+    },
+    {
+      "def": "fuse",
+      "w": 2
+    },
+    {
+      "def": null,
+      "w": 72
+    }
+  ]
+}

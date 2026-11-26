@@ -1,0 +1,30 @@
+{
+  "id": "room_storage_shelf",
+  "note": "On a storage shelf: supplies. Better odds than the floor, still often empty.",
+  "entries": [
+    {
+      "def": "battery",
+      "w": 10
+    },
+    {
+      "def": "fuse",
+      "w": 9
+    },
+    {
+      "def": "almond_water",
+      "w": 9
+    },
+    {
+      "def": "chalk",
+      "w": 5
+    },
+    {
+      "def": "tape_recorder",
+      "w": 2
+    },
+    {
+      "def": null,
+      "w": 55
+    }
+  ]
+}

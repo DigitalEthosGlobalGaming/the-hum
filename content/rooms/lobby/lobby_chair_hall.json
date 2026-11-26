@@ -1,0 +1,60 @@
+{
+  "id": "lobby_chair_hall",
+  "note": "A hall of identical chairs in perfect rows, all facing a door set into the north wall. The door goes nowhere. One chair in the front row is turned round to face the others.",
+  "zones": {
+    "lobby": 7
+  },
+  "tags": ["lobby", "open", "chairs"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["wall|door", "wall|door"],
+    "s": ["wall|door", "wall|door"],
+    "e": ["*"],
+    "w": ["*"]
+  },
+  "rules": {
+    "notNextTo": ["chairs"]
+  },
+  "layout": [
+    "################",
+    "#..............#",
+    "#.......L......#",
+    "#..............#",
+    "#..............#",
+    "#...L......L...#",
+    "#..............#",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [
+    { "def": "decor_door_to_nowhere", "pos": [16, 0, 2.13], "rot": 180 },
+    { "def": "decor_chair_row", "pos": [13.2, 0, 7], "rot": 0 },
+    { "def": "decor_chair_row_gap", "pos": [18.8, 0, 7], "rot": 0 },
+    { "def": "decor_chair_row", "pos": [13.2, 0, 8.4], "rot": 0 },
+    { "def": "decor_chair_row", "pos": [18.8, 0, 8.4], "rot": 0 },
+    { "def": "decor_chair_row", "pos": [13.2, 0, 9.8], "rot": 0 },
+    { "def": "decor_chair_row", "pos": [18.8, 0, 9.8], "rot": 0 },
+    { "def": "decor_stacking_chair", "pos": [20.6, 0, 7], "rot": 180 }
+  ],
+  "spots": [
+    { "id": "back_row_seat", "pos": [14.1, 0.47, 9.8], "pool": "room_beside_chair" },
+    { "id": "middle_row_seat", "pos": [17, 0.47, 8.4], "pool": "room_beside_chair" },
+    { "id": "front_floor", "pos": [16, 0, 4.6], "pool": "room_floor_litter" },
+    { "id": "by_the_door", "pos": [17.4, 0, 2.6], "pool": "room_corner_loot" },
+    { "id": "hall_corner", "pos": [10.6, 0, 2.6], "rot": 20, "pool": "room_floor_corner" },
+    { "id": "hall_ceiling", "pos": [10, 0, 12], "pool": "room_ceiling" }
+  ]
+}

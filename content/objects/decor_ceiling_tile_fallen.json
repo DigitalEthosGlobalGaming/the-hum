@@ -1,0 +1,12 @@
+{
+  "id": "decor_ceiling_tile_fallen",
+  "name": "Fallen ceiling tile",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_ceiling_tile_fallen"
+  },
+  "components": {}
+}

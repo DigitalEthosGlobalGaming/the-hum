@@ -1,5 +1,6 @@
 {
   "id": "lobby_twin_rooms",
+  "note": "Two identical rooms. Each has the same desk, the same lamp left on and the same chair pushed back the same way. Lights moved so both halves match.",
   "zones": {
     "lobby": 6
   },
@@ -14,9 +15,9 @@
   "layout": [
     "################",
     "#......#.......#",
-    "#......#...L...#",
+    "#..L...#...L...#",
     "#..............#",
-    "#..L...........#",
+    "#..............#",
     "#......#.......#",
     "#......#.......#",
     "################"
@@ -36,24 +37,18 @@
     "ceilingLight": "ceiling_large_light_on"
   },
   "objects": [
-    {
-      "def": "cardboard_box",
-      "pos": [3.2, 0, 3.1],
-      "rot": 12
-    }
+    { "def": "office_desk", "pos": [7.6, 0, 7.6], "rot": 0 },
+    { "def": "office_chair", "pos": [7.9, 0, 6.6], "rot": 200 },
+    { "def": "desk_lamp", "pos": [7.15, 0.76, 7.75], "rot": 0 },
+    { "def": "office_desk", "pos": [23.6, 0, 7.6], "rot": 0 },
+    { "def": "office_chair", "pos": [23.9, 0, 6.6], "rot": 200 },
+    { "def": "desk_lamp", "pos": [23.15, 0.76, 7.75], "rot": 0 }
   ],
   "spots": [
-    {
-      "id": "left",
-      "pos": [5, 0, 11],
-      "rot": 0,
-      "pool": "lobby_clutter"
-    },
-    {
-      "id": "right",
-      "pos": [27, 0, 11],
-      "rot": 0,
-      "pool": "lobby_floor_loot"
-    }
+    { "id": "twin_a_top", "pos": [7.75, 0.76, 7.5], "pool": "room_desk_top" },
+    { "id": "twin_b_beside_chair", "pos": [24.6, 0, 6.1], "pool": "room_beside_chair" },
+    { "id": "divider_wall_hang", "pos": [13.87, 0, 3.2], "rot": 90, "pool": "room_wall_hang" },
+    { "id": "twin_floor", "pos": [5, 0, 11], "pool": "room_floor_litter" },
+    { "id": "twin_ceiling", "pos": [27, 0, 11], "pool": "room_ceiling" }
   ]
 }

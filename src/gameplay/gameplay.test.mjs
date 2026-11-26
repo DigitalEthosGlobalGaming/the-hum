@@ -130,13 +130,16 @@ test('pools: spine pages only from depth 1, more likely deeper; new items appear
   assert.equal(at(0), 0);
   assert.ok(at(1) > 0 && at(5) > at(1) && at(12) > at(5));
   const loot = expectedOdds('lobby_floor_loot', pools, { depth: 0 });
-  for (const id of ['chalk', 'fuse', 'tape_recorder']) assert.ok(loot.get(id) > 0, id);
+  for (const id of ['chalk', 'fuse']) assert.ok(loot.get(id) > 0, id);
+  // tapes live where someone sat (level direction): desks, beside chairs, camps
+  const placed = ['room_desk_top', 'room_beside_chair', 'room_camp'].some((p) => (expectedOdds(p, pools, { depth: 0 }).get('tape_recorder') ?? 0) > 0);
+  assert.ok(placed, 'tape_recorder appears on desks / beside chairs / at camps');
   assert.ok(!loot.has('note_spine'));
   const rng = new Rng(9);
   let spine = 0;
   for (let i = 0; i < 2000; i++) spine += rollPool('desk_top', pools, rng, { depth: 10, zone: 'lobby' }).filter((x) => x === 'note_spine').length;
   assert.ok(spine > 0);
-  assert.ok(expectedOdds('lobby_clutter', pools, {}).get('fuse_box') > 0);
+  assert.ok(expectedOdds('room_wall_panel', pools, {}).get('fuse_box') > 0, 'fuse boxes hang on wall spots');
 });
 
 // ---------------- script registry + validator ----------------

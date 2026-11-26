@@ -1,0 +1,17 @@
+{
+  "id": "decor_conference_table",
+  "name": "Conference table",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_conference_table"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    }
+  }
+}

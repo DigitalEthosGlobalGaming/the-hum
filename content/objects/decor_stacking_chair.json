@@ -1,0 +1,17 @@
+{
+  "id": "decor_stacking_chair",
+  "name": "Stacking chair",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_stacking_chair"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    }
+  }
+}

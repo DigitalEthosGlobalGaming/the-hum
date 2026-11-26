@@ -1,0 +1,17 @@
+{
+  "id": "decor_box_stack_tall",
+  "name": "Stacked boxes",
+  "tags": [
+    "decor"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_box_stack_tall"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    }
+  }
+}

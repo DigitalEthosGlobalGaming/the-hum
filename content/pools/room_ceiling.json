@@ -1,0 +1,18 @@
+{
+  "id": "room_ceiling",
+  "note": "Ceiling decay, placed at y 0 (the prefab carries its own height).",
+  "entries": [
+    {
+      "def": "decor_ceiling_stain",
+      "w": 22
+    },
+    {
+      "def": "decor_ceiling_tile_fallen",
+      "w": 8
+    },
+    {
+      "def": null,
+      "w": 70
+    }
+  ]
+}

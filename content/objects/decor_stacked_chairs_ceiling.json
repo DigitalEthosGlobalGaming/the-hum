@@ -1,0 +1,22 @@
+{
+  "id": "decor_stacked_chairs_ceiling",
+  "name": "Stacked chairs",
+  "tags": [
+    "decor",
+    "wrong"
+  ],
+  "mesh": {
+    "type": "prefab",
+    "name": "decor_stacked_chairs_ceiling"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    },
+    "readable": {
+      "text": "Twenty chairs, stacked to the ceiling. The top one is still warm.",
+      "display": "inspect"
+    }
+  }
+}

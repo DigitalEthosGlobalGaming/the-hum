@@ -1,0 +1,18 @@
+{
+  "id": "decor_water_stain",
+  "name": "Water stain",
+  "tags": [
+    "decor",
+    "decal"
+  ],
+  "mesh": {
+    "type": "plane",
+    "size": [
+      1.8,
+      1.4
+    ],
+    "texture": "proc:decor_water_stain",
+    "flat": true
+  },
+  "components": {}
+}
