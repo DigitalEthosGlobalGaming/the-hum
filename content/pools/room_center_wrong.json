@@ -23,6 +23,11 @@
       "w": 1
     },
     {
+      "def": "music_box",
+      "w": 3,
+      "minStage": 2
+    },
+    {
       "def": null,
       "w": 90
     }

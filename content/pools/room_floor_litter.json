@@ -31,6 +31,31 @@
       "w": 9
     },
     {
+      "def": "soda_can",
+      "w": 4,
+      "minStage": 1
+    },
+    {
+      "def": "glass_bottle",
+      "w": 3,
+      "minStage": 1
+    },
+    {
+      "def": "blank_tape",
+      "w": 2,
+      "minStage": 1
+    },
+    {
+      "def": "glow_stick",
+      "w": 3,
+      "minStage": 2
+    },
+    {
+      "def": "spare_tube",
+      "w": 3,
+      "minStage": 2
+    },
+    {
       "def": null,
       "w": 66
     }

@@ -78,7 +78,7 @@ export class Vitals {
     const pu = game.renderer.postUniforms;
     if (pu) {
       pu.uGrain.value = this.grain;
-      if (pu.uDistort) pu.uDistort.value = this.distort;
+      if (pu.uDistort) pu.uDistort.value = Math.max(this.distort, game.tenant?.distort ?? 0); // + the Tenant's presence / caught tear
     }
   }
 }

@@ -117,7 +117,7 @@ export class World {
     const depth = Math.hypot(entry.bx, entry.bz);
     const placed = { key, entry, json: entry.room, built, origin, depth };
     placed.objects = populateRoom(entry.room, {
-      key, origin, quarterTurns: 0, depth, zone: entry.zone, worldSeed: this.seed,
+      key, origin, quarterTurns: 0, depth, zone: entry.zone, worldSeed: this.seed, stage: this.storyStage ?? 0, // story stage: set by the Tenant (minStage)
     }, this.objects, this.content.pools ?? {}, this.run);
     // things the player left here (drops, chalk marks) come back with the room
     const alive = new Set(this.objects.instances.map((i) => i.meta.placedKey).filter(Boolean));

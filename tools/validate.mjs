@@ -103,6 +103,7 @@ export function validateContent(content, { textures, scripts, sources = {} } = {
       }
       if (isNum(e.minDepth) && isNum(e.maxDepth) && e.minDepth > e.maxDepth) warn(ew, `minDepth ${e.minDepth} > maxDepth ${e.maxDepth}; entry can never roll`);
       if (e.zones != null && !Array.isArray(e.zones)) err(`${ew}.zones`, 'must be an array of zone ids');
+      if (e.minStage != null && !(Number.isInteger(e.minStage) && e.minStage >= 0 && e.minStage <= 3)) err(`${ew}.minStage`, `must be a Tenant story stage 0..3, got ${q(e.minStage)}`);
       if (e.unique && !e.def) warn(ew, '"unique" only applies to entries with a def');
     });
     if (!(total > 0)) err(w, 'total weight is 0; nothing can ever be picked');

@@ -28,7 +28,8 @@
     },
     {
       "def": "flash_camera",
-      "w": 2
+      "w": 2,
+      "minStage": 2
     },
     {
       "def": "id_badge",
@@ -41,6 +42,26 @@
     {
       "def": "soda_can",
       "w": 2
+    },
+    {
+      "def": "soda_can",
+      "w": 3,
+      "minStage": 1
+    },
+    {
+      "def": "glass_bottle",
+      "w": 2,
+      "minStage": 1
+    },
+    {
+      "def": "blank_tape",
+      "w": 2,
+      "minStage": 1
+    },
+    {
+      "def": "flash_camera",
+      "w": 2,
+      "minStage": 2
     },
     {
       "def": null,
