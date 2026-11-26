@@ -1,5 +1,5 @@
 // M5 entry point: the diegetic kit. Hands + torch (LEDs), held item, hand prompt + paper tag,
-// watch, notebook (auto-map + notes), pockets, vitals, captions.
+// watch, notebook (auto-map + notes), pocket case, vitals, captions.
 // install() once; update() each frame; render() after the world render.
 //
 // Rendering: the view-model scene is registered as an overlay on game.renderer
@@ -45,7 +45,7 @@ export function installDiegetic(game) {
     game, gate, vm, flashlight, left, right, watch, notebook, menu, pockets, text, map, vitals,
     w: { watch: 0, note: 0, pockets: 0, inspect: 0, reach: 0 },
     get notebookOpen() { return menu.open; },
-    inspect: false, pocketsOpen: false, watchUp: false,
+    inspect: false, pocketsOpen: false, pocketsWant: false, watchUp: false,
     captions: [], surface: null, mapSeen: -1, inv: game.inventory ?? null,
     reading: false,
   };
@@ -90,7 +90,7 @@ export function installDiegetic(game) {
   ev.on('ui:captionClear', (p) => dropCaption(p?.key));
   ev.on('game:resize', () => { vm.resize(); text.resize(); });
   // the hub: Esc pauses → the notebook opens at Settings; resuming closes it
-  ev.on('game:pause', () => { S.inspect = false; menu.show('settings'); });
+  ev.on('game:pause', () => { S.inspect = false; S.pocketsWant = false; menu.show('settings'); });
   ev.on('game:resume', () => menu.close());
   ev.on('settings:change', ({ key, value } = {}) => {
     if (key === 'textGrit') setTextGrit(value);
@@ -107,6 +107,8 @@ export function installDiegetic(game) {
   // Menu keys + mouse run inside the DOM events (pointer lock / fullscreen need a real input event).
   // Registered before main.js's own keydown handler, so a consumed key (Enter, Esc) stops there.
   addEventListener('keydown', (e) => {
+    // Esc shuts the pocket case (with pointer lock the browser also drops the lock → main pauses)
+    if (S.pocketsWant && game.cfg.keys?.pause?.includes(e.code)) { S.pocketsWant = false; e.preventDefault(); e.stopImmediatePropagation(); return; }
     if (menu.onKeyDown(e)) { e.preventDefault(); e.stopImmediatePropagation(); }
   });
   addEventListener('mousedown', (e) => { if (menu.onMouse('down', e)) e.preventDefault(); });
@@ -152,13 +154,16 @@ export function updateDiegetic(game, dt) {
     if (dismiss) S.inspect = false;
   }
   const reading = (S.reading = S.notebookOpen || S.inspect);
-  S.pocketsOpen = playing && !reading && raw.held('pockets');
+  // pocket case: Q toggles (Esc / pause / the notebook close it)
+  if (!playing || reading) S.pocketsWant = false;
+  else if (raw.wasPressed('pockets')) S.pocketsWant = !S.pocketsWant;
+  S.pocketsOpen = S.pocketsWant;
   S.watchUp = playing && !reading && !S.pocketsOpen && raw.held('watch');
 
   // gate other systems' input for the next frame
   gate.blocked.clear();
   if (reading) for (const a of [...MOVE, 'interact', 'use', 'drop']) gate.blocked.add(a);
-  if (S.pocketsOpen) for (const a of ['use', 'drop', 'left', 'right']) gate.blocked.add(a); // A/D move the pocket cursor
+  if (S.pocketsOpen) for (const a of [...MOVE, 'crouch', 'interact', 'use', 'drop', 'throw']) gate.blocked.add(a); // the case owns A/D/←/→, E, click
   if (vitals.exhausted) gate.blocked.add('sprint');
   gate.blockLook = S.pocketsOpen || menu.cursorFree; // a free cursor over the notebook is for the menu
   game.input.captureSuspended = menu.cursorFree;   // clicks on the page mustn't re-capture the mouse
@@ -179,7 +184,7 @@ export function updateDiegetic(game, dt) {
   vitals.update(dt, { light: vm.light, beam: flashlight.beam });
   map.update(dt, game);
 
-  // camera: tip down to look at the jacket / glance at the wrist; winded breathing heave
+  // camera: tip down toward the open case / glance at the wrist; winded breathing heave
   const cam = game.camera;
   const lookDown = (ui.pocketLookDown ?? 0.6) * w.pockets + 0.1 * w.watch;
   const st = game.stats.stamina;
@@ -188,7 +193,7 @@ export function updateDiegetic(game, dt) {
   // ── view-model ──
   const busy = Math.max(w.note, w.inspect);
   left.update(vm, { watch: w.watch, hidden: busy, pockets: w.pockets });
-  const pointAt = pockets.update(dt, w.pockets, raw, gate.look, left.torch);
+  const pointAt = pockets.update(dt, { open: S.pocketsOpen, raw, look: gate.look, torch: left.torch });
   right.pointAt.copy(pointAt);
   right.update(vm, dt, { reach: w.reach, hidden: busy, pockets: w.pockets });
   watch.update(dt, w.watch, { bpm: vitals.bpm, sanity: game.stats.sanity, light: vm.light });
@@ -205,12 +210,12 @@ export function updateDiegetic(game, dt) {
 // After the world + view-model render and the PS1 post pass: crisp text on the full-res layer.
 export function renderDiegetic(game) {
   if (!S) return;
-  const { text, w, notebook, pockets, vm, left } = S;
+  const { text, w, notebook, pockets, vm } = S;
   const ui = game.cfg.ui ?? {};
   const prompts = ui.textPrompts !== false;
   const carried = game.world?.physics?.carried ?? null;   // a prop held in front (physics carry)
   const tagShown = prompts && (game.focus || carried) && !S.reading && !S.pocketsOpen && (w.reach > 0.3 || carried);
-  const anything = S.captions.length || S.surface || tagShown || w.note > 0.6 || w.inspect > 0.6 || w.pockets > 0.6;
+  const anything = S.captions.length || S.surface || tagShown || w.note > 0.6 || w.inspect > 0.6 || pockets.ready;
   if (!anything && !text.dirty) return;
   text.begin();
   text.dirty = !!anything;
@@ -229,7 +234,7 @@ export function renderDiegetic(game) {
   }
 
   // pocket name tags
-  if (w.pockets > 0.6) { pockets.group.updateMatrixWorld(true); pockets.drawTags(text, vm.camera, w.pockets, left.torch); }
+  if (pockets.ready) { pockets.group.updateMatrixWorld(true); pockets.drawTags(text, vm.camera); }
 
   // verb tag, bottom centre
   if (tagShown) {

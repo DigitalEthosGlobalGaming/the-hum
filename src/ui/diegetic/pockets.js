@@ -1,190 +1,302 @@
-// Pocket check (hold Q): the view tips down to an open jacket with four pockets, each holding a
-// small model of its item, a handwritten name tag under it, the selected one raised. While held,
-// mouse X moves the pointing hand between pockets; clicking a second pocket combines it with the
-// selected one via game.gameplay.combineSlots(a, b).
+// Pocket case (Q toggles; Esc closes): a small battered suitcase opens in front of you, latches
+// flip, the lid swings back. The four pockets are compartments in the worn lining, each holding the
+// item's real model under an elastic band; the torch is clipped sideways across the inside of the
+// lid. A pointing hand follows a cursor (mouse) or steps between items (A/D, ←/→, wheel; wraps).
+// E takes the pointed-at item in hand; click uses the item in hand with it
+// (game.gameplay.combineSlots(a, b)). The name is written on a luggage tag hanging off the handle.
+// Geometry: pocketCase.js.
 import * as THREE from 'three';
-import { box, damp, smooth } from '../../viewmodel/viewModel.js';
+import { damp, smooth } from '../../viewmodel/viewModel.js';
 import { toViewModel } from '../../viewmodel/vmMaterial.js';
 import { fitInto } from '../../viewmodel/arms.js';
+import { buildCase, CASE, slotX, ITEM_Z, LID_OPEN } from './pocketCase.js';
+import { keyLabel } from './keys.js';
 
-const SLOT_X = [-0.235, -0.085, 0.085, 0.235];
-const TORCH_X = -0.16, TORCH_Y = 0.02; // breast-strap loop above the left pockets while the jacket is open
-const SLOT_Y = -0.035, SLOT_Z = -0.43;
+// where the case sits in view space (the view-model camera looks down -Z)
+const POSE = { y: -0.15, z: -0.56, tilt: 1.0, scale: 0.88 };
+const HIDDEN = { y: -0.52, z: -0.42, tilt: 0.35 };
+const OPEN_S = 0.6, CLOSE_S = 0.32;           // seconds for the open / close animation
+const TORCH_ID = -1;                          // hover index of the torch
+const LID_ZONE = -CASE.D / 2 + 0.004;         // cursor z beyond this (toward the hinge) = the torch
+const CUR = { minX: -CASE.W / 2 + 0.03, maxX: CASE.W / 2 - 0.03, minZ: -CASE.D / 2 - 0.16, maxZ: CASE.D / 2 - 0.03 };
+const MOUSE = 0.00042;                        // case metres per mouse count
+const TORCH_CUR = { x: 0.07, z: -CASE.D / 2 - 0.09 };
+
 const _v = new THREE.Vector3();
-
-/** Repeat a mesh's texture n times (keeps texels small on big panels). */
-function tile(mesh, n) {
-  const uv = mesh.geometry.attributes.uv;
-  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * n, uv.getY(i) * n);
-  return mesh;
-}
+const _box = new THREE.Box3();
+const _size = new THREE.Vector3();
+const _ctr = new THREE.Vector3();
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const easeOutBack = (x) => { x = clamp(x, 0, 1); const c = 1.4; return 1 + (c + 1) * (x - 1) ** 3 + c * (x - 1) ** 2; };
 
 export class Pockets {
   constructor(game) {
     this.game = game;
-    this.group = new THREE.Group();
+    this.c = buildCase(game.textures);
+    this.group = this.c.root;
     this.group.visible = false;
-    const jt = game.textures.get('proc:jacket');
-    for (const s of [-1, 1]) {
-      const panel = tile(box(0.34, 0.42, 0.02, jt), 4);
-      panel.position.set(s * 0.2, -0.13, -0.47);
-      panel.rotation.y = -s * 0.28;
-      this.group.add(panel);
-      const lapel = tile(box(0.05, 0.42, 0.024, jt, { tint: 0xb8b0a0 }), 3);
-      lapel.position.set(s * 0.045, -0.13, -0.455);
-      lapel.rotation.y = -s * 0.28;
-      this.group.add(lapel);
-    }
-    const lining = box(0.12, 0.42, 0.01, null, { tint: 0x2a1a1a });
-    lining.position.set(0, -0.13, -0.5);
-    this.group.add(lining);
-    this.slots = SLOT_X.map((x, i) => {
-      const g = new THREE.Group();
-      g.position.set(x, SLOT_Y, SLOT_Z + Math.abs(x) * 0.25);
-      g.rotation.y = -Math.sign(x) * 0.28;
-      const pocket = box(0.115, 0.075, 0.016, game.textures.get('proc:pocket'));
-      pocket.position.set(0, -0.02, 0.012);
-      g.add(pocket);
+    this.group.scale.setScalar(POSE.scale);
+    this.slots = [];
+    for (let i = 0; i < CASE.SLOTS; i++) {
       const holder = new THREE.Group();
-      g.add(holder);
-      this.group.add(g);
-      return { g, holder, key: null, lift: 0, wob: 0, i };
-    });
-    // torch slot (hover -1): a strap loop on the left panel holding a copy of the torch
-    const tg = new THREE.Group();
-    tg.position.set(TORCH_X, TORCH_Y, SLOT_Z + Math.abs(TORCH_X) * 0.25);
-    tg.rotation.y = 0.28;
-    const loop = box(0.04, 0.012, 0.012, null, { tint: 0x5a4a36 }); // thin leather strap round the torch
-    loop.position.set(0, -0.005, 0.016);
-    tg.add(loop);
-    const th = new THREE.Group();
-    tg.add(th);
-    this.group.add(tg);
-    this.torchSlot = { g: tg, holder: th, lift: 0 };
-    this.hoverF = 0;
+      holder.position.set(slotX(i), CASE.FLOOR, ITEM_Z);
+      this.c.base.add(holder);
+      this.slots.push({ i, holder, key: undefined, lift: 0, wob: 0, span: 1 });
+    }
+    this.torchHolder = new THREE.Group();
+    this.c.torchMount.add(this.torchHolder);
+    this.torchLift = 0;
+    this.t = 0;            // open animation 0 (shut, out of view) .. 1 (open)
+    this.isOpen = false;
     this.hover = 0;
-    this.wasOpen = false;
+    this.cur = { x: slotX(0), z: ITEM_Z };
+    this.tip = new THREE.Vector3(0.1, -0.3, -0.3);
+    this.wrist = new THREE.Vector3(0.03, -0.035, 0.1); // wrist relative to the fingertip (arms.js 'point' pose)
+    this.tipLift = 0.045; this.tipNear = 0.075; // fingertip: above the lining, at the item's near end
+    this.torchSynced = false;
   }
 
-  /** Copy the left-hand torch (LED state as of opening) into the strap loop. */
+  /** 0..1 how far the case is out and open (for fades). */
+  get amount() { return this.t; }
+  /** True once the lid is back and the cursor works. */
+  get ready() { return this.isOpen && this.t > 0.85; }
+
+  /** Copy the left-hand torch (LED state as of opening) into the lid clips, lying sideways. */
   syncTorch(torch) {
-    const h = this.torchSlot.holder;
+    const h = this.torchHolder;
     h.clear();
     if (!torch) return;
     const copy = torch.clone(true);
     copy.position.set(0, 0, 0);
-    copy.rotation.set(0, 0, 0);
+    copy.rotation.set(0, 0, Math.PI); // LED strip toward the viewer (the lid lining is behind it)
     copy.traverse((m) => { if (m.isMesh) m.frustumCulled = false; });
-    fitInto(copy, 0.12);
     const w = new THREE.Group();
     w.add(copy);
-    w.rotation.set(-1.45, 0, 0.12); // standing upright in the loop between the left pockets, lens up
-    h.add(w);
+    fitInto(w, 0.1);
+    const outer = new THREE.Group();
+    outer.add(w);
+    outer.rotation.y = Math.PI / 2;  // lens to the left, along the hinge
+    h.add(outer);
   }
 
+  /** Rebuild a compartment's model when its stack changes. Two-slot items span two compartments. */
   syncSlot(slot, stack) {
-    const key = stack ? stack.id : null;
-    if (key === slot.key) return;
-    slot.key = key;
+    const inv = this.game.inventory;
+    const i = slot.i;
+    const second = stack && i > 0 && inv.slots[i - 1] === stack;
+    const span = stack && !second && inv.slots[i + 1] === stack ? 2 : 1;
+    const key = second ? 'half' : stack ? `${stack.id}|${span}` : null;
+    if (key === slot.key && stack === slot.stack) return;
+    slot.key = key; slot.stack = stack; slot.span = span;
     slot.holder.clear();
-    if (!stack) return;
+    slot.holder.position.x = span === 2 ? (slotX(i) + slotX(i + 1)) / 2 : slotX(i);
+    if (!stack || second) return;
     const def = stack.def ?? this.game.content.objects?.[stack.id];
     let mesh = null;
     try { mesh = def ? this.game.world?.objects?.buildMesh(def) : null; } catch (e) { /* fall through */ }
-    if (!mesh) mesh = new THREE.Group().add(box(0.04, 0.04, 0.04, null, { tint: 0x888888 }));
+    if (!mesh) mesh = new THREE.Group().add(new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 0.04)));
     toViewModel(mesh);
-    fitInto(mesh, 0.062);
-    const w = new THREE.Group();
-    w.add(mesh);
-    w.rotation.set(0.5, 0.4, 0.15);
-    slot.holder.add(w);
+    // laid flat in the lining: thinnest side down, long side along the compartment, a little askew
+    const inner = new THREE.Group();
+    inner.add(mesh);
+    mesh.updateMatrixWorld(true);
+    _box.setFromObject(mesh).getSize(_size);
+    const thin = Math.min(_size.x, _size.y, _size.z);
+    if (_size.z === thin) inner.rotation.x = -Math.PI / 2;     // on its back (front faces up)
+    else if (_size.x === thin) inner.rotation.z = Math.PI / 2; // on its side
+    inner.updateMatrixWorld(true);
+    _box.setFromObject(inner).getSize(_size);
+    const turn = new THREE.Group();
+    turn.add(inner);
+    if (span === 1 ? _size.x > _size.z * 1.15 : _size.z > _size.x * 1.15) turn.rotation.y = Math.PI / 2;
+    const outer = new THREE.Group();
+    outer.add(turn);
+    outer.rotation.y = ((i * 37) % 7 - 3) * 0.05;
+    outer.updateMatrixWorld(true);
+    _box.setFromObject(outer);
+    _box.getSize(_size); _box.getCenter(_ctr);
+    const k = Math.min((CASE.CW * span - 0.022) / Math.max(_size.x, 1e-4), 0.13 / Math.max(_size.z, 1e-4), 0.06 / Math.max(_size.y, 1e-4));
+    outer.scale.setScalar(k);
+    outer.position.set(-_ctr.x * k, -_box.min.y * k + 0.001, -_ctr.z * k);
+    slot.holder.add(outer);
+  }
+
+  /** First index of each item in the pockets, left to right (second halves skipped). */
+  itemStarts() {
+    const s = this.game.inventory?.slots ?? [];
+    const out = [];
+    for (let i = 0; i < CASE.SLOTS; i++) if (s[i] && s[i - 1] !== s[i]) out.push(i);
+    return out;
+  }
+
+  /** Normalise a compartment index to the first index of the item in it. */
+  startOf(i) {
+    const s = this.game.inventory?.slots ?? [];
+    return i > 0 && s[i] && s[i - 1] === s[i] ? i - 1 : i;
+  }
+
+  moveCursorTo(h) {
+    if (h === TORCH_ID) { this.cur.x = TORCH_CUR.x; this.cur.z = TORCH_CUR.z; return; }
+    const span = this.slots[h].span;
+    this.cur.x = span === 2 ? (slotX(h) + slotX(h + 1)) / 2 : slotX(h);
+    this.cur.z = ITEM_Z;
+  }
+
+  /** Step the pointer between items (torch first), wrapping. */
+  step(dir) {
+    const order = [TORCH_ID, ...this.itemStarts()];
+    const n = order.length;
+    const idx = order.indexOf(this.hover);
+    if (idx >= 0) this.hover = order[(((idx + dir) % n) + n) % n];
+    else { // on an empty compartment: the nearest item that way
+      const ahead = order.filter((h) => (dir > 0 ? h > this.hover : h < this.hover));
+      this.hover = ahead.length ? ahead[dir > 0 ? 0 : ahead.length - 1] : order[dir > 0 ? 0 : n - 1];
+    }
+    this.moveCursorTo(this.hover);
+  }
+
+  hoverFromCursor() {
+    if (this.cur.z < LID_ZONE) return TORCH_ID;
+    const i = clamp(Math.floor((this.cur.x + CASE.IW / 2) / CASE.CW), 0, CASE.SLOTS - 1);
+    return this.startOf(i);
   }
 
   /**
-   * w: eased open amount. input: raw input (ungated). Returns the view-space point the right
-   * hand should point at.
+   * Call every frame. open: whether the case should be out. raw: ungated input; look: mouse delta
+   * (gate.look); torch: the left-hand torch model. Returns the view-space point the right hand's
+   * wrist should go to.
    */
-  update(dt, w, raw, rawLook, torch) {
+  update(dt, { open, raw, look, torch }) {
     const inv = this.game.inventory;
-    this.group.visible = w > 0.01;
-    const open = w > 0.5;
-    if (w > 0.01 && !this.torchSynced) { this.syncTorch(torch); this.torchSynced = true; }
-    if (w <= 0.01) this.torchSynced = false;
-    if (open && !this.wasOpen) this.hoverF = this.hover = inv?.selected ?? 0;
-    this.wasOpen = open;
-    const e = smooth(w);
-    this.group.position.y = -(1 - e) * 0.35;
-    if (!this.group.visible || !inv) return _v.set(0, -0.3, -0.3);
+    const was = this.t;
+    if (open && !this.isOpen) { // just opened: start at the item in hand
+      this.hover = inv?.slots?.[inv.selected] ? this.startOf(inv.selected) : TORCH_ID;
+      this.moveCursorTo(this.hover);
+      this.game.synth?.play?.('paper_rustle', { volume: 0.25 });
+    }
+    this.isOpen = open;
+    this.t = clamp(this.t + (open ? dt / OPEN_S : -dt / CLOSE_S), 0, 1);
+    if (open && was < 0.3 && this.t >= 0.3) this.game.synth?.play?.('switch_click', { volume: 0.5 });
+    this.group.visible = this.t > 0.001;
+    if (!this.group.visible) { this.torchSynced = false; return _v.set(0.17, -0.6, -0.38); }
+    if (!this.torchSynced) { this.syncTorch(torch); this.torchSynced = true; }
 
-    if (open) {
-      // -1 = the torch in the left hand (battery + flashlight combine), 0..3 = pockets
-      this.hoverF = Math.max(-1, Math.min(3, this.hoverF + rawLook.x * 0.01));
-      if (raw.wasPressed('left')) this.hoverF = Math.max(-1, Math.round(this.hoverF) - 1);
-      if (raw.wasPressed('right')) this.hoverF = Math.min(3, Math.round(this.hoverF) + 1);
-      this.hover = Math.round(this.hoverF);
-      if (raw.wasPressed('use')) this.click();
+    // ── open / close animation: rise, latches flip, lid swings back ──
+    const c = this.c;
+    const rise = smooth(this.t / 0.4);
+    const g = this.group;
+    g.position.set(0, HIDDEN.y + (POSE.y - HIDDEN.y) * rise, HIDDEN.z + (POSE.z - HIDDEN.z) * rise);
+    g.rotation.set(HIDDEN.tilt + (POSE.tilt - HIDDEN.tilt) * rise, 0, 0);
+    const hasp = smooth((this.t - 0.28) / 0.14);
+    for (const h of c.hasps) h.rotation.x = hasp * 2.7;
+    c.lid.rotation.x = -LID_OPEN * (open ? easeOutBack((this.t - 0.4) / 0.6) : smooth((this.t - 0.4) / 0.6));
+
+    if (!inv) return _v.set(0.17, -0.6, -0.38);
+    for (const s of this.slots) this.syncSlot(s, inv.slots?.[s.i] ?? null);
+    for (let i = 0; i < CASE.SLOTS - 1; i++) c.dividers[i].visible = this.slots[i].span !== 2;
+
+    // ── cursor ──
+    if (this.ready) {
+      const before = this.hover;
+      this.cur.x = clamp(this.cur.x + look.x * MOUSE, CUR.minX, CUR.maxX);
+      this.cur.z = clamp(this.cur.z + look.y * MOUSE, CUR.minZ, CUR.maxZ);
+      if (look.x || look.y) this.hover = this.hoverFromCursor();
+      if (raw.wasPressed('left') || raw.wasPressed('slotPrev')) this.step(-1);
+      if (raw.wasPressed('right') || raw.wasPressed('slotNext')) this.step(1);
+      if (this.hover !== before) this.game.synth?.play?.('paper_rustle', { volume: 0.12 });
+      if (raw.wasPressed('interact')) this.take();
+      else if (raw.wasPressed('use')) this.click();
     }
+
+    // ── items: hovered lifts and rocks, the one in hand sits on a worn patch ──
+    const time = this.game.time ?? 0;
+    const ready = this.ready;
     for (const s of this.slots) {
-      const stack = inv.slots?.[s.i] ?? null;
-      this.syncSlot(s, stack);
-      const target = (s.i === inv.selected ? 0.03 : 0) + (s.i === this.hover && open ? 0.02 : 0);
-      s.lift = damp(s.lift, target, 14, dt);
+      const sel = this.startOf(inv.selected) === s.i && !!inv.slots?.[inv.selected];
+      const hov = ready && s.i === this.hover;
+      s.lift = damp(s.lift, hov ? 0.032 : sel ? 0.006 : 0, 14, dt);
       s.wob = Math.max(0, s.wob - dt);
-      s.holder.position.set(Math.sin(s.wob * 60) * 0.008 * (s.wob / 0.4), 0.008 + s.lift, 0); // half tucked behind the pocket front
-      s.holder.rotation.x = s.i === inv.selected ? -0.35 : 0;
+      const h = s.holder;
+      h.position.y = CASE.FLOOR + s.lift;
+      h.rotation.set(-s.lift * 6, Math.sin(s.wob * 60) * 0.25 * (s.wob / 0.4), hov ? Math.sin(time * 2.3) * 0.06 : 0);
     }
-    const ts = this.torchSlot;
-    ts.lift = damp(ts.lift, this.hover < 0 && open ? 0.03 : 0, 14, dt);
-    ts.holder.position.y = 0.01 + ts.lift;
-    if (this.hover < 0) {
-      const tp = ts.g.position;
-      return _v.set(tp.x + 0.035, tp.y - 0.075, tp.z + 0.14);
-    }
-    const hp = this.slots[Math.max(0, this.hover)].g.position;
-    return _v.set(hp.x + 0.035, hp.y - 0.075, hp.z + 0.14);
+    const selStart = inv.slots?.[inv.selected] ? this.startOf(inv.selected) : -9;
+    c.patches.forEach((p, i) => { p.visible = i === selStart || (i === selStart + 1 && this.slots[selStart].span === 2); });
+    this.torchLift = damp(this.torchLift, ready && this.hover === TORCH_ID ? 1 : 0, 14, dt);
+    this.torchHolder.position.set(0, -0.014 * this.torchLift, 0);
+    this.torchHolder.scale.setScalar(1 + 0.12 * this.torchLift);
+    this.torchHolder.rotation.x = Math.sin(time * 2.3) * 0.05 * this.torchLift;
+
+    // ── pointing hand: fingertip just above the cursor (or the torch) ──
+    g.updateMatrixWorld(true);
+    // (for the torch, the finger stops at the hinge and points up at it: reaching into the lid
+    // would put the whole sleeve across the case)
+    const z = this.hover === TORCH_ID ? -CASE.D / 2 + 0.035 : this.cur.z + this.tipNear;
+    _v.set(this.cur.x, CASE.FLOOR + this.tipLift, z);
+    c.base.localToWorld(_v);
+    const k = this.tip.lengthSq() ? 1 - Math.exp(-18 * dt) : 1;
+    this.tip.lerp(_v, k);
+    return _v.copy(this.tip).add(this.wrist);
   }
 
+  /** E: take the pointed-at item in hand. */
+  take() {
+    const inv = this.game.inventory;
+    if (this.hover === TORCH_ID || !inv.slots?.[this.hover]) return this.nudge();
+    if (inv.selected !== this.hover) inv.select(this.hover);
+  }
+
+  /** Click: use the item in hand with the pointed-at one (an empty hand just takes it). */
   click() {
     const inv = this.game.inventory;
     const a = inv.selected;
-    const b = this.hover < 0 ? 'flashlight' : this.hover;
-    const nudge = () => { if (this.hover >= 0) this.slots[this.hover].wob = 0.4; };
-    if (a === b || !inv.slots?.[a] || (b !== 'flashlight' && !inv.slots?.[b])) return nudge();
+    const b = this.hover === TORCH_ID ? 'flashlight' : this.hover;
+    if (!inv.slots?.[a]) return b === 'flashlight' ? this.nudge() : this.take();
+    if (b !== 'flashlight' && (!inv.slots?.[b] || inv.slots[b] === inv.slots[a])) return this.nudge();
     // gameplay.combineSlots returns false when the two don't combine: wiggle the target
-    if (!this.game.gameplay?.combineSlots?.(a, b)) nudge();
+    if (!this.game.gameplay?.combineSlots?.(a, b)) this.nudge();
   }
 
-  /** Name tags under each pocket, on the full-res text layer (call after the render). */
-  drawTags(layer, vmCamera, w, torch) {
-    if (w < 0.6 || !this.game.inventory) return;
+  nudge() {
+    if (this.hover >= 0) this.slots[this.hover].wob = 0.4;
+    else this.torchLift = 0.2;
+  }
+
+  /** The luggage tag (hovered item's name) + a key hint line, on the text layer. Call after the render. */
+  drawTags(layer, vmCamera) {
+    if (!this.ready || !this.game.inventory) return;
     const inv = this.game.inventory;
-    const opacity = Math.min(1, (w - 0.6) * 3);
-    const toScreen = () => ({ x: (_v.x * 0.5 + 0.5) * layer.W, y: (0.5 - _v.y * 0.5) * layer.H });
-    // tag width: a bit less than the spacing between pockets on screen
-    _v.set(SLOT_X[0], SLOT_Y, SLOT_Z).project(vmCamera); const a = toScreen();
-    _v.set(SLOT_X[1], SLOT_Y, SLOT_Z).project(vmCamera); const b = toScreen();
-    const maxW = Math.max(90, Math.abs(b.x - a.x) * 0.92);
-    {
-      _v.set(0, -0.065, 0.02);
-      this.torchSlot.g.localToWorld(_v).project(vmCamera);
-      const t = toScreen();
-      layer.tag(null, t.x, t.y, {
-        m: layer.measure('torch', { size: 0.95, maxW }), anchor: [0.5, 0], opacity,
-        color: this.hover < 0 ? '#e9e0c9' : '#cfc6ae',
-      });
+    const ui = this.game.cfg.ui ?? {};
+    const keys = this.game.cfg.keys ?? {};
+    const kl = (a, d) => keyLabel(keys[a]?.[0] ?? d);
+    const opacity = clamp((this.t - 0.85) * 8, 0, 1);
+    const nameOf = (st) => (st ? (st.def?.name ?? this.game.content.objects?.[st.id]?.name ?? st.id) : null);
+    const held = nameOf(inv.slots?.[inv.selected]);
+    const lines = [];
+    if (this.hover === TORCH_ID) {
+      lines.push('torch');
+      if (held) lines.push(`${kl('use', 'Mouse0')} · use ${held} on it`);
+    } else {
+      const st = inv.slots?.[this.hover];
+      if (!st) lines.push('(empty)');
+      else if (st === inv.slots?.[inv.selected]) lines.push(nameOf(st), 'in hand');
+      else {
+        lines.push(nameOf(st));
+        if (held) lines.push(`${kl('use', 'Mouse0')} · use with ${held}`);
+        lines.push(`${kl('interact', 'KeyE')} · take in hand`);
+      }
     }
-    for (const s of this.slots) {
-      const stack = inv.slots?.[s.i];
-      const name = stack ? (stack.def?.name ?? this.game.content.objects?.[stack.id]?.name ?? stack.id) : '(empty)';
-      _v.set(0, -0.065, 0.02);
-      s.g.localToWorld(_v).project(vmCamera);
-      const p = toScreen();
-      const sel = s.i === inv.selected;
-      const m = layer.measure(name, { size: 0.95, maxW });
-      m.lines = m.lines.slice(0, 2);
-      layer.tag(null, p.x, p.y, {
-        m, anchor: [0.5, 0], opacity,
-        color: sel ? '#f3ead2' : s.i === this.hover ? '#e9e0c9' : '#cfc6ae',
+    // hangs off the case's near right corner on a string: the tag's top-left corner at the string's end
+    this.c.tagAnchor.getWorldPosition(_v).project(vmCamera);
+    const x = (_v.x * 0.5 + 0.5) * layer.W, y = (0.5 - _v.y * 0.5) * layer.H;
+    const m = layer.measure(lines, { size: 0.9, maxW: Math.max(150, layer.W * 0.26) });
+    m.lines = m.lines.slice(0, 4);
+    layer.tag(null, Math.min(x, layer.W - m.w - 4), Math.min(y, layer.H - m.h - 4), { m, anchor: [0.08, 0], opacity, color: '#cdb487', seed: 7 });
+
+    if (ui.textPrompts !== false) {
+      const close = `${kl('pockets', 'KeyQ')} · close`;
+      layer.tag(`${kl('left', 'KeyA')} ← → ${kl('right', 'KeyD')} · choose    ${close}`, layer.W / 2, layer.H - layer.margin * 0.4, {
+        anchor: [0.5, 1], size: 0.72, opacity,
       });
     }
   }

@@ -38,7 +38,7 @@ export const CONTROL_ROWS = [
   { label: 'drop', action: 'drop' },
   { label: 'throw', action: 'throw' },
   { label: 'pick pocket', group: ['slot1', 'slot2', 'slot3', 'slot4'], also: ['slotNext'] },
-  { label: 'pockets', action: 'pockets', hint: 'hold' },
+  { label: 'pockets', action: 'pockets' },
   { label: 'watch', action: 'watch', hint: 'hold' },
   { label: 'notebook', action: 'notebook' },
   { label: 'pause', action: 'pause' },
