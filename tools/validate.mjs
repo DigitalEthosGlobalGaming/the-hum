@@ -210,7 +210,8 @@ export function validateContent(content, { textures, scripts, sources = {} } = {
 
     // layout + legend
     const layout = r.layout;
-    const legend = r.legend ?? {};
+    // ' ' is always void (outside a multi-slot room's footprint), matching src/world/layout.
+    const legend = { ' ': 'void', ...(r.legend ?? {}) };
     if (!Array.isArray(layout) || !layout.length || !layout.every((row) => typeof row === 'string')) {
       err(w('layout'), 'must be a non-empty array of strings');
       continue;
