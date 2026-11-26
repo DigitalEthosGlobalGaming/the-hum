@@ -29,6 +29,7 @@ so **change it only deliberately** and note the change in your commit.
 | `pause()`, `resume()` | fn | main | `pause()` → `game:pause`. `resume()` re-requests pointer lock, then fullscreen (if the setting is on), then emits `game:resume`; **call it only inside a real click/keydown handler** |
 | `settings` | object | settings (`src/settings/`) | live persisted settings, see "Settings" below |
 | `secrets` | `{ list(), count(), markFound(id) }` \| undefined | secrets (`src/secrets/`) | bound on the first gameplay frame (undefined before); read by the notebook's Secrets section, see "Secrets" and "Notebook hub" |
+| `footsteps` | FootstepSystem | surfaces (`src/surfaces/`) | installed by main; see "Surfaces + footprints" |
 | `diegetic` | read-only state | M5 | `notebookOpen`, `section` (open section id or null), `pocketsOpen`, `inspecting`, `reading`, `bpm`, `map` (SeenMap: `toJSON()/fromJSON()` for saves), `notebook`, `menu`, `vitals` |
 
 ## Settings (`src/settings/`)
@@ -102,7 +103,7 @@ is open, mouse look reads 0 and `use`/`drop`/`left`/`right` drive the pocket cur
 
 ### World extension points (feature systems)
 - `world.addSystem({ update?(dt, ctx, world), onRoomPlaced?(placed, world), onRoomDropped?(placed, world) })` — per-frame hook + room streaming hooks. `world.roomAt` already finds the room inside `onRoomPlaced`. `placed = { key, entry, json, built, origin, depth, objects }`.
-- `world.noise(pos, loudness, source)` — a sound others can hear; `loudness` ≈ hearing radius in metres (footstep 3–8, clatter 10, bell 18, boombox 25). Emits `world:noise` `{x,y,z,loudness,source,t}`; recent ones in `world.noises`. Footsteps already report.
+- `world.noise(pos, loudness, source)` — a sound others can hear; `loudness` ≈ hearing radius in metres (footstep 3–8, clatter 10, bell 18, boombox 25). Emits `world:noise` `{x,y,z,loudness,source,t}`; recent ones in `world.noises`. Footsteps already report (loudness from `content/surfaces.json`: carpet walk 5, sprint ≈ 8, ×1.1–1.25 on hard floors).
 - `registerPrefabs(map)` (`src/objects/prefabs.js`) and `registerPainters(map)` (`src/objects/procTextures.js`) — add prefabs / `proc:` textures from your own module, imported for side effects in `src/extensions.js`.
 
 ### Power network & light (`src/power/`, `world.power`)
@@ -191,7 +192,7 @@ A `pickup.size: 2` item puts the **same** stack object in two neighbouring slots
 |---|---|---|
 | `game:start`, `game:resize`, `game:pause`, `game:resume` | `{}` | main (pause → the notebook opens at Settings; resume closes it) |
 | `settings:change` | `{ key, value, settings }` | settings (`game.settings.set`) |
-| `player:step` | `{ intensity }` | main |
+| `player:step` | `{ intensity, surface, wet }` (`surface` = surface id under the feet, `wet` = puddle / wet shoes / wet trail) | main (via `game.footsteps.step`) |
 | `inventory:change` | `{ slots, selected }` | M4 |
 | `inventory:full` | `{ id }` | M4 (M5 shakes the hand) |
 | `item:pickup` / `item:drop` / `item:use` | `{ id, stack }` (`item:drop` also has `inst`, the dropped world object) | M4 |
@@ -325,3 +326,19 @@ like the story runtime and runs as a `world.addSystem` system. Tunables: `config
   `tenant:wake { pos, ended, sanityBefore, sanityAfter, dropped, forgotten }`, `run:end { reason: 'caught' }`
   (sanity was < 0.1: placeholder "the tape ejects" card, click = new seed; the CRT title replaces it later).
 - **Debug**: dev builds, F8 (`keys.tenantDebug`) toggles the overlay.
+
+## Surfaces + footprints (`src/surfaces/`)
+Installed by main (`installFootsteps(game)`, a `world.addSystem` system); data in `content/surfaces.json` (format: content/README.md).
+- **`game.footsteps.step(k)`** — main's `player.onStep` calls it (k = speed / walk speed). Picks the surface under the
+  player, plays its preset with gait volume (crouch quieter, sprint louder, ± jitter), splashes in a puddle, squelches with
+  wet shoes / on a fresh wet trail, drops a footprint, and returns `{ surface, loudness, wet }`; main passes `loudness` to
+  `world.noise(..., 'footstep')` and `surface`/`wet` to `player:step`.
+- **Surface lookup** `footsteps.surfaceAt(x, z)` (pure: `surfaceAt(world, x, z, cfg)` in `surfaces.js`): room JSON
+  `cellSurfaces[<layout char>]` → room `floorSurface` → `materials.floor` through the `textures` glob map → `default`.
+- **Puddles**: instances whose id is in `puddles` (today `decor_water_stain`, `decor_leak`) are ellipses on the floor,
+  collected per room in `onRoomPlaced` and forgotten in `onRoomDropped`. `footsteps.puddleAt(x, z)`, `inPuddle`, `wetness` 0..1.
+- **Footprints**: a `FootprintRing` (`wet.maxPrints` slots, oldest overwritten) drawn as one merged mesh (one draw call,
+  multiply-blended "darker wet floor", PS1 vertex shader + `makeDecal` bias). Each print: `strength` (fainter further from the
+  puddle) × life fade on `game.time` (frozen while paused). Prints carry the `roomKey` they landed in and are cleared when it streams out.
+  Not saved (they're seconds-long).
+- `footsteps.debugLines()` → `surface … · wet n · prints a/b`.

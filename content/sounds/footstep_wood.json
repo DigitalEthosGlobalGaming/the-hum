@@ -1,0 +1,14 @@
+{
+  "id": "footstep_wood",
+  "note": "Old floorboards: hollow knock with a short boxy resonance, sometimes a faint creak.",
+  "bus": "sfx",
+  "volume": 0.6,
+  "reverb": 0.2,
+  "vary": {"pitch": 1.5, "filter": 0.2, "gain": 2},
+  "layers": [
+    {"note": "knock", "osc": "triangle", "freq": 190, "gain": 0.35, "pitchEnv": {"to": 0.7, "time": 0.05}, "filter": {"type": "lowpass", "freq": 900, "q": 0.8}, "env": {"a": 0.001, "d": 0.11}, "vary": {"pitch": 2}},
+    {"note": "board body", "noise": "brown", "gain": 0.4, "filter": {"type": "bandpass", "freq": 340, "q": 2.2}, "env": {"a": 0.002, "d": 0.13}},
+    {"note": "tick", "noise": "white", "gain": 0.12, "filter": {"type": "bandpass", "freq": 2400, "q": 1.2}, "env": {"a": 0.001, "d": 0.025}},
+    {"note": "creak", "osc": "saw", "freq": 310, "gain": 0.025, "start": 0.05, "filter": {"type": "bandpass", "freq": 1100, "q": 4}, "lfo": {"target": "pitch", "wave": "noise", "rate": 30, "depth": 60}, "env": {"a": 0.03, "d": 0.12}, "vary": {"pitch": 4, "gain": 8}}
+  ]
+}

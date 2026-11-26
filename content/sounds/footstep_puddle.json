@@ -1,0 +1,14 @@
+{
+  "id": "footstep_puddle",
+  "note": "Stepping into a shallow puddle on carpet: a slap, a short splash spray and a soggy squash under it.",
+  "bus": "sfx",
+  "volume": 1.1,
+  "reverb": 0.2,
+  "vary": {"pitch": 1.5, "filter": 0.25, "gain": 2},
+  "layers": [
+    {"note": "slap", "noise": "white", "gain": 0.28, "filter": {"type": "bandpass", "freq": 1200, "q": 1.2, "env": {"to": 3200, "time": 0.06}}, "env": {"a": 0.002, "d": 0.12}},
+    {"note": "spray", "noise": "pink", "gain": 0.12, "start": 0.03, "filter": {"type": "highpass", "freq": 2600, "q": 0.7}, "env": {"a": 0.01, "d": 0.16}},
+    {"note": "squash", "noise": "brown", "gain": 0.45, "filter": {"type": "lowpass", "freq": 360, "q": 1.1}, "env": {"a": 0.006, "d": 0.18}},
+    {"note": "droplets", "osc": "sine", "freq": 1500, "gain": 0.05, "start": 0.06, "pitchEnv": {"to": 1.8, "time": 0.025}, "env": {"a": 0.001, "d": 0.03}, "repeat": {"count": 2, "interval": 0.07, "jitter": 0.03}, "vary": {"pitch": 5, "gain": 4}}
+  ]
+}

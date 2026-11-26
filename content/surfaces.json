@@ -1,0 +1,51 @@
+{
+  "note": "Floor surfaces: which footstep each floor texture makes, how loud it is to the Tenant, which props are puddles, and the wet-footprint trail. Runtime: src/surfaces. Format: content/README.md.",
+  "default": "carpet",
+  "textures": {
+    "carpet_*": "carpet",
+    "pool_tiles*": "tile",
+    "pool_side*": "tile",
+    "pool_water*": "water",
+    "metal_*": "metal",
+    "*concrete*": "concrete",
+    "*wood*": "wood"
+  },
+  "surfaces": {
+    "carpet":   { "preset": "footstep_carpet",   "volume": 1.1,  "noise": 1.0 },
+    "tile":     { "preset": "footstep_tile",     "volume": 1.0,  "noise": 1.1 },
+    "concrete": { "preset": "footstep_concrete", "volume": 1.0,  "noise": 1.1 },
+    "wood":     { "preset": "footstep_wood",     "volume": 1.0,  "noise": 1.15 },
+    "metal":    { "preset": "footstep_metal",    "volume": 1.0,  "noise": 1.25 },
+    "water":    { "preset": "footstep_water",    "volume": 1.0,  "noise": 1.2 },
+    "puddle":   { "preset": "footstep_puddle",   "volume": 1.0,  "noise": 1.15 }
+  },
+  "gait": {
+    "crouch": 0.55,
+    "walk": 1.0,
+    "sprint": 1.4,
+    "jitter": 0.12,
+    "noiseBase": 2,
+    "noisePerIntensity": 3
+  },
+  "puddles": {
+    "decor_water_stain": { "size": [1.8, 1.4], "shrink": 0.85 },
+    "decor_leak": { "size": [1.8, 1.4], "offset": [0.1, 0.05], "shrink": 0.85 }
+  },
+  "wet": {
+    "puddleSurface": "puddle",
+    "steps": 14,
+    "maxPrints": 64,
+    "life": 45,
+    "lifeJitter": 0.15,
+    "hold": 0.25,
+    "minStrength": 0.2,
+    "darkness": 0.75,
+    "color": [0.36, 0.34, 0.28],
+    "size": [0.14, 0.32],
+    "side": 0.11,
+    "squelchPreset": "footstep_squelch",
+    "squelchVolume": 0.8,
+    "trailRadius": 0.25,
+    "trailMin": 0.3
+  }
+}

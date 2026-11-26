@@ -17,6 +17,7 @@ import { mountSoundBoard } from './audio/soundBoard.js';
 import { installGameplay, updateGameplay } from './gameplay/index.js';
 import { installDiegetic, updateDiegetic, renderDiegetic } from './ui/diegetic/index.js';
 import { installSettings } from './settings/install.js';
+import { installFootsteps } from './surfaces/index.js';
 
 const cfg = content.config;
 const canvas = document.getElementById('game');
@@ -63,11 +64,12 @@ async function boot() {
       recharge(amount = 1) { this.battery = Math.min(1, this.battery + amount); },
     },
   };
+  const footsteps = installFootsteps(game); // src/surfaces: floor-surface steps, puddles, wet footprints
   player.onStep = (k) => {
     game.stats.steps++;
-    synth.footstep(k);
-    events.emit('player:step', { intensity: k });
-    world.noise(player.pos, 2 + 3 * k, 'footstep'); // crouch-walk ~3 m, sprint ~8 m
+    const step = footsteps.step(k); // plays the surface's step (or splash/squelch), maybe leaves a print
+    events.emit('player:step', { intensity: k, surface: step.surface, wet: step.wet });
+    world.noise(player.pos, step.loudness, 'footstep'); // carpet walk ~5 m, sprint ~8 m; louder on metal
   };
 
   installSettings(game);       // game.settings (persisted); applied to input / synth / cfg.ui

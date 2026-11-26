@@ -1,0 +1,13 @@
+{
+  "id": "footstep_squelch",
+  "note": "Wet shoes: a soft sucking squelch layered over the normal footstep for a few steps after a puddle.",
+  "bus": "sfx",
+  "volume": 0.9,
+  "reverb": 0.15,
+  "vary": {"pitch": 2, "filter": 0.3, "gain": 3},
+  "layers": [
+    {"note": "suck", "noise": "pink", "gain": 0.22, "start": 0.03, "filter": {"type": "bandpass", "freq": 700, "q": 2.5, "env": {"to": 1500, "time": 0.08}}, "env": {"a": 0.015, "d": 0.1}},
+    {"note": "squish", "noise": "brown", "gain": 0.25, "filter": {"type": "lowpass", "freq": 300, "q": 1.4}, "env": {"a": 0.01, "d": 0.12}},
+    {"note": "pop", "osc": "sine", "freq": 520, "gain": 0.04, "start": 0.09, "pitchEnv": {"to": 1.6, "time": 0.02}, "env": {"a": 0.001, "d": 0.025}, "vary": {"pitch": 4, "gain": 5, "time": 0.03}}
+  ]
+}

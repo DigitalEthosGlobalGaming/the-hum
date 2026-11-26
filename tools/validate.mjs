@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import { loadContent, listTextures, walk, SCRIPT_DIR } from './lib/loadContent.mjs';
 import { validatePhysics } from '../src/physics/schema.js';
 import { validateSecret } from '../src/secrets/schema.js';
+import { validateSurfaces } from '../src/surfaces/schema.js';
 
 export const CELL = 2;        // metres per layout cell (src/world/roomBuilder.js)
 export const WALL_H = 3;
@@ -408,6 +409,16 @@ export function validateContent(content, { textures, scripts, sources = {} } = {
       (r.level === 'error' ? err : warn)(w(r.field || undefined), r.msg);
     }
     useScript(sdef?.script, w('script'));
+  }
+
+  // ---------- surfaces ----------
+  // content/surfaces.json: floor texture → footstep surface, puddle props, wet footprints (src/surfaces).
+  // Also checks the room fields floorSurface / cellSurfaces.
+  {
+    const sw = (f) => `${sources.surfaces ?? 'content/surfaces.json'}${f ? ' ' + f : ''}`;
+    for (const r of validateSurfaces(content.surfaces, { sounds: content.sounds, objects, textures, rooms })) {
+      (r.level === 'error' ? err : warn)(sw(r.field), r.msg);
+    }
   }
 
   // ---------- cross-cutting ----------

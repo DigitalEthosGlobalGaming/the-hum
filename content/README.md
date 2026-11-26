@@ -26,6 +26,8 @@ Full design rationale: [PLAN.md §4](../PLAN.md).
 | spots | [{id, pos, rot?, pool}] | `pool` = pool id or inline entry array or pool object |
 | spawn | {pos, rot} | optional player spawn (test rooms only) |
 | script | string\|null | optional room script id |
+| floorSurface | string | optional: footstep surface for the whole room (overrides the floor texture's; see surfaces.json) |
+| cellSurfaces | {char: surface} | optional: footstep surface per layout character (e.g. add `"g": "floor"` to the legend and `"g": "metal"` here for a grate strip) |
 
 ## objects/*.json
 `{ id, name, mesh, components: { <type>: {...} } }`
@@ -72,6 +74,19 @@ A fragment can also be placed by id (`readable.textId: "<note id>"`), e.g. `note
 
 ## sounds/*.json
 Procedural Web Audio presets referenced by `sound.preset`. Format documented in `src/audio/presets.md`.
+
+## surfaces.json
+Footsteps by floor surface, puddles and wet footprints (runtime `src/surfaces/`, validated by `npm run validate`).
+| key | notes |
+|---|---|
+| default | surface id used when nothing matches |
+| textures | `{ "<texture name or glob>": surface }`. `*` is the only wildcard; an exact name wins, else the glob with the most literal characters. E.g. `"carpet_*": "carpet"`, `"*wood*": "wood"` |
+| surfaces | `{ id: { preset, volume?: 0..2, noise?: >0..2 } }`. `preset` = a `content/sounds` id; `volume` × the gait level; `noise` × footstep loudness heard by the Tenant (carpet 1.0 is the baseline; walk = 5 m) |
+| gait | `crouch`, `walk`, `sprint` volume levels (interpolated by speed), `jitter` (± random volume), `noiseBase` + `noisePerIntensity`·k = loudness in metres |
+| puddles | `{ objectId: { size: [w, d], offset?: [x, z], shrink? } }` — props that wet your shoes (an ellipse `size × shrink`, at `offset` in the prop's local space) |
+| wet | `puddleSurface` (surface played when stepping in a puddle), `steps` (prints after leaving one), `maxPrints` (pool size), `life` (s) + `lifeJitter`, `hold` (fraction of life at full strength), `minStrength` (last print's strength), `darkness`, `color` (multiplied into the floor), `size` [w, l] m, `side` (m from the walking line), `squelchPreset`, `squelchVolume`, `trailRadius` / `trailMin` (stepping on a fresh print squelches) |
+
+Footstep presets: `footstep_carpet`, `_tile`, `_concrete`, `_wood`, `_metal`, `_water`, `_puddle` (splash), `_squelch` (wet shoes, layered).
 
 ## secrets/*.json
 Discoverable interactions, written as data (runtime: `src/secrets/`, API `game.secrets`; see CONTRACTS.md).
