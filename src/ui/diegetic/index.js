@@ -10,6 +10,7 @@
 import { ViewModel, damp } from '../../viewmodel/viewModel.js';
 import { Flashlight } from '../../viewmodel/flashlight.js';
 import { LeftArm, RightArm } from '../../viewmodel/arms.js';
+import { MatchFlame } from '../../viewmodel/matchFlame.js';
 import { Vitals } from '../../vitals/vitals.js';
 import { Watch } from './watch.js';
 import { Notebook } from './notebook.js';
@@ -32,6 +33,8 @@ export function installDiegetic(game) {
   game.flashlight = flashlight;
   const left = new LeftArm(game.textures, flashlight);
   const right = new RightArm(game);
+  const matchFlame = new MatchFlame(); // a struck match in the right hand (match_strike)
+  right.arm.hand.add(matchFlame.root);
   const watch = new Watch(game, left.arm.wristTop);
   const notebook = new Notebook(game);
   const menu = notebook.menu;
@@ -42,7 +45,7 @@ export function installDiegetic(game) {
   const vitals = new Vitals(game);
 
   S = {
-    game, gate, vm, flashlight, left, right, watch, notebook, menu, pockets, text, map, vitals,
+    game, gate, vm, flashlight, left, right, matchFlame, watch, notebook, menu, pockets, text, map, vitals,
     w: { watch: 0, note: 0, pockets: 0, inspect: 0, reach: 0 },
     get notebookOpen() { return menu.open; },
     inspect: false, pocketsOpen: false, watchUp: false,
@@ -68,7 +71,7 @@ export function installDiegetic(game) {
   ev.on('item:pickup', () => right.onPickup());
   ev.on('note:collected', (p) => {
     notebook.addNote(p ?? {});
-    pushCaption(`(copied into notebook: ${p?.title ?? 'note'})`, 2.5, true);
+    pushCaption(`(filed in the notebook: ${p?.title ?? 'note'})`, 2.5, true);
   });
   ev.on('readable:open', (p = {}) => {
     const display = p.display ?? 'notebook';
@@ -191,6 +194,7 @@ export function updateDiegetic(game, dt) {
   const pointAt = pockets.update(dt, w.pockets, raw, gate.look, left.torch);
   right.pointAt.copy(pointAt);
   right.update(vm, dt, { reach: w.reach, hidden: busy, pockets: w.pockets });
+  S.matchFlame.update(dt, { hidden: w.pockets > 0.5 });
   watch.update(dt, w.watch, { bpm: vitals.bpm, sanity: game.stats.sanity, light: vm.light });
   notebook.update(dt, vm, w.note, w.inspect, () => {
     const changed = S.mapSeen !== map.version || game.player.speedNow > 0.05 || Math.abs(vm.sway.vx) > 0.01;
@@ -224,7 +228,7 @@ export function renderDiegetic(game) {
   if (w.note > 0.6 || w.inspect > 0.6) notebook.drawText(text, vm.camera, w.note, w.inspect);
   if (S.notebookOpen && prompts && w.note > 0.9) {
     const kl = (a, d) => keyLabel(game.cfg.keys?.[a]?.[0] ?? d);
-    const close = game.paused ? '' : `   ${kl('notebook', 'Tab')} · close`;
+    const close = game.paused ? `   ${kl('pause', 'Esc')} · back to it` : `   ${kl('notebook', 'Tab')} · close`;
     text.tag(`${kl('left', 'KeyA')} ←  page  → ${kl('right', 'KeyD')}${close}`, W / 2, H - M * 0.4, { anchor: [0.5, 1], size: 0.72 });
   }
 

@@ -226,7 +226,19 @@ export class Notebook {
         layer.page(geo.L[0], geo.L[1], geo.L[2], PW, PH, ink, (g) => this.menu.ink(layer, g, dL, 'L'));
         layer.page(geo.R[0], geo.R[1], geo.R[2], PW, PH, ink, (g) => this.menu.ink(layer, g, dR, 'R'));
       }
-      // tab labels: on the part of each tab that shows above the pages
+      // tab labels: on the part of each tab that shows above the pages. The text layer is drawn
+      // after the 3D render, so while a page turns the labels (and the current tab's underline)
+      // are clipped out of the turning leaf's silhouette: the leaf passes in front of the tabs.
+      const occluder = this.flipping ? this.leafOutline(camera, layer.W, layer.H) : null;
+      const lg = layer.g;
+      if (occluder) {
+        lg.save();
+        lg.beginPath();
+        lg.rect(-1, -1, layer.W + 2, layer.H + 2);
+        occluder.forEach((p, k) => (k ? lg.lineTo(p.x, p.y) : lg.moveTo(p.x, p.y)));
+        lg.closePath();
+        lg.clip('evenodd');
+      }
       geo.tabs = this.tabs.map((t, i) => {
         const top = TAB_H / 2, bottom = PAGE_H / 2 - t.position.y + 0.001;
         const c = projectRect(t, -TAB_W / 2, top, TAB_W / 2, bottom, 0.0011, camera, layer.W, layer.H);
@@ -234,6 +246,7 @@ export class Notebook {
         layer.page(c[0], c[1], c[2], tw, th, alpha, (g) => this.menu.inkTab(layer, g, i, tw, th));
         return c;
       });
+      if (occluder) lg.restore();
     }
     if (wSheet > 0.6 && this.inspecting && this.sheet.visible) {
       const [tl, tr, bl] = projectRect(this.sheetMesh, -0.095, 0.129, 0.095, -0.129, 0, camera, layer.W, layer.H);
@@ -242,6 +255,18 @@ export class Notebook {
         title: s.title, lines: s.lines, seed: hash(s.text),
       }));
     }
+  }
+
+  /** The turning leaf's screen outline [tl, tr, br, bl] in CSS px (it is one quad, both faces). */
+  leafOutline(camera, W, H) {
+    const m = this.leaf.children[0];
+    m.updateWorldMatrix(true, false);
+    const hw = PAGE_W / 2, hh = PAGE_H / 2;
+    return [[-hw, hh], [hw, hh], [hw, -hh], [-hw, -hh]].map(([x, y]) => {
+      const v = _v[0].set(x, y, 0);
+      m.localToWorld(v).project(camera);
+      return { x: (v.x * 0.5 + 0.5) * W, y: (0.5 - v.y * 0.5) * H };
+    });
   }
 
   /** wBook / wSheet: eased visibility 0..1. */

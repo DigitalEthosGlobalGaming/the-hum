@@ -342,10 +342,13 @@ export class Menu {
     if (e.repeat && !nav) return enter || is('notebook') || is('pause') || is('interact');
     if (is('notebook')) { if (g.paused) this.goTo('map'); else this.close(); return true; }
     if (is('pause')) {
+      // Esc toggles: paused → back to the game (resume() re-captures the mouse from this keydown,
+      // or asks for a click when the browser refuses); open unpaused (Tab / M) → just close.
+      const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
       if (this.held) this.held = false;
       else if (this.confirm) this.activateSetting({ id: 'no' });
-      else if (g.paused) this.goTo('settings');
-      else this.close();
+      else if (g.paused) { if (now - (g.pausedAt ?? -Infinity) > 250) this.resume(); } // (not the Esc that paused)
+      else { this.close(); this.escClosedAt = now; }
       return true;
     }
     if (is('left') || is('right')) {

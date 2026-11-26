@@ -19,8 +19,9 @@
       "script": "match_strike",
       "params": {
         "uses": 10,
-        "seconds": 10,
-        "radius": 1.8
+        "seconds": 12,
+        "radius": 2,
+        "range": 6
       }
     }
   }

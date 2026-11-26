@@ -7,6 +7,7 @@
 import { findCombine, consumeSides } from './combine.js';
 import { runScript } from '../scripts/api.js';
 import { physicsOf } from '../physics/hooks.js';
+import { isFiledNote } from '../gameplay/gameplay.js';
 
 const BUILTIN = { flashlight: { id: 'flashlight', name: 'flashlight' } }; // engine items with no pocket
 
@@ -76,23 +77,23 @@ function doInteract(gp, inst, c) {
 }
 
 function doRead(gp, inst) {
+  // a loose note: read into the notebook and filed there (it leaves the world, never the pockets)
+  if (isFiledNote(inst.def)) return !!gp.fileNote(inst);
   const r = gp.resolveReadable(inst);
   if (!r) return false;
   const { events } = gp.game;
   if (r.display === 'notebook') gp.playSound('paper_rustle', { volume: 0.5 }, inst);
   events.emit('readable:open', { inst, title: r.title, text: r.text, display: r.display, ...(r.noteId ? { noteId: r.noteId } : {}) });
-  if (r.display === 'notebook') {
-    if (r.noteId && !gp.notesCollected.has(r.noteId)) {
-      gp.notesCollected.add(r.noteId);
-      events.emit('note:collected', { noteId: r.noteId, title: r.title, text: r.text });
-    }
-    if (inst.def.components?.pickup) pickup(gp, inst);
+  if (r.display === 'notebook' && r.noteId && !gp.notesCollected.has(r.noteId)) {
+    gp.notesCollected.add(r.noteId);
+    events.emit('note:collected', { noteId: r.noteId, title: r.title, text: r.text });
   }
   return true;
 }
 
-/** Put a world instance in the pockets. Emits item:pickup, or inventory:full. */
+/** Put a world instance in the pockets. Emits item:pickup, or inventory:full. Notes are filed instead. */
 export function pickup(gp, inst) {
+  if (isFiledNote(inst.def)) return !!gp.fileNote(inst);
   const inv = gp.inventory;
   const index = inv.freeIndexFor(inst.id, inv.selected); // empty hand → it goes straight into it
   if (index < 0) {

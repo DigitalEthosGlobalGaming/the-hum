@@ -146,6 +146,8 @@ export function makeCtx(gp, { self = null, other = null, params = {}, scriptId =
       /** The note a readable inst / note stack resolved to, or null. */
       of: (target) => gp.noteOf(target),
       collected: (id) => gp.notesCollected.has(id),
+      /** Read a note inst / stack into the notebook and take it out of play (Gameplay.fileNote). */
+      file: (target) => gp.fileNote(target),
     },
 
     rng: new Rng(hash(game.seed >>> 0, 'script', scriptId, uid, callNo)),
