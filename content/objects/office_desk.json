@@ -1,0 +1,14 @@
+{
+  "id": "office_desk",
+  "name": "Office desk",
+  "mesh": {
+    "type": "prefab",
+    "name": "office_desk"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    }
+  }
+}

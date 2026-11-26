@@ -1,0 +1,14 @@
+{
+  "id": "office_chair",
+  "name": "Office chair",
+  "mesh": {
+    "type": "prefab",
+    "name": "office_chair"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    }
+  }
+}

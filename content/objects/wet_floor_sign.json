@@ -1,0 +1,14 @@
+{
+  "id": "wet_floor_sign",
+  "name": "Wet floor sign",
+  "mesh": {
+    "type": "prefab",
+    "name": "wet_floor_sign"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    }
+  }
+}

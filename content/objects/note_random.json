@@ -1,0 +1,20 @@
+{
+  "id": "note_random",
+  "name": "Crumpled note",
+  "mesh": {
+    "type": "plane",
+    "size": [
+      0.2,
+      0.26
+    ],
+    "texture": "proc:paper",
+    "flat": true
+  },
+  "components": {
+    "readable": {
+      "textId": "random",
+      "display": "notebook"
+    },
+    "pickup": {}
+  }
+}

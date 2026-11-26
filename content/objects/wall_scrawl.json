@@ -1,0 +1,18 @@
+{
+  "id": "wall_scrawl",
+  "name": "Writing on the wall",
+  "mesh": {
+    "type": "plane",
+    "size": [
+      1.2,
+      0.6
+    ],
+    "texture": "proc:scrawl"
+  },
+  "components": {
+    "readable": {
+      "text": "IT IS NOT A LIGHT IF NOBODY TURNS IT ON",
+      "display": "surface"
+    }
+  }
+}

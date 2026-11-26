@@ -1,0 +1,21 @@
+{
+  "id": "lobby_floor_loot",
+  "entries": [
+    {
+      "def": "almond_water",
+      "w": 30
+    },
+    {
+      "def": "battery",
+      "w": 10
+    },
+    {
+      "def": "note_random",
+      "w": 5
+    },
+    {
+      "def": null,
+      "w": 55
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "battery",
+  "name": "AA battery",
+  "mesh": {
+    "type": "box",
+    "size": [
+      0.05,
+      0.05,
+      0.14
+    ],
+    "texture": "proc:battery"
+  },
+  "components": {
+    "pickup": {},
+    "combine": [
+      {
+        "with": "flashlight",
+        "script": "flashlight_recharge",
+        "consume": "self"
+      }
+    ]
+  }
+}

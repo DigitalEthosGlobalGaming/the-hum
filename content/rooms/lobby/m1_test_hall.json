@@ -1,8 +1,15 @@
 {
   "id": "m1_test_hall",
-  "zones": { "lobby": 1 },
-  "tags": ["test"],
-  "slots": [2, 2],
+  "zones": {
+    "lobby": 1
+  },
+  "tags": [
+    "test"
+  ],
+  "slots": [
+    2,
+    2
+  ],
   "layout": [
     "################",
     "#..............#",
@@ -21,7 +28,13 @@
     "#..L...........#",
     "################"
   ],
-  "legend": { "#": "wall", ".": "floor", "P": "pillar", "D": "door", "L": "light" },
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "D": "door",
+    "L": "light"
+  },
   "materials": {
     "wall": "wall_yellow_pattern",
     "pillar": "wall_yellow",
@@ -29,5 +42,146 @@
     "ceiling": "ceiling_large",
     "ceilingLight": "ceiling_large_light_on"
   },
-  "spawn": { "pos": [3, 0, 3], "rot": 225 }
+  "spawn": {
+    "pos": [
+      3,
+      0,
+      3
+    ],
+    "rot": 225
+  },
+  "objects": [
+    {
+      "def": "office_desk",
+      "pos": [
+        25,
+        0,
+        7
+      ],
+      "rot": 180
+    },
+    {
+      "def": "office_chair",
+      "pos": [
+        23.3,
+        0,
+        7.4
+      ],
+      "rot": 200
+    },
+    {
+      "def": "cardboard_box",
+      "pos": [
+        29.3,
+        0,
+        2.7
+      ],
+      "rot": 15
+    },
+    {
+      "def": "cardboard_box",
+      "pos": [
+        3,
+        0,
+        27
+      ],
+      "rot": -10
+    },
+    {
+      "def": "wet_floor_sign",
+      "pos": [
+        11,
+        0,
+        15
+      ],
+      "rot": 30
+    },
+    {
+      "def": "wall_scrawl",
+      "pos": [
+        10,
+        1.5,
+        2.02
+      ],
+      "rot": 180
+    }
+  ],
+  "spots": [
+    {
+      "id": "desk_top",
+      "pos": [
+        24.7,
+        0.76,
+        7
+      ],
+      "rot": 0,
+      "pool": "desk_top"
+    },
+    {
+      "id": "loot_a",
+      "pos": [
+        27,
+        0,
+        27
+      ],
+      "pool": "lobby_floor_loot"
+    },
+    {
+      "id": "loot_b",
+      "pos": [
+        3,
+        0,
+        19
+      ],
+      "pool": "lobby_floor_loot"
+    },
+    {
+      "id": "loot_c",
+      "pos": [
+        19,
+        0,
+        3
+      ],
+      "pool": [
+        {
+          "def": "note_random",
+          "w": 1
+        },
+        {
+          "def": "battery",
+          "w": 1
+        }
+      ]
+    },
+    {
+      "id": "clutter_a",
+      "pos": [
+        29,
+        0,
+        17
+      ],
+      "rot": 40,
+      "pool": "lobby_clutter"
+    },
+    {
+      "id": "clutter_b",
+      "pos": [
+        9,
+        0,
+        21
+      ],
+      "rot": -25,
+      "pool": "lobby_clutter"
+    },
+    {
+      "id": "clutter_c",
+      "pos": [
+        17,
+        0,
+        13
+      ],
+      "rot": 110,
+      "pool": "lobby_clutter"
+    }
+  ]
 }

@@ -1,0 +1,21 @@
+{
+  "id": "lobby_clutter",
+  "entries": [
+    {
+      "def": "cardboard_box",
+      "w": 40
+    },
+    {
+      "def": "office_chair",
+      "w": 30
+    },
+    {
+      "def": "wet_floor_sign",
+      "w": 5
+    },
+    {
+      "def": null,
+      "w": 25
+    }
+  ]
+}

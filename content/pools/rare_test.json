@@ -1,0 +1,17 @@
+{
+  "id": "rare_test",
+  "entries": [
+    {
+      "def": "battery",
+      "w": 1
+    },
+    {
+      "def": "almond_water",
+      "w": 5
+    },
+    {
+      "def": null,
+      "w": 75
+    }
+  ]
+}

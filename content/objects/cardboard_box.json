@@ -1,0 +1,20 @@
+{
+  "id": "cardboard_box",
+  "name": "Cardboard box",
+  "mesh": {
+    "type": "box",
+    "size": [
+      0.6,
+      0.45,
+      0.5
+    ],
+    "tint": "#9a7a50",
+    "texture": "proc:cardboard"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": true
+    }
+  }
+}

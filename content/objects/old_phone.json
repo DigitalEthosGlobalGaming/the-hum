@@ -1,0 +1,25 @@
+{
+  "id": "old_phone",
+  "name": "Desk phone",
+  "mesh": {
+    "type": "box",
+    "size": [
+      0.24,
+      0.1,
+      0.2
+    ],
+    "tint": "#3a3a36"
+  },
+  "components": {
+    "collider": {
+      "shape": "box",
+      "solid": false
+    },
+    "sound": {
+      "preset": "phone_ring",
+      "trigger": "proximity",
+      "radius": 7,
+      "once": true
+    }
+  }
+}

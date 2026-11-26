@@ -1,0 +1,16 @@
+{
+  "id": "desk_lamp",
+  "name": "Desk lamp",
+  "mesh": {
+    "type": "prefab",
+    "name": "desk_lamp"
+  },
+  "components": {
+    "light": {
+      "color": "#ffd890",
+      "intensity": 0.9,
+      "range": 5,
+      "flicker": 0.1
+    }
+  }
+}

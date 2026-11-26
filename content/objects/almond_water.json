@@ -1,0 +1,20 @@
+{
+  "id": "almond_water",
+  "name": "Bottle of almond water",
+  "mesh": {
+    "type": "box",
+    "size": [
+      0.08,
+      0.24,
+      0.08
+    ],
+    "texture": "proc:bottle"
+  },
+  "components": {
+    "pickup": {},
+    "use": {
+      "script": "drink_almond_water",
+      "consume": true
+    }
+  }
+}
