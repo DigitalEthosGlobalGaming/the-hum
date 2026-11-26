@@ -1,0 +1,33 @@
+{
+  "id": "m1_test_hall",
+  "zones": { "lobby": 1 },
+  "tags": ["test"],
+  "slots": [2, 2],
+  "layout": [
+    "################",
+    "#..............#",
+    "#.L....#....L..#",
+    "#......#.......#",
+    "#..P...#...P...#",
+    "#......L.......#",
+    "#.L........#####",
+    "####...........#",
+    "#.....P...L....#",
+    "#..L.......P...#",
+    "#.....####.....#",
+    "#.....#..#..L..#",
+    "#..P..#L.#.....#",
+    "#.....#..D.....#",
+    "#..L...........#",
+    "################"
+  ],
+  "legend": { "#": "wall", ".": "floor", "P": "pillar", "D": "door", "L": "light" },
+  "materials": {
+    "wall": "wall_yellow_pattern",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "spawn": { "pos": [3, 0, 3], "rot": 225 }
+}

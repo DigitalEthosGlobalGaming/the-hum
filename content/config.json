@@ -1,0 +1,23 @@
+{
+  "player": {
+    "walkSpeed": 2.2,
+    "sprintSpeed": 4.3,
+    "crouchSpeed": 1.1,
+    "eyeHeight": 1.6,
+    "crouchHeight": 1.0,
+    "radius": 0.3,
+    "mouseSensitivity": 0.0022,
+    "bobAmount": 0.045
+  },
+  "render": { "height": 240, "fov": 70, "fogNear": 4, "fogFar": 22, "affine": 0.7 },
+  "keys": {
+    "forward": ["KeyW", "ArrowUp"],
+    "back": ["KeyS", "ArrowDown"],
+    "left": ["KeyA", "ArrowLeft"],
+    "right": ["KeyD", "ArrowRight"],
+    "sprint": ["ShiftLeft", "ShiftRight"],
+    "crouch": ["KeyC", "ControlLeft"],
+    "flashlight": ["KeyF"],
+    "debug": ["F3"]
+  }
+}
