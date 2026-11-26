@@ -1,6 +1,6 @@
 {
   "id": "lobby_crossroads",
-  "note": "A narrow crossing. An extension cord runs along the corridor floor and ends unplugged. Evacuation-map spot on the corridor wall, a standing spot opposite.",
+  "note": "A narrow crossing. An extension cord runs along the corridor floor and ends unplugged. Evacuation-plan and notice spots on the corridor wall, a deep standing spot opposite (vending machine, cabinet, boxes).",
   "zones": {
     "lobby": 5
   },
@@ -41,7 +41,8 @@
   ],
   "spots": [
     { "id": "corridor_wall_hang", "pos": [16, 0, 6.13], "rot": 180, "pool": "room_wall_hang" },
-    { "id": "corridor_end", "pos": [18, 0, 9.67], "rot": 0, "pool": "room_corridor_end" },
+    { "id": "corridor_wall_map", "pos": [13.6, 1.25, 6.02], "rot": 180, "pool": "room_wall_map" },
+    { "id": "corridor_end", "pos": [18, 0, 9.55], "rot": 0, "pool": "room_corridor_end" },
     { "id": "cross_floor", "pos": [11, 0, 7.2], "pool": "room_floor_litter" },
     { "id": "cross_stain", "pos": [20, 0, 7.6], "pool": "room_floor_stain" },
     { "id": "cross_ceiling", "pos": [16, 0, 8], "pool": "room_ceiling" }

@@ -4,15 +4,23 @@
   "entries": [
     {
       "def": "cardboard_box",
-      "w": 24
+      "w": 20
     },
     {
       "def": "decor_box_stack",
-      "w": 14
+      "w": 12
+    },
+    {
+      "pool": "physics_carts",
+      "w": 10
+    },
+    {
+      "def": "office_chair",
+      "w": 3
     },
     {
       "def": null,
-      "w": 62
+      "w": 60
     }
   ]
 }

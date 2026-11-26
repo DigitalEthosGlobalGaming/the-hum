@@ -9,10 +9,14 @@
 // - Wall-hung props (whiteboard, cork board, clock, door to nowhere): the back face sits
 //   WALL_INSET (0.13 m) behind the origin, so the origin goes 0.13 m off the wall, the same as
 //   the fuse box (a 0.25 m-deep box with a centred origin). One "wall_*" spot then fits both.
+// - Flush wall props from other features (light switch, evacuation map, dark writing, chalk
+//   scrawl) are built with their back on the origin, so their spots go WALL_FLUSH (0.02 m) off
+//   the wall (`*_wall_switch`, `*_wall_map`, `*_wall_dark`). roomcheck.mjs checks both insets.
 // - Desk and table tops are at 0.76 m.
 // - Ceiling props (stains, the hole above a fallen tile) are built at y ≈ 3 m and placed at y 0.
 
 export const WALL_INSET = 0.13;
+export const WALL_FLUSH = 0.02;
 const B = WALL_INSET; // back plane of wall-hung props (local +z)
 
 const WOOD = '#6f5b43';

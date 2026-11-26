@@ -11,7 +11,7 @@
       "w": 7
     },
     {
-      "def": "decor_trash_bin",
+      "def": "trash_bin",
       "w": 7
     },
     {
@@ -19,12 +19,20 @@
       "w": 6
     },
     {
+      "def": "filing_cabinet",
+      "w": 6
+    },
+    {
       "def": "wet_floor_sign",
       "w": 2
     },
     {
+      "def": "office_chair",
+      "w": 2
+    },
+    {
       "def": null,
-      "w": 68
+      "w": 70
     }
   ]
 }

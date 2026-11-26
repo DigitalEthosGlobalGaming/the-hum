@@ -1,6 +1,6 @@
 {
   "id": "lobby_ring",
-  "note": "A loop around a solid core. Wrongness: a desk set against the core in the corridor, as if the office was moved out here. Fuse/switch spot on the far face of the core.",
+  "note": "A loop around a solid core. Wrongness: a desk set against the core in the corridor, as if the office was moved out here. An empty fuse cabinet on the far face of the core keeps the loop dark (one tube is dead anyway); switch spot beside it.",
   "zones": {
     "lobby": 5
   },
@@ -19,7 +19,7 @@
     "#....######....#",
     "#....######....#",
     "#..............#",
-    "#..L........L..#",
+    "#..L........x..#",
     "################"
   ],
   "legend": {
@@ -27,7 +27,8 @@
     ".": "floor",
     "P": "pillar",
     "L": "light",
-    "D": "door"
+    "D": "door",
+    "x": "deadlight"
   },
   "materials": {
     "wall": "wall_yellow_pattern_damaged",
@@ -40,13 +41,14 @@
     { "def": "wall_scrawl", "pos": [16, 1.5, 5.98], "rot": 0 },
     { "def": "office_desk", "pos": [9.62, 0, 8], "rot": 90 },
     { "def": "office_chair", "pos": [8.6, 0, 8], "rot": 290 },
-    { "def": "decor_extension_cord", "pos": [7.4, 0, 10.6], "rot": 80 }
+    { "def": "decor_extension_cord", "pos": [7.4, 0, 10.6], "rot": 80 },
+    { "def": "fuse_box", "pos": [22.13, 0, 8], "rot": 270 }
   ],
   "spots": [
     { "id": "corridor_desk_fixture", "pos": [9.77, 0.76, 8.45], "rot": 90, "pool": "room_desk_fixture" },
     { "id": "corridor_desk_top", "pos": [9.54, 0.76, 7.88], "pool": "room_desk_top" },
     { "id": "corridor_desk_beside_chair", "pos": [8.7, 0, 7.38], "pool": "room_beside_chair" },
-    { "id": "core_wall_panel", "pos": [22.13, 0, 8], "rot": 270, "pool": "room_wall_panel" },
+    { "id": "core_wall_switch", "pos": [22.02, 1.05, 7.15], "rot": 270, "pool": "room_wall_switch" },
     { "id": "loop_floor", "pos": [26, 0, 12.5], "pool": "room_floor_litter" },
     { "id": "far_corner", "pos": [29, 0, 3], "pool": "room_corner_loot" },
     { "id": "ring_ceiling", "pos": [16, 0, 12], "pool": "room_ceiling" }

@@ -4,31 +4,67 @@
   "entries": [
     {
       "def": "almond_water",
-      "w": 22
+      "w": 18
     },
     {
       "def": "note_random",
-      "w": 14
+      "w": 12
     },
     {
       "pool": "spine_notes",
-      "w": 14
+      "w": 12
     },
     {
       "def": "tape_recorder",
-      "w": 9
+      "w": 7
     },
     {
       "def": "battery",
-      "w": 9
+      "w": 7
     },
     {
       "def": "chalk",
+      "w": 3
+    },
+    {
+      "def": "glow_stick",
+      "w": 6
+    },
+    {
+      "def": "matches",
+      "w": 5
+    },
+    {
+      "def": "candle",
+      "w": 5
+    },
+    {
+      "def": "walkie_talkie",
+      "w": 2
+    },
+    {
+      "def": "flash_camera",
+      "w": 2
+    },
+    {
+      "def": "blank_tape",
+      "w": 2
+    },
+    {
+      "def": "red_string",
+      "w": 1
+    },
+    {
+      "def": "soda_can",
       "w": 4
     },
     {
+      "def": "glass_bottle",
+      "w": 2
+    },
+    {
       "def": null,
-      "w": 28
+      "w": 34
     }
   ]
 }

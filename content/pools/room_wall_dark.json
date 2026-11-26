@@ -1,0 +1,18 @@
+{
+  "id": "room_wall_dark",
+  "note": "Flush wall spot (0.02 m off, y ~1.0) on a wall that never opens. Only readable in the dark.",
+  "entries": [
+    {
+      "def": "dark_writing",
+      "w": 6
+    },
+    {
+      "def": "dark_arrow",
+      "w": 5
+    },
+    {
+      "def": null,
+      "w": 89
+    }
+  ]
+}

@@ -4,15 +4,19 @@
   "entries": [
     {
       "def": "desk_lamp",
-      "w": 26
+      "w": 24
     },
     {
       "def": "old_phone",
-      "w": 16
+      "w": 14
+    },
+    {
+      "pool": "story_desk",
+      "w": 14
     },
     {
       "def": null,
-      "w": 58
+      "w": 48
     }
   ]
 }

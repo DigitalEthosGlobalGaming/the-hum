@@ -1,0 +1,14 @@
+{
+  "id": "room_wall_map",
+  "note": "Flush wall spot (0.02 m off, y ~1.25) on a corridor wall. Evacuation plans are rare: some lie.",
+  "entries": [
+    {
+      "def": "evac_map",
+      "w": 14
+    },
+    {
+      "def": null,
+      "w": 86
+    }
+  ]
+}

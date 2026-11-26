@@ -4,11 +4,11 @@
   "entries": [
     {
       "def": "decor_paper_scatter",
-      "w": 16
+      "w": 14
     },
     {
       "def": "note_random",
-      "w": 9
+      "w": 8
     },
     {
       "pool": "spine_notes",
@@ -19,6 +19,30 @@
       "w": 4
     },
     {
+      "def": "id_badge",
+      "w": 4
+    },
+    {
+      "def": "walkie_talkie",
+      "w": 2
+    },
+    {
+      "def": "flash_camera",
+      "w": 1
+    },
+    {
+      "def": "blank_tape",
+      "w": 2
+    },
+    {
+      "def": "coin",
+      "w": 2
+    },
+    {
+      "def": "red_string",
+      "w": 1
+    },
+    {
       "def": "battery",
       "w": 3
     },
@@ -27,8 +51,12 @@
       "w": 3
     },
     {
+      "def": "matches",
+      "w": 1
+    },
+    {
       "def": null,
-      "w": 58
+      "w": 61
     }
   ]
 }

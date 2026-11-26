@@ -27,8 +27,12 @@
       "w": 2
     },
     {
+      "pool": "physics_throwables",
+      "w": 9
+    },
+    {
       "def": null,
-      "w": 72
+      "w": 66
     }
   ]
 }

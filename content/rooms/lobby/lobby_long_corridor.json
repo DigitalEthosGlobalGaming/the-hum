@@ -1,6 +1,6 @@
 {
   "id": "lobby_long_corridor",
-  "note": "A long corridor with one stacking chair in it, facing the wall. Someone sat there. Fuse/switch spot on the south wall.",
+  "note": "A long corridor with one stacking chair in it, facing the wall. Someone sat there. An evacuation plan on the north wall, a janitor's cart parked on the south side, fuse/switch spots on the south wall and a dark-writing spot at the west end.",
   "zones": {
     "lobby": 6
   },
@@ -37,11 +37,15 @@
     "ceilingLight": "ceiling_large_light_on"
   },
   "objects": [
-    { "def": "decor_stacking_chair", "pos": [13, 0, 6.45], "rot": 0 }
+    { "def": "decor_stacking_chair", "pos": [13, 0, 6.45], "rot": 0 },
+    { "def": "evac_map", "pos": [8, 1.25, 6.02], "rot": 180 },
+    { "def": "janitor_cart", "pos": [18.5, 0, 9.6], "rot": 90 }
   ],
   "spots": [
     { "id": "wall_chair_beside", "pos": [13.7, 0, 7.2], "pool": "room_beside_chair" },
     { "id": "corridor_wall_panel", "pos": [22, 0, 9.87], "rot": 0, "pool": "room_wall_panel" },
+    { "id": "corridor_wall_switch", "pos": [21.2, 1.05, 9.98], "rot": 0, "pool": "room_wall_switch" },
+    { "id": "corridor_wall_dark", "pos": [4, 1.0, 6.02], "rot": 180, "pool": "room_wall_dark" },
     { "id": "nook", "pos": [25, 0, 2.8], "pool": "room_corner_loot" },
     { "id": "branch_floor", "pos": [8, 0, 12], "pool": "room_floor_litter" },
     { "id": "long_ceiling", "pos": [18, 0, 8], "pool": "room_ceiling" }

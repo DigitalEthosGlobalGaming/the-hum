@@ -54,6 +54,7 @@
     { "id": "middle_row_seat", "pos": [17, 0.47, 8.4], "pool": "room_beside_chair" },
     { "id": "front_floor", "pos": [16, 0, 4.6], "pool": "room_floor_litter" },
     { "id": "by_the_door", "pos": [17.4, 0, 2.6], "pool": "room_corner_loot" },
+    { "id": "door_wall_switch", "pos": [17.1, 1.05, 2.02], "rot": 180, "pool": "room_wall_switch" },
     { "id": "hall_corner", "pos": [10.6, 0, 2.6], "rot": 20, "pool": "room_floor_corner" },
     { "id": "hall_ceiling", "pos": [10, 0, 12], "pool": "room_ceiling" }
   ]

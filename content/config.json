@@ -154,9 +154,9 @@
       0.62
     ],
     "darkReveal": 0.12,
-    "lootChance": 0.3,
-    "switchChance": 0.3,
-    "writingChance": 0.15,
+    "lootChance": 0.1,
+    "switchChance": 0.05,
+    "writingChance": 0.05,
     "messages": [
       "STAY IN THE LIGHT",
       "IT CAN'T SEE YOU HERE",

@@ -3,7 +3,7 @@
   "note": "Something standing against a wall (later: filing cabinet, water cooler). Mostly bare wall.",
   "entries": [
     {
-      "def": "decor_trash_bin",
+      "def": "trash_bin",
       "w": 7
     },
     {
@@ -15,12 +15,16 @@
       "w": 5
     },
     {
+      "def": "filing_cabinet",
+      "w": 6
+    },
+    {
       "def": "decor_coat_rack",
       "w": 2
     },
     {
       "def": null,
-      "w": 80
+      "w": 82
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "id": "lobby_campsite",
-  "note": "Someone lived in this corner: a camp on flattened cardboard, a low wall of boxes, a lamp on the floor plugged into a cord that goes nowhere, a blanket, writing above the bed. The rest of the room is empty.",
+  "note": "Someone lived in this corner: a camp on flattened cardboard, a low wall of boxes, a lamp on the floor plugged into a cord that goes nowhere, a blanket, writing above the bed, candle stubs at the head and foot, a box of matches by the pillow, and a spot where a music box may have been left. The rest of the room is empty.",
   "zones": {
     "lobby": 4
   },
@@ -42,6 +42,9 @@
   "objects": [
     { "def": "decor_camp", "pos": [5, 0, 3.4], "rot": 90 },
     { "def": "desk_lamp", "pos": [2.6, 0, 2.5], "rot": 225 },
+    { "def": "candle", "pos": [3.75, 0, 2.6], "rot": 0 },
+    { "def": "candle", "pos": [6.35, 0, 3.0], "rot": 30 },
+    { "def": "matches", "pos": [4.5, 0.016, 2.85], "rot": 80 },
     { "def": "decor_box_stack", "pos": [7.25, 0, 2.6], "rot": 90 },
     { "def": "cardboard_box", "pos": [7.35, 0, 3.6], "rot": 85 },
     { "def": "decor_box_stack", "pos": [7.2, 0, 4.6], "rot": 95 },
@@ -54,6 +57,7 @@
     { "id": "camp_b", "pos": [6.3, 0, 4.6], "pool": "room_camp" },
     { "id": "camp_c", "pos": [5.9, 0.03, 3.95], "pool": "room_camp" },
     { "id": "camp_d", "pos": [2.5, 0, 3.4], "pool": "room_camp" },
+    { "id": "camp_music_box", "pos": [3.5, 0, 3.4], "rot": 100, "pool": [{"def": "music_box", "w": 35}, {"def": null, "w": 65}] },
     { "id": "divider_wall_hang", "pos": [18.13, 0, 4], "rot": 270, "pool": "room_wall_hang" },
     { "id": "room_floor", "pos": [22, 0, 8], "pool": "room_floor_litter" },
     { "id": "camp_ceiling", "pos": [20, 0, 4], "pool": "room_ceiling" }

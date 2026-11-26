@@ -4,11 +4,15 @@
   "entries": [
     {
       "def": "wet_floor_sign",
-      "w": 40
+      "w": 36
+    },
+    {
+      "def": "janitor_cart",
+      "w": 6
     },
     {
       "def": null,
-      "w": 60
+      "w": 58
     }
   ]
 }

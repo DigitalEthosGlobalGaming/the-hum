@@ -1,6 +1,6 @@
 {
   "id": "lobby_storage",
-  "note": "Storage: shelving along the north wall (gaps at the possible doors), two back-to-back shelf islands, a tall box stack in the corner, a wet-floor sign by a stain. Supplies roll on the empty shelves.",
+  "note": "Storage: shelving along the north wall (gaps at the possible doors), two back-to-back shelf islands, a tall box stack in the corner, a wet-floor sign by a stain, an AV cart parked in the aisle. The fuse cabinet on the west wall is empty, so the room starts dark (one tube is dead for good); fuses, tubes and coins roll on the shelves.",
   "zones": {
     "lobby": 5
   },
@@ -18,7 +18,7 @@
     "#.....L........#",
     "#..............#",
     "#..............#",
-    "#..........L...#",
+    "#..........x...#",
     "#..............#",
     "################"
   ],
@@ -27,7 +27,8 @@
     ".": "floor",
     "P": "pillar",
     "L": "light",
-    "D": "door"
+    "D": "door",
+    "x": "deadlight"
   },
   "materials": {
     "wall": "wall_yellow_pattern",
@@ -54,7 +55,11 @@
     { "def": "decor_metal_shelf_stocked", "pos": [18.25, 0, 7.76], "rot": 0 },
     { "def": "decor_metal_shelf", "pos": [18.25, 0, 8.24], "rot": 180 },
     { "def": "decor_water_stain", "pos": [16, 0, 12.2], "rot": 30 },
-    { "def": "wet_floor_sign", "pos": [17.4, 0, 11.5], "rot": 30 }
+    { "def": "wet_floor_sign", "pos": [17.4, 0, 11.5], "rot": 30 },
+    { "def": "fuse_box", "pos": [2.13, 0, 5], "rot": 270 },
+    { "def": "light_switch", "pos": [2.02, 1.05, 4.2], "rot": 270 },
+    { "def": "filing_cabinet", "pos": [2.33, 0, 3.15], "rot": 270 },
+    { "def": "av_cart", "pos": [12.6, 0, 4.4], "rot": 15 }
   ],
   "spots": [
     { "id": "shelf_a", "pos": [10.75, 1.02, 2.25], "pool": "room_storage_shelf" },
@@ -64,7 +69,6 @@
     { "id": "shelf_e", "pos": [17, 1.02, 7.76], "pool": "room_storage_shelf" },
     { "id": "storage_floor_a", "pos": [14.6, 0, 3.3], "rot": 10, "pool": "room_storage_floor" },
     { "id": "storage_floor_b", "pos": [22.6, 0, 7], "rot": 80, "pool": "room_storage_floor" },
-    { "id": "west_wall_panel", "pos": [2.13, 0, 5], "rot": 270, "pool": "room_wall_panel" },
     { "id": "storage_corner", "pos": [25, 0, 12.8], "pool": "room_corner_loot" },
     { "id": "aisle_floor", "pos": [13, 0, 8], "pool": "room_floor_litter" },
     { "id": "storage_ceiling", "pos": [12, 0, 10], "pool": "room_ceiling" }

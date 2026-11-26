@@ -4,11 +4,11 @@
   "entries": [
     {
       "def": "decor_stacking_chair",
-      "w": 5
+      "w": 4
     },
     {
       "def": "office_chair",
-      "w": 3
+      "w": 4
     },
     {
       "def": "decor_stacked_chairs_ceiling",
@@ -16,6 +16,10 @@
     },
     {
       "def": "decor_dead_plant",
+      "w": 1
+    },
+    {
+      "def": "music_box",
       "w": 1
     },
     {

@@ -3,20 +3,24 @@
   "note": "End of a corridor or dead end (later: vending machine). Usually nothing.",
   "entries": [
     {
-      "def": "decor_box_stack",
-      "w": 6
+      "pool": "story_floor",
+      "w": 10
     },
     {
-      "def": "decor_dead_plant",
+      "def": "decor_box_stack",
       "w": 5
     },
     {
+      "def": "decor_dead_plant",
+      "w": 4
+    },
+    {
       "def": "decor_stacking_chair",
-      "w": 3
+      "w": 2
     },
     {
       "def": null,
-      "w": 86
+      "w": 77
     }
   ]
 }

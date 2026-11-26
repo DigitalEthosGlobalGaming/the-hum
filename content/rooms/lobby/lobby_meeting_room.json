@@ -1,6 +1,6 @@
 {
   "id": "lobby_meeting_room",
-  "note": "An abandoned meeting room between two side halls: table, chairs pushed back mid-meeting, one chair turned to the corner, whiteboard, a clock that does not move, papers left on the table. Light-switch spot by the entrance.",
+  "note": "An abandoned meeting room between two side halls: table, rolling chairs pushed back mid-meeting, one chair turned to the corner, a typewriter left on the table facing an empty chair, whiteboard, a clock that does not move, papers left on the table. The tube over the table flickers. Switch and panel spots by the entrance.",
   "zones": {
     "lobby": 10
   },
@@ -19,7 +19,7 @@
     "################",
     "#....#....#....#",
     "#....#....#....#",
-    "#.......L......#",
+    "#.......f......#",
     "#..............#",
     "#....#....#....#",
     "#.L..#....#..L.#",
@@ -30,7 +30,8 @@
     ".": "floor",
     "P": "pillar",
     "L": "light",
-    "D": "door"
+    "D": "door",
+    "f": "flickerlight"
   },
   "materials": {
     "wall": "wall_yellow_pattern_panel",
@@ -41,6 +42,7 @@
   },
   "objects": [
     { "def": "decor_conference_table", "pos": [16, 0, 8], "rot": 90 },
+    { "def": "typewriter", "pos": [16.25, 0.76, 7.25], "rot": 270 },
     { "def": "office_chair", "pos": [14.85, 0, 7.2], "rot": 270 },
     { "def": "office_chair", "pos": [14.9, 0, 8.85], "rot": 255 },
     { "def": "office_chair", "pos": [17.15, 0, 7.2], "rot": 90 },
@@ -53,11 +55,12 @@
     { "def": "decor_dead_plant", "pos": [19.4, 0, 13.4], "rot": 0 }
   ],
   "spots": [
-    { "id": "table_a", "pos": [16, 0.76, 7.3], "pool": "room_meeting_table" },
+    { "id": "table_a", "pos": [15.75, 0.76, 7.05], "pool": "room_meeting_table" },
     { "id": "table_b", "pos": [15.8, 0.76, 8.3], "pool": "room_meeting_table" },
     { "id": "table_c", "pos": [16.2, 0.76, 8.9], "pool": "room_meeting_table" },
     { "id": "pushed_chair_beside", "pos": [18.4, 0, 8.6], "pool": "room_beside_chair" },
     { "id": "entrance_wall_panel", "pos": [12.13, 0, 5.2], "rot": 270, "pool": "room_wall_panel" },
+    { "id": "entrance_wall_switch", "pos": [12.02, 1.05, 5.75], "rot": 270, "pool": "room_wall_switch" },
     { "id": "side_wall_hang", "pos": [9.87, 0, 4], "rot": 90, "pool": "room_wall_hang" },
     { "id": "west_hall_floor", "pos": [5, 0, 8], "pool": "room_floor_litter" },
     { "id": "east_hall_floor", "pos": [27, 0, 8], "pool": "room_floor_litter" },

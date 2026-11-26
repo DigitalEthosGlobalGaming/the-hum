@@ -23,8 +23,28 @@
       "w": 5
     },
     {
+      "def": "walkie_talkie",
+      "w": 3
+    },
+    {
+      "def": "flash_camera",
+      "w": 2
+    },
+    {
+      "def": "id_badge",
+      "w": 2
+    },
+    {
+      "def": "blank_tape",
+      "w": 2
+    },
+    {
+      "def": "soda_can",
+      "w": 2
+    },
+    {
       "def": null,
-      "w": 70
+      "w": 78
     }
   ]
 }

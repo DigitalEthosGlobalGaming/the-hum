@@ -23,8 +23,24 @@
       "w": 2
     },
     {
+      "def": "spare_tube",
+      "w": 8
+    },
+    {
+      "def": "glow_stick",
+      "w": 5
+    },
+    {
+      "def": "coin",
+      "w": 3
+    },
+    {
+      "def": "matches",
+      "w": 2
+    },
+    {
       "def": null,
-      "w": 55
+      "w": 62
     }
   ]
 }

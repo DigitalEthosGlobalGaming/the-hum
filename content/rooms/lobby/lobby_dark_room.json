@@ -1,0 +1,64 @@
+{
+  "id": "lobby_dark_room",
+  "note": "A records room with its fuse cabinet empty: every tube dead but one that stutters. Filing cabinets on the walls, a desk with a candle stub, boxes of files in the middle. Whoever worked here wrote on the walls, and the writing only shows with the lights off. Fuse in, and it is just a room.",
+  "zones": {
+    "lobby": 10
+  },
+  "tags": ["lobby", "room", "dark", "records"],
+  "slots": [2, 1],
+  "edges": {
+    "n": ["wall|door", "wall|door"],
+    "s": ["wall|door", "wall|door"],
+    "e": ["*"],
+    "w": ["*"]
+  },
+  "layout": [
+    "################",
+    "#..............#",
+    "#..x.......x...#",
+    "#..............#",
+    "#..............#",
+    "#..x.......f...#",
+    "#..............#",
+    "################"
+  ],
+  "legend": {
+    "#": "wall",
+    ".": "floor",
+    "P": "pillar",
+    "L": "light",
+    "D": "door",
+    "x": "deadlight",
+    "f": "flickerlight"
+  },
+  "materials": {
+    "wall": "wall_yellow_pattern_panel",
+    "pillar": "wall_yellow",
+    "floor": "carpet_green",
+    "ceiling": "ceiling_large",
+    "ceilingLight": "ceiling_large_light_on"
+  },
+  "objects": [
+    { "def": "fuse_box", "pos": [13.2, 0, 2.13], "rot": 180 },
+    { "def": "light_switch", "pos": [10.25, 1.05, 2.02], "rot": 180 },
+    { "def": "filing_cabinet", "pos": [11.0, 0, 2.33], "rot": 180 },
+    { "def": "filing_cabinet", "pos": [11.5, 0, 2.33], "rot": 180 },
+    { "def": "office_desk", "pos": [20, 0, 2.38], "rot": 180 },
+    { "def": "office_chair", "pos": [20.35, 0, 3.5], "rot": 205 },
+    { "def": "candle", "pos": [19.55, 0.76, 2.3], "rot": 0 },
+    { "def": "filing_cabinet", "pos": [12.6, 0, 13.67], "rot": 0 },
+    { "def": "trash_bin", "pos": [21.6, 0, 13.6], "rot": 0 },
+    { "def": "decor_box_stack", "pos": [14.6, 0, 7.4], "rot": 10 },
+    { "def": "decor_paper_scatter", "pos": [16.6, 0, 8.6], "rot": 0 }
+  ],
+  "spots": [
+    { "id": "dark_writing_desk", "pos": [20, 1.35, 2.02], "rot": 180, "pool": [{"def": "dark_writing", "w": 1}] },
+    { "id": "dark_writing_south", "pos": [20, 1.0, 13.98], "rot": 0, "pool": [{"def": "dark_writing", "w": 1}] },
+    { "id": "south_wall_dark", "pos": [11.0, 1.0, 13.98], "rot": 0, "pool": "power_wall" },
+    { "id": "dark_desk_top", "pos": [20.35, 0.76, 2.5], "pool": [{"def": "matches", "w": 35}, {"def": "note_random", "w": 15}, {"pool": "spine_notes", "w": 10}, {"def": null, "w": 40}] },
+    { "id": "dark_beside_chair", "pos": [21.0, 0, 3.6], "pool": "room_beside_chair" },
+    { "id": "dark_floor", "pos": [16, 0, 11.5], "pool": "room_floor_litter" },
+    { "id": "dark_corner", "pos": [28.6, 0, 2.8], "pool": "room_corner_loot" },
+    { "id": "dark_ceiling", "pos": [16, 0, 11], "pool": "room_ceiling" }
+  ]
+}

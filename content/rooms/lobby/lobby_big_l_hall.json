@@ -62,6 +62,7 @@
     { "id": "pushed_chair_beside", "pos": [18.3, 0, 9.4], "pool": "room_beside_chair" },
     { "id": "corner_wall_hang", "pos": [13.87, 0, 32], "rot": 90, "pool": "room_wall_hang" },
     { "id": "hall_leak", "pos": [23, 0, 7], "pool": "room_leak" },
+    { "id": "beside_hall_leak", "pos": [24.6, 0, 7.6], "rot": 15, "pool": "room_beside_stain" },
     { "id": "arm_floor", "pos": [5, 0, 40], "pool": "room_floor_litter" },
     { "id": "far_end", "pos": [3, 0, 45], "pool": "room_corner_loot" },
     { "id": "arm_camp", "pos": [7, 0, 42.5], "rot": 0, "pool": "room_camp_site" },

@@ -1,6 +1,6 @@
 {
   "id": "lobby_office",
-  "note": "Left: a manager's office left mid-task (desk to the north wall, chair pushed back, bookcase, coat, dead plant, whiteboard). Right: a reception desk beside the connecting door, light switch spot by the door.",
+  "note": "Left: a manager's office left mid-task (desk to the north wall with a typewriter on it, chair pushed back, bin and filing cabinet beside the desk, bookcase, coat, dead plant, whiteboard, a light switch by the door). Right: a reception desk beside the connecting door, switch and panel spots on the divider.",
   "zones": {
     "lobby": 6
   },
@@ -39,22 +39,27 @@
   "objects": [
     { "def": "office_desk", "pos": [6.2, 0, 2.38], "rot": 180 },
     { "def": "office_chair", "pos": [6.2, 0, 3.45], "rot": 25 },
+    { "def": "typewriter", "pos": [5.85, 0.76, 2.42], "rot": 180 },
+    { "def": "trash_bin", "pos": [7.4, 0, 2.3], "rot": 0 },
+    { "def": "filing_cabinet", "pos": [8.45, 0, 2.33], "rot": 180 },
     { "def": "decor_bookcase", "pos": [2.19, 0, 4.6], "rot": 270 },
     { "def": "decor_coat_rack", "pos": [2.6, 0, 2.6], "rot": 300 },
     { "def": "decor_dead_plant", "pos": [12.55, 0, 2.55], "rot": 20 },
     { "def": "decor_whiteboard", "pos": [13.87, 0, 4], "rot": 90 },
+    { "def": "light_switch", "pos": [13.98, 1.05, 5.55], "rot": 90 },
     { "def": "office_desk", "pos": [16.38, 0, 4], "rot": 270 },
     { "def": "office_chair", "pos": [17.2, 0, 4], "rot": 75 }
   ],
   "spots": [
     { "id": "office_desk_fixture", "pos": [6.65, 0.76, 2.23], "rot": 180, "pool": "room_desk_fixture" },
-    { "id": "office_desk_top", "pos": [6.08, 0.76, 2.46], "pool": "room_desk_top" },
+    { "id": "office_desk_top", "pos": [6.45, 0.76, 2.58], "pool": "room_desk_top" },
     { "id": "office_desk_beside_chair", "pos": [6.82, 0, 3.35], "pool": "room_beside_chair" },
     { "id": "office_floor", "pos": [9.5, 0, 7.5], "pool": "room_floor_litter" },
     { "id": "office_ceiling", "pos": [10.5, 0, 6.5], "pool": "room_ceiling" },
     { "id": "reception_fixture", "pos": [16.23, 0.76, 3.55], "rot": 270, "pool": "room_desk_fixture" },
     { "id": "reception_beside_chair", "pos": [17.1, 0, 4.62], "pool": "room_beside_chair" },
     { "id": "reception_wall_base", "pos": [16.33, 0, 13], "rot": 270, "pool": "room_wall_base" },
+    { "id": "door_wall_switch", "pos": [16.02, 1.05, 5.5], "rot": 270, "pool": "room_wall_switch" },
     { "id": "door_wall_panel", "pos": [16.13, 0, 10.7], "rot": 270, "pool": "room_wall_panel" },
     { "id": "hall_floor", "pos": [24, 0, 8.5], "pool": "room_floor_litter" },
     { "id": "hall_ceiling", "pos": [20.5, 0, 10.5], "pool": "room_ceiling" }

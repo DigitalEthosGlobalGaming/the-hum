@@ -23,6 +23,14 @@
       "w": 3
     },
     {
+      "def": "coin",
+      "w": 2
+    },
+    {
+      "pool": "power_room_loot",
+      "w": 6
+    },
+    {
       "def": null,
       "w": 73
     }

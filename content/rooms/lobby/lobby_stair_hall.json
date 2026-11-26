@@ -1,6 +1,6 @@
 {
   "id": "lobby_stair_hall",
-  "note": "A big stepped hall, kept empty: a leak with a sign put out next to it where the halves meet, a fallen ceiling tile, little else.",
+  "note": "A big stepped hall, kept empty: a leak where the halves meet with a sign put out next to it and the janitor's cart left beside it, a fallen ceiling tile, little else.",
   "zones": {
     "lobby": 5
   },
@@ -41,6 +41,7 @@
   "objects": [
     { "def": "decor_leak", "pos": [18.8, 0, 15.4], "rot": 0 },
     { "def": "wet_floor_sign", "pos": [20.4, 0, 14.4], "rot": 15 },
+    { "def": "janitor_cart", "pos": [17.0, 0, 14.3], "rot": 100 },
     { "def": "decor_ceiling_tile_fallen", "pos": [26, 0, 6], "rot": 40 }
   ],
   "spots": [

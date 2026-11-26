@@ -3,27 +3,19 @@
   "note": "Solid clutter for filler rooms (fillerPools) and test rooms. Filler spots land anywhere, so nothing here needs a wall. Authored rooms use room_floor_corner / room_wall_base.",
   "entries": [
     {
-      "def": "cardboard_box",
-      "w": 28
+      "pool": "physics_floor_props",
+      "w": 34
     },
     {
-      "def": "office_chair",
-      "w": 18
+      "def": "cardboard_box",
+      "w": 12
     },
     {
       "def": "decor_box_stack",
       "w": 10
     },
     {
-      "def": "decor_trash_bin",
-      "w": 6
-    },
-    {
       "def": "decor_dead_plant",
-      "w": 4
-    },
-    {
-      "def": "wet_floor_sign",
       "w": 4
     },
     {

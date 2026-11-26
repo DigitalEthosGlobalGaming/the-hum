@@ -1,12 +1,16 @@
 // Room dressing checker for the art pass (docs/LEVEL_DIRECTION.md). Node only, not bundled.
 // Checks every collider (fixed objects and anything solid a spot can roll) against border
-// openings + their 2-cell aprons, walk connectivity at 0.1 m with the player's 0.3 m radius, and spot sanity.
+// openings + their 2-cell aprons, walk connectivity at 0.1 m with the player's 0.3 m radius, spot sanity,
+// and wall mounts (flush props WALL_FLUSH off a wall, wall-hung props WALL_INSET off, never on a wall
+// that can be stamped open). Physics bodies use the larger of their mesh bounds and body radius.
 //   node src/decor/roomcheck.mjs [room_id ...]      (run from the repo root; exit 1 on errors)
 import fs from 'node:fs';
 import path from 'node:path';
 const ROOT = process.cwd();
 const { prefabs } = await import(path.join(ROOT, 'src/objects/prefabs.js'));
-const { decorPrefabs } = await import(path.join(ROOT, 'src/decor/prefabs.js'));
+const { decorPrefabs, WALL_INSET, WALL_FLUSH } = await import(path.join(ROOT, 'src/decor/prefabs.js'));
+// feature prefabs (carts, bins, cabinets, vending machine, switches…) register themselves on import
+for (const m of ['src/physics/register.js', 'src/power/register.js', 'src/story/prefabs.js']) await import(path.join(ROOT, m));
 const { PROFILES } = await import(path.join(ROOT, 'src/world/layout/connectors.js'));
 const { parseEdgeSpec } = await import(path.join(ROOT, 'src/world/layout/templates.js'));
 Object.assign(prefabs, decorPrefabs);
@@ -47,9 +51,19 @@ function boundsOf(defId) {
       }
     }
   }
+  const ph = d.components?.physics;
+  if (ph && ph.mode !== 'static' && ph.shape === 'circle' && ph.radius) { // a rolling body's footprint
+    b = { minX: Math.min(b.minX, -ph.radius), maxX: Math.max(b.maxX, ph.radius), minZ: Math.min(b.minZ, -ph.radius), maxZ: Math.max(b.maxZ, ph.radius) };
+  }
+  if (!Number.isFinite(b.minX)) throw new Error(`no footprint for ${defId} (unknown prefab ${m.name}?)`);
   localBounds.set(defId, b);
   return b;
 }
+// How a prop meets the wall: 'flush' = back on the origin, 'inset' = back WALL_INSET behind it.
+const WALL_MOUNT = {
+  light_switch: 'flush', evac_map: 'flush', dark_writing: 'flush', dark_arrow: 'flush', wall_scrawl: 'flush',
+  fuse_box: 'inset', decor_whiteboard: 'inset', decor_cork_board: 'inset', decor_wall_clock: 'inset', decor_door_to_nowhere: 'inset',
+};
 const solidDef = (id) => { const c = objects[id]?.components?.collider; return !!c && c.solid !== false; };
 function worldAABB(defId, pos, rot = 0) {
   const b = boundsOf(defId), t = rot * DEG, c = Math.cos(t), s = Math.sin(t);
@@ -190,12 +204,34 @@ for (const id of ids) {
     const [c, r] = a.split(',').map(Number);
     if (cellStats(c, r).inMain < 40) errors.push(`apron cell ${a} not reachable`);
   }
+  // wall mounts: distance from the origin back to the wall face, and that wall must never open
+  const openSet = new Set(openings.map(([c, r]) => `${c},${r}`));
+  const checkMount = (label, defs, pos, rot) => {
+    const kinds = [...new Set(defs.map((d) => WALL_MOUNT[d]).filter(Boolean))];
+    if (!kinds.length) return;
+    if (kinds.length > 1) { errors.push(`${label} mixes flush and inset wall props (${defs.join(', ')})`); return; }
+    if (rot == null) { errors.push(`${label} holds wall props but has no rot`); return; }
+    const t = rot * DEG, bx = Math.sin(t), bz = Math.cos(t);
+    let d = null, cell = null;
+    for (let k = 0; k <= 60; k++) {
+      const x = pos[0] + bx * k * 0.005, z = pos[2] + bz * k * 0.005;
+      const c = Math.floor(x / 2), r = Math.floor(z / 2);
+      if (r >= 0 && r < H && c >= 0 && c < W && solidKind(legend[L[r][c]])) { d = k * 0.005; cell = [c, r]; break; }
+    }
+    const want = kinds[0] === 'flush' ? WALL_FLUSH : WALL_INSET;
+    if (d == null) errors.push(`${label}: no wall behind it (rot ${rot})`);
+    else if (Math.abs(d - want) > 0.02) errors.push(`${label}: ${d.toFixed(3)} m off the wall, ${kinds[0]} props want ${want}`);
+    else if (openSet.has(cell.join(','))) errors.push(`${label} hangs on wall cell ${cell} that can be stamped open`);
+  };
+  for (const o of room.objects ?? []) checkMount(`${o.def}@${o.pos}`, [o.def], o.pos, o.rot);
+  for (const s of room.spots ?? []) checkMount(`spot ${s.id}`, [...new Set(poolDefs(s.pool))], s.pos, s.rot);
   // spots
   for (const s of room.spots ?? []) {
     const fixed = boxes.filter((b) => !b.spot);
     const inside = fixed.filter((b) => s.pos[0] > b.minX && s.pos[0] < b.maxX && s.pos[2] > b.minZ && s.pos[2] < b.maxZ);
     if (s.pos[1] < 0.3 && inside.length && !/^ceil/.test(s.id)) warns.push(`floor spot ${s.id} is inside ${inside[0].label}`);
-    if (s.pos[1] >= 0.3 && !inside.length) warns.push(`raised spot ${s.id} (y ${s.pos[1]}) floats: no prop under it`);
+    const onWall = poolDefs(s.pool).some((d) => WALL_MOUNT[d]);
+    if (s.pos[1] >= 0.3 && !inside.length && !onWall) warns.push(`raised spot ${s.id} (y ${s.pos[1]}) floats: no prop under it`);
   }
   // spot ids unique / overlapping spots
   const sp = room.spots ?? [];

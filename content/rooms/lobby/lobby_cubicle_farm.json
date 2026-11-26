@@ -1,6 +1,6 @@
 {
   "id": "lobby_cubicle_farm",
-  "note": "Six cubicles off a central aisle. Most were left mid-task; one chair rolled out into the aisle, one cubicle stripped to a single chair facing the wall, a blanket under one desk where someone slept.",
+  "note": "Six cubicles off a central aisle. Most were left mid-task; one chair rolled out into the aisle, one cubicle stripped to a single chair facing the wall, a blanket under one desk where someone slept. A filing cabinet and a bin in the north cubicles; the east tube flickers.",
   "zones": {
     "lobby": 12
   },
@@ -19,7 +19,7 @@
     "################",
     "#..............#",
     "#..............#",
-    "#....L.....L...#",
+    "#....L.....f...#",
     "#..............#",
     "#..............#",
     "#..............#",
@@ -30,7 +30,8 @@
     ".": "floor",
     "P": "pillar",
     "L": "light",
-    "D": "door"
+    "D": "door",
+    "f": "flickerlight"
   },
   "materials": {
     "wall": "wall_yellow_pattern",
@@ -53,9 +54,12 @@
     { "def": "office_desk", "pos": [16, 0, 2.38], "rot": 180 },
     { "def": "office_chair", "pos": [16.7, 0, 5.4], "rot": 200 },
     { "def": "office_chair", "pos": [20, 0, 2.45], "rot": 0 },
+    { "def": "trash_bin", "pos": [13.3, 0, 2.35], "rot": 0 },
+    { "def": "filing_cabinet", "pos": [17.45, 0, 2.33], "rot": 180 },
     { "def": "office_desk", "pos": [12, 0, 13.62], "rot": 0 },
     { "def": "office_chair", "pos": [12, 0, 12.8], "rot": 172 },
     { "def": "office_desk", "pos": [16, 0, 13.62], "rot": 0 },
+    { "def": "office_chair", "pos": [16.25, 0, 12.75], "rot": 160 },
     { "def": "office_desk", "pos": [20, 0, 13.62], "rot": 0 },
     { "def": "office_chair", "pos": [20, 0, 12.45], "rot": 210 },
     { "def": "decor_blanket_heap", "pos": [20.2, 0, 13.1], "rot": 15 }

@@ -23,8 +23,24 @@
       "w": 3
     },
     {
+      "def": "id_badge",
+      "w": 3
+    },
+    {
+      "def": "walkie_talkie",
+      "w": 2
+    },
+    {
+      "def": "coin",
+      "w": 2
+    },
+    {
+      "def": "typewriter",
+      "w": 1
+    },
+    {
       "def": null,
-      "w": 57
+      "w": 64
     }
   ]
 }

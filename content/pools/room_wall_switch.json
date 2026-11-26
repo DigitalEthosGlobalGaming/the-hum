@@ -1,0 +1,14 @@
+{
+  "id": "room_wall_switch",
+  "note": "Flush wall spot (0.02 m off, y ~1.05) beside a doorway. Switches toggle the room's circuits.",
+  "entries": [
+    {
+      "def": "light_switch",
+      "w": 40
+    },
+    {
+      "def": null,
+      "w": 60
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "id": "lobby_split_hall",
-  "note": "Waiting area against the west partition: three chairs facing nothing, a clock, a bin, a dead plant. Something may be left on a seat. A leak by the gap in the partition.",
+  "note": "Waiting area against the west partition: three chairs facing nothing, a clock, a bin, a dead plant, and a vending machine humming at the end of the row. Something may be left on a seat. A leak by the gap in the partition; an evacuation-plan spot on the east partition.",
   "zones": {
     "lobby": 6
   },
@@ -41,12 +41,14 @@
     { "def": "decor_stacking_chair", "pos": [8, 0, 7.72], "rot": 6 },
     { "def": "decor_stacking_chair", "pos": [8.8, 0, 7.72], "rot": 0 },
     { "def": "decor_dead_plant", "pos": [6.45, 0, 7.75], "rot": 0 },
-    { "def": "decor_trash_bin", "pos": [9.7, 0, 7.78], "rot": 10 },
-    { "def": "decor_wall_clock", "pos": [8, 0, 7.87], "rot": 0 }
+    { "def": "trash_bin", "pos": [9.7, 0, 7.74], "rot": 10 },
+    { "def": "decor_wall_clock", "pos": [8, 0, 7.87], "rot": 0 },
+    { "def": "vending_machine", "pos": [11.6, 0, 7.56], "rot": 0 }
   ],
   "spots": [
     { "id": "waiting_seat", "pos": [8.8, 0.47, 7.72], "pool": "room_beside_chair" },
     { "id": "partition_wall_panel", "pos": [22, 0, 7.87], "rot": 0, "pool": "room_wall_panel" },
+    { "id": "partition_wall_map", "pos": [20, 1.25, 7.98], "rot": 0, "pool": "room_wall_map" },
     { "id": "gap_leak", "pos": [16, 0, 12], "pool": "room_leak" },
     { "id": "beside_gap_leak", "pos": [17.4, 0, 11.3], "rot": 25, "pool": "room_beside_stain" },
     { "id": "south_floor", "pos": [24, 0, 11.4], "pool": "room_floor_litter" },

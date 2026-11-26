@@ -71,7 +71,19 @@ kind:
 - **Wall-hung props** (whiteboard, cork board, clock, door to nowhere) and all `wall_*` spots:
   origin **0.13 m off the wall** (`WALL_INSET` in `src/decor/prefabs.js`), facing into the room.
   Wall-hung decor is built with its back 0.13 m behind its origin, and the fuse box (a 0.25 m-deep
-  centred box) also fits there. So one spot serves both, and future wall props should follow suit.
+  centred box) also fits there. So one spot serves both.
+- **Flush wall props** from the feature branches (`light_switch`, `evac_map`, `dark_writing`,
+  `dark_arrow`, `wall_scrawl`) are built with their back *on* the origin, and the engine has no
+  per-def spot offset. Their spots go **0.02 m off the wall** (`WALL_FLUSH`), never 0.13, or they
+  float a hand's width off the wallpaper. So they get their own spot kinds (`*_wall_switch` y 1.05,
+  `*_wall_map` y 1.25, `*_wall_dark` y 1.0) next to the 0.13 m `*_wall_panel`/`*_wall_hang` spots.
+  A spot pool must not mix flush and inset props; `roomcheck` errors if it does, if a wall prop's
+  origin is the wrong distance off the wall, or if the wall behind it can be stamped open.
+- **Fuse cabinets make rooms dark.** A room with an unpowered `fuse_box` (fixed *or* rolled) starts
+  with every circuit off until a fuse goes in (beyond `safeDepth`). Place fixed ones deliberately.
+- **Dark writing** shows only while its spot is darker than `config.power.darkReveal` and the torch
+  is off it. Give fixed writing a spot with a one-entry inline pool (`[{"def":"dark_writing","w":1}]`)
+  rather than a fixed object: the spot key seeds the message, so it stays the same per run.
 - **Ceiling decor** (`decor_ceiling_stain`, the hole in `decor_ceiling_tile_fallen`, the top half
   of `decor_leak`): placed at y 0, and the prefab carries the 3 m height. Keep them off light cells.
 - **Seats:** a stacking-chair seat is at 0.47 m. A spot there puts an item on the chair.
@@ -96,11 +108,13 @@ kind:
 ### Checks
 ```
 npm run validate
-node src/decor/roomcheck.mjs            # colliders vs aprons, 0.1 m walk grid, floating spots
+node src/decor/roomcheck.mjs            # colliders vs aprons, 0.1 m walk grid, floating spots, wall insets
 node tools/wfc-sweep.mjs --seeds 100    # reachability + golden digests
 npm run room-preview -- <room_id>
 ```
-`roomcheck` treats every solid def a spot *can* roll as present, so it is a worst case.
+`roomcheck` treats every solid def a spot *can* roll as present, so it is a worst case. It loads the
+physics, power and story prefabs for footprints, and a rolling body (`physics.shape: circle`) counts
+with the larger of its mesh bounds and its body radius (office chair 0.3 m, trash bin 0.2 m).
 
 ## 4. Spot vocabulary
 
@@ -118,6 +132,9 @@ point them at the matching `room_*` pool.
 | `*_wall_base` | standing against a wall (depth 0.6) | `room_wall_base` | yes |
 | `*_wall_panel` | on a wall, 0.13 m off, usually by a doorway | `room_wall_panel` | yes (fuse box) |
 | `*_wall_hang` | on a wall, 0.13 m off | `room_wall_hang` | no |
+| `*_wall_switch` | on a wall **0.02 m off**, y 1.05, beside a doorway | `room_wall_switch` | no |
+| `*_wall_map` | on a corridor wall **0.02 m off**, y 1.25 | `room_wall_map` | no |
+| `*_wall_dark` | on a wall that never opens, **0.02 m off**, y 1.0 | `room_wall_dark` (or `power_wall`) | no |
 | `*_corner`, `pillar_base_*`, `nook` | small pickups in corners and at pillar bases | `room_corner_loot` | no |
 | `*_corner` (solid) | a free corner clear of every apron | `room_floor_corner` | yes |
 | `*_floor` | open floor | `room_floor_litter` | no |
@@ -126,7 +143,7 @@ point them at the matching `room_*` pool.
 | `beside_*leak` | next to a leak/stain spot | `room_beside_stain` | yes |
 | `camp_*` | around a camp | `room_camp` | no |
 | `*_camp` | a corner where a camp might be | `room_camp_site` | no |
-| `corridor_end` | end of a corridor, against the wall | `room_corridor_end` | yes |
+| `corridor_end` | against a wall, centre **0.45 m** off it (fits the 0.9 × 0.8 vending machine) | `room_corridor_end` | yes |
 | `dead_centre` | the exact middle of an empty room, rot 0 | `room_center_wrong` | yes |
 | `chair_at_pillar` | facing a wall or pillar, rot points at it | `room_chair_facing_wall` | yes |
 | `*_ceiling` | anywhere off the light cells | `room_ceiling` | no |
@@ -135,32 +152,43 @@ point them at the matching `room_*` pool.
 
 All in `content/pools/`. Check odds with `node tools/pool-sim.mjs <id>`.
 
-| Pool | Contents (rough %) |
+| Pool | Contents (rough %, depth 3) |
 |---|---|
-| `room_desk_fixture` | desk_lamp 26, old_phone 16, nothing 58 |
-| `room_desk_top` | papers 16, note 9, spine 7, tape 4, battery 3, water 3, nothing 58 |
-| `room_meeting_table` | papers 24, note 7, spine 5, phone 4, tape 3, nothing 57 |
-| `room_beside_chair` | note 8, spine 6, water 6, tape 5, papers 5, nothing 70 |
-| `room_floor_litter` | papers 8, water 7, battery 5, chalk 3, note 3, fuse 2, nothing 72 |
-| `room_corner_loot` | water 10, battery 7, fuse 4, chalk 3, note 3, nothing 73 |
-| `room_floor_corner` | box 10, box stack 7, bin 7, dead plant 6, wet-floor sign 2, nothing 68 |
-| `room_storage_shelf` | battery 10, fuse 9, water 9, chalk 5, tape 2, nothing 55 |
-| `room_storage_floor` | box 24, box stack 14, nothing 62 |
-| `room_wall_base` | bin 7, box 6, dead plant 5, coat rack 2, nothing 80 |
-| `room_wall_panel` | fuse_box 10, wall clock 5, nothing 85 |
-| `room_wall_hang` | wall clock 6, cork board 5, nothing 89 |
-| `room_camp` | water 22, note 14, spine 14, tape 9, battery 9, chalk 4, nothing 28 |
+| `room_desk_fixture` | lamp 24, phone 14, `story_desk` 14 (typewriter 2.5, badge 2, coin 2, walkie/tape/camera/string < 1), nothing 53 |
+| `room_desk_top` | papers 12, note 7, tape 3.5, **badge 3.5**, battery 3, water 3, spine 2, **walkie 2**, blank tape 2, coin 2, camera/string/matches 1 each, nothing 58 |
+| `room_meeting_table` | papers 21, note 6, phone 3.5, tape 2.6, badge 2.6, walkie 1.7, coin 1.7, spine 1.4, typewriter 0.9, nothing 59 |
+| `room_beside_chair` | note 7, water 5, tape 4, papers 4, walkie 2.5, spine/camera/badge/blank tape/can 1.7 each, nothing 69 |
+| `room_floor_litter` | papers 8, water 7, battery 5, **can 3.5**, chalk 3, note 3, fuse 2, **bottle 2**, nothing 67 |
+| `room_corner_loot` | water 9, battery 6.5, fuse 4, chalk 3, note 3, coin 2, `power_room_loot` 6 (tube 1, glow 0.9, matches 0.8, candle 0.6, music box 0.2 from depth 3), nothing 69 |
+| `room_floor_corner` | box 9, box stack 6, **trash bin 6**, plant 5.5, **filing cabinet 5.5**, sign 2, office chair 2, nothing 64 |
+| `room_storage_shelf` | battery 9, fuse 8, water 8, **spare tube 7**, chalk 4, **glow sticks 4**, coin 2.6, tape 1.7, matches 1.7, nothing 54 |
+| `room_storage_floor` | box 19, box stack 11, `physics_carts` 10 (janitor 4.8, AV 4.8), office chair 3, nothing 57 |
+| `room_wall_base` | trash bin 6.5, box 5.6, **filing cabinet 5.6**, plant 4.6, coat rack 2, nothing 76 |
+| `room_wall_panel` (0.13 m) | fuse_box 10, wall clock 5, nothing 85 |
+| `room_wall_hang` (0.13 m) | wall clock 6, cork board 5, nothing 89 |
+| `room_wall_switch` (flush) | light_switch 40, nothing 60 |
+| `room_wall_map` (flush) | evac_map 14, nothing 86 |
+| `room_wall_dark` (flush) | dark_writing 6, dark_arrow 5, nothing 89 |
+| `room_camp` | water 15, note 10, tape 6, battery 6, **glow sticks 5, matches 4, candle 4**, can 3, spine 3, chalk 2.5, walkie/camera/blank tape/bottle 1.6, red string 0.8, nothing 34 |
 | `room_camp_site` | camp 30, blanket 15, sleeping bag 10, nothing 45 |
-| `room_corridor_end` | box stack 6, dead plant 5, stacking chair 3, nothing 86 |
-| `room_center_wrong` | stacking chair 5, office chair 3, chairs-to-ceiling 1, dead plant 1, nothing 90 |
-| `room_chair_facing_wall` | stacking chair 7, office chair 4, nothing 89 |
+| `room_corridor_end` | `story_floor` 10 (filing cabinet 5, **vending machine 1.2**), box stack 5, plant 4, stacking chair 2, nothing 82 |
+| `room_center_wrong` | stacking chair 4, office chair 4, chairs-to-ceiling 1, plant 1, **music box 1**, nothing 89 |
+| `room_chair_facing_wall` | **office chair 7**, stacking chair 4, nothing 89 |
 | `room_ceiling` | ceiling stain 22, fallen tile 8, nothing 70 |
 | `room_floor_stain` | water stain 30, nothing 70 |
 | `room_leak` | leak 24, water stain 10, nothing 66 |
-| `room_beside_stain` | wet_floor_sign 40, nothing 60 |
+| `room_beside_stain` | wet_floor_sign 36, **janitor cart 6**, nothing 58 |
+
+Feature pools nested here: `story_desk` (desk fixtures), `story_floor` (corridor ends),
+`power_room_loot` (corner loot), `physics_throwables` (floor litter), `physics_carts` (storage floor),
+`physics_floor_props` (`lobby_clutter`, the filler solids), `power_wall` (the dark room's spare wall
+spot; its `fuse_box` entry was dropped because a fuse cabinet needs the 0.13 m inset, not flush).
+The container pools (`story_drawer_*`, `story_vend*`) and `physics_trash_spill` are rolled by their
+props. `decor_trash_bin` is no longer placed: every bin is now the physics `trash_bin` (tips, spills).
 
 Kept ids: `lobby_floor_loot` (filler + test rooms; now nests `room_floor_litter` 70 /
-`room_corner_loot` 30), `lobby_clutter` (filler solids, no wall-dependent items), `desk_top`
+`room_corner_loot` 30), `lobby_clutter` (filler solids, no wall-dependent items; now nests
+`physics_floor_props` 34 + loose boxes, stacks, plants), `desk_top`
 (legacy, nests the two desk pools), `spine_notes` (unchanged: no story pages before depth 1,
 more likely deeper).
 
@@ -196,51 +224,61 @@ Kenney or tiny canvas textures, with nearest filtering.
 
 ## 7. Rooms
 
-| Room | Story |
-|---|---|
-| `lobby_office` | manager's office (desk to the wall, chair pushed back, bookcase, coat, plant, whiteboard) + reception desk by the door |
-| `lobby_storage` | north wall of shelving, two shelf islands, tall box stack, sign by a stain (north/west now `wall\|door`) |
-| `lobby_ring` | desk against the core in the looping corridor, cord on the floor |
-| `lobby_twin_rooms` | two identical offices (lights moved so the halves match) |
-| `lobby_split_hall` | waiting area: three chairs, clock, bin, plant; leak by the gap |
-| `lobby_partial_walls` | one desk in the nook, notice-board spot, possible camp in the pocket |
-| `lobby_long_corridor` | one chair facing the wall |
-| `lobby_dead_end_alcove` | camp at the very end of the dead end, lamp on the floor, writing above |
-| `lobby_big_l_hall` | meeting table in the middle of the hall; a chair facing a pillar down the arm |
-| `lobby_stair_hall` | leak + sign where the halves meet, fallen ceiling tile, otherwise empty |
-| `lobby_pillar_forest`, `lobby_colonnade`, `lobby_crossroads`, `lobby_empty_lit` | bare on purpose; spots only (plus a cord in the crossroads) |
-| **new** `lobby_meeting_room` | abandoned meeting room between two side halls |
-| **new** `lobby_cubicle_farm` | six cubicles; one stripped to a chair facing the wall, one chair rolled into the aisle, a blanket under a desk |
-| **new** `lobby_campsite` | camp in a walled corner behind a box wall, lamp plugged into nothing |
-| **new** `lobby_chair_hall` | rows of identical chairs facing a door to nowhere; one turned round |
-
-## 8. Second pass: where upcoming props go
-
-Other features are adding props in parallel. Their spots already exist and point at stand-in
-pools. When a prop lands, **add it to the pool named here** (don't add new spots unless the
-table says so). Keep the pool's `null` share about the same.
-
-| Spot / pool | Upcoming prop | Notes |
+| Room | Story | Light |
 |---|---|---|
-| `*_wall_panel` / `room_wall_panel` | **light switch**, **evacuation map**, fuse box | Panels sit by doorways (office door, meeting entrance, storage west wall, colonnade, ring core, corridor walls). Switch about 1.2 m up, 0.13 m off the wall |
-| `*_wall_hang` / `room_wall_hang` | **evacuation map**, **dark writing** (power), clocks, cork boards | Never on a wall that can be stamped open |
-| `*_fixture` / `room_desk_fixture` | **typewriter**, phone, lamp | Typewriter faces the sitter (spot rot = desk rot) |
-| `*_top` / `room_desk_top` | **ID badge**, **walkie-talkie**, **camera**, **red string** | Badges and walkies are prime desk-top finds |
-| `table_*` / `room_meeting_table` | **typewriter** (rare), badge, walkie | |
-| `*_beside_chair`, `*_seat` / `room_beside_chair` | **walkie-talkie**, **camera**, badge, tape | "Where someone sat" |
-| `camp_*` / `room_camp` | **glow sticks**, **music box**, **red string**, walkie, camera | Camps are the richest spots |
-| `*_camp` / `room_camp_site` | (camp variants) | |
-| `shelf_*` / `room_storage_shelf` | **spare fluorescent tubes**, **glow sticks**, fuses, batteries | Tubes are 2-pocket; the shelf is 1.2 m wide, so they fit |
-| `storage_floor_*` / `room_storage_floor` | **carts** (physics), rolling chairs | Solid; the spot's AABB is checked |
-| `*_wall_base` / `room_wall_base` | **filing cabinet**, **water cooler**, **vending machine** (if ≤ 0.6 m deep) | Depth budget is 0.6 m. Deeper props need their own `against(..., depth)` spot |
-| `corridor_end` / `room_corridor_end` | **vending machine**, filing cabinet | Crossroads corridor wall today. Add more at true dead ends |
-| `*_corner` (solid) / `room_floor_corner` | **filing cabinet**, rolling chair, cart | |
-| `dead_centre` / `room_center_wrong` | **music box** (wound, playing, nobody there), rolling chair | |
-| `chair_at_pillar` / `room_chair_facing_wall` | **rolling office chair** (physics) | Spot rot must still point the chair at the wall |
-| fixed `office_chair` objects (offices, meeting rooms, cubicles, big L hall) | physics rolling chairs | Placement already reads as "pushed back"; keep the rot |
-| fixed `cardboard_box`, `wet_floor_sign` (campsite, storage, stair hall) | physics boxes and signs | They may now be pushed out of place, which is fine |
-| `*_ceiling` / `room_ceiling` | dead light fixtures (power) | Use the room layout's `L` cells, not spots |
+| `lobby_office` | manager's office: desk to the north wall with a **typewriter** on it, rolling chair pushed back, **bin and filing cabinet** beside the desk, bookcase, coat, plant, whiteboard, **light switch** by the door. Reception desk by the connecting door, switch spot on the divider | rolled |
+| `lobby_storage` | north wall of shelving, two shelf islands, tall box stack, sign by a stain, **AV cart** in the aisle; **empty fuse cabinet + switch + filing cabinet** on the west wall. Tubes, fuses, coins on the shelves | one `x`; dark until a fuse goes in |
+| `lobby_ring` | desk against the core in the looping corridor, rolling chair, cord; **empty fuse cabinet** on the core, switch spot beside it | one `x`; dark until fused |
+| `lobby_twin_rooms` | two identical offices | rolled |
+| `lobby_split_hall` | waiting area: three chairs, clock, **physics bin**, plant, **vending machine** at the end of the row; leak by the gap (sign or **janitor cart**); evac-map spot on the east partition | rolled |
+| `lobby_partial_walls` | one desk in the nook, notice-board spot, possible camp in the pocket | rolled |
+| `lobby_long_corridor` | one chair facing the wall; **evacuation plan** (fixed) on the north wall; **janitor cart** parked on the south side; switch and dark-writing spots | rolled |
+| `lobby_dead_end_alcove` | camp at the very end of the dead end, lamp on the floor, writing above; dark-writing spot in the corridor | rolled |
+| `lobby_big_l_hall` | meeting table in the middle of the hall; a chair facing a pillar down the arm; sign/cart spot beside the leak | rolled |
+| `lobby_stair_hall` | leak + sign where the halves meet, **janitor cart** left beside it, fallen ceiling tile | rolled |
+| `lobby_pillar_forest`, `lobby_colonnade`, `lobby_crossroads`, `lobby_empty_lit` | bare on purpose; spots only (cord in the crossroads; the crossroads gets an evac-map spot and a deep corridor-end spot for the vending machine; the colonnade a switch spot) | rolled |
+| `lobby_meeting_room` | abandoned meeting: rolling chairs pushed back, a **typewriter** left on the table facing an empty chair, whiteboard, dead clock; switch spot at the entrance | the tube over the table is `f` |
+| `lobby_cubicle_farm` | six cubicles; one stripped to a chair facing the wall, one chair rolled into the aisle, a blanket under a desk; **filing cabinet and bin** in the north cubicles; every desk now has a rolling chair | east tube `f` |
+| `lobby_campsite` | camp in a walled corner behind a box wall, lamp plugged into nothing, **two candle stubs, a box of matches, a music-box spot** (35 %) by the pillow | rolled |
+| `lobby_chair_hall` | rows of identical chairs facing a door to nowhere; one turned round; a switch spot beside the door to nowhere | rolled |
+| **new** `lobby_dark_room` | records room: **empty fuse cabinet**, switch by the door, three filing cabinets, a desk with a candle stub and (often) matches, file boxes in the middle. **Dark writing** above the desk and on the south wall, plus a `power_wall` spot: readable only with the lights off. Fuse in and it is just a room (about 1 % of slots) | 3 `x` + 1 `f`; dark until fused |
 
-When the physics chair lands, consider swapping the fixed `office_chair` in `lobby_ring` and
-`lobby_cubicle_farm` ("rolled into the aisle") for the rolling version. A chair that has drifted
-is the Tenant's calling card.
+All desk chairs in rooms are the rolling `office_chair` (physics push body); the stacking chairs
+that remain are waiting-room, chair-hall and "facing the wall" set pieces.
+
+## 8. Feature props: final placement
+
+The three feature branches (physics, power, story) have landed. Where each prop lives now:
+
+| Prop | Fixed placements | Rolled from (spot → pool) |
+|---|---|---|
+| `office_chair` (rolls/spins) | every desk and table chair (office, cubicles, ring, twins, partial walls, meeting room, big L hall, dark room) | `room_chair_facing_wall`, `room_center_wrong`, `room_floor_corner`, `room_storage_floor`, filler `lobby_clutter` |
+| `janitor_cart` | stair hall (by the leak), long corridor | `beside_*leak` → `room_beside_stain`; `storage_floor_*` → `physics_carts`; filler |
+| `av_cart` | storage aisle | `storage_floor_*` → `physics_carts`; filler |
+| `trash_bin` (tips, spills) | office desk, cubicles, split-hall waiting row, dark room | `*_wall_base`, solid `*_corner`, filler |
+| `soda_can`, `glass_bottle` | (the camp prefab's empties are decor) | `*_floor` → `physics_throwables`; `camp_*`; cans at `*_beside_chair` |
+| `cardboard_box` (carry), `wet_floor_sign` (topples) | campsite, storage, stair hall (unchanged) | corners, storage floor, wall bases, `beside_*leak`, filler |
+| `light_switch` | office (manager's door), storage, dark room | `*_wall_switch` → `room_wall_switch` (office, meeting room, long corridor, ring, colonnade, chair hall); dark room `power_wall` |
+| `fuse_box` | storage, ring, dark room (all start dark) | `*_wall_panel` → `room_wall_panel` |
+| `spare_tube`, `glow_stick` | | `shelf_*`; corners via `power_room_loot`; glow sticks at camps |
+| `matches`, `candle` | campsite (2 candles + matches), dark-room desk (candle) | `camp_*`; matches on desk tops, shelves, the dark-room desk |
+| `music_box` | | `camp_music_box` (campsite, 35 %); `dead_centre`; corners from depth 3 |
+| `dark_writing`, `dark_arrow` | dark room: two writing spots (one-entry pools) + `power_wall` | `*_wall_dark` → `room_wall_dark` (long corridor, dead-end alcove) |
+| `filing_cabinet` | office, storage, cubicle farm, dark room ×3 | `*_wall_base`, solid `*_corner`, `corridor_end` (`story_floor`) |
+| `vending_machine` | split-hall waiting area | `corridor_end` (`story_floor`, crossroads) |
+| `coin` | | shelves, corners, desk tops, meeting tables, desk fixtures (`story_desk`), drawers, vending |
+| `typewriter` | office manager's desk, meeting-room table | `*_fixture` (`story_desk`, faces the sitter); `table_*` (rare) |
+| `id_badge`, `walkie_talkie`, `flash_camera`, `blank_tape`, `red_string` | | desk tops, desk fixtures, meeting tables, beside chairs, camps (badges and walkies commonest on desks) |
+| `evac_map` | long corridor (north wall) | `*_wall_map` → `room_wall_map` (crossroads, split hall) |
+| room lights `x` / `f` | `x`: storage, ring, dark room; `f`: meeting room, cubicle farm, dark room | the power network's rolls on `L` cells |
+
+**Power-network extras** (`content/config.json` → `power`): `switchChance` 0.3 → **0.05**,
+`writingChance` 0.15 → **0.05**, `lootChance` 0.3 → **0.1**. Rooms now place switches, writing and
+power loot deliberately; the small remainder keeps a few in filler rooms, which have no spots.
+
+### Still upcoming
+| Spot / pool | Prop | Notes |
+|---|---|---|
+| `*_wall_base` / `room_wall_base` | water cooler | depth budget 0.6 m |
+| `*_wall_hang` | clocks that disagree (watch puzzle), exit signs | 0.13 m inset if built like the decor wall props |
+| new spot kinds | keycard doors (badges), lockers and hiding spots, a CRT feed on the AV cart | |

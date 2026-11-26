@@ -49,6 +49,7 @@
     { "id": "camp_b", "pos": [14.6, 0, 13.55], "pool": "room_camp" },
     { "id": "camp_c", "pos": [17.6, 0, 12.3], "pool": "room_camp" },
     { "id": "corridor_wall_hang", "pos": [10, 0, 6.13], "rot": 180, "pool": "room_wall_hang" },
+    { "id": "corridor_wall_dark", "pos": [12, 1.0, 6.02], "rot": 180, "pool": "room_wall_dark" },
     { "id": "alcove_floor", "pos": [6, 0, 8], "pool": "room_floor_litter" },
     { "id": "alcove_ceiling", "pos": [22, 0, 13], "pool": "room_ceiling" }
   ]

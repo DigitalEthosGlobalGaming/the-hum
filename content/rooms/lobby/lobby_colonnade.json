@@ -40,6 +40,7 @@
   "spots": [
     { "id": "north_wall_base", "pos": [16, 0, 2.33], "rot": 180, "pool": "room_wall_base" },
     { "id": "south_wall_panel", "pos": [16, 0, 13.87], "rot": 0, "pool": "room_wall_panel" },
+    { "id": "south_wall_switch", "pos": [15.0, 1.05, 13.98], "rot": 0, "pool": "room_wall_switch" },
     { "id": "colonnade_floor", "pos": [11, 0, 7.4], "pool": "room_floor_litter" },
     { "id": "colonnade_stain", "pos": [22, 0, 9], "pool": "room_floor_stain" },
     { "id": "colonnade_ceiling", "pos": [20, 0, 7], "pool": "room_ceiling" }
